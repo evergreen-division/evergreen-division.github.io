@@ -58,7 +58,7 @@ window.EGD=(function(){
     [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
     ov.appendChild(panel);
     try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
-    function reset(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}try{if(window.EvergreenSetup&&cfg.setup)EvergreenSetup.reset(cfg.setup);}catch(e){}location.reload();}
     open.onclick=function(){err.textContent='';ov.hidden=false;};
     cl.onclick=function(){ov.hidden=true;};
     ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
@@ -205,7 +205,7 @@ footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
   </div>
 
   <header>
-    <div class="eyebrow">Evergreen Division</div>
+    <div class="eyebrow" id="eyebrow">Evergreen Division</div>
     <h1>Business Gifts <span id="yr"></span></h1>
     <div class="sub" id="asof"></div>
   </header>
@@ -216,11 +216,20 @@ footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
 
   <footer id="foot"></footer>
 </div>
+<script src="../shared/setup-interview.js"></script>
 <script>
+const SETUP_ID='business-gifts';
+const ANS=(function(){try{return (window.EvergreenSetup&&EvergreenSetup.answers(SETUP_ID))||{};}catch(e){return {};}})();
+const ANS_USED=JSON.stringify(ANS);
+const has=v=>v!==''&&v!=null&&isFinite(Number(v));
+const nk=s=>{const p=String(s||'').toLowerCase().replace(/[^a-z\s]/g,' ').trim().split(/\s+/).filter(Boolean);return p.length?p[0]+(p[1]?' '+p[1][0]:''):'';};
+const REP=['CSP','Rep','Manager'].indexOf(ANS.repWord)>=0?ANS.repWord:'CSP', REPS=REP+'s';
+const escH=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function buildGifts(rows, forDesign, isSample){
   const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
   const opt=v=>{if(v==null||String(v).trim()==='')return null;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isFinite(n)?n:null;};
+  const GOALS=(Array.isArray(ANS.reps)?ANS.reps:[]).map(r=>({k:nk(r.name),name:String(r.name||'').trim(),biz:opt(r.biz),rlt:opt(r.rlt)})).filter(g=>g.k);
   const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:num(r.orders),goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
   if(!recs.length)throw new Error('No usable rows (each row needs a name and a year).');
   const Y=Math.max(...recs.map(x=>x.year)), years=[Y-2,Y-1,Y];
@@ -251,23 +260,27 @@ function buildGifts(rows, forDesign, isSample){
       if(forDesign)r.projection=o.proj;
       return r;
     });
+    const have={};
+    if(!isSample)reps.forEach(r=>{const g=GOALS.find(x=>x.k===nk(r.name));if(g){have[g.k]=1;const v=T==='BIZ'?g.biz:g.rlt;if(v!=null)r.goal=v;}});
+    if(!isSample)GOALS.forEach(g=>{const v=T==='BIZ'?g.biz:g.rlt;if(v==null||have[g.k])return;have[g.k]=1;const yrs={};years.forEach(y=>{yrs[y]=0;});const z={name:escH(g.name),years:yrs,ytd:0,ly_ytd:0,orders:0,avg:null,months:zero(),goal:v};if(forDesign)z.projection=null;reps.push(z);});
     reps.sort((a,b)=>b.ytd-a.ytd);
     const totals={};years.forEach(y=>{totals[y]=sum(monthly[y]);});
     types[T]={label:labels[T],monthly:monthly,totals:totals,ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),reps:reps};
   });
-  const out={asof:asof,year:Y,years:years,types:types,no_orders:[]};
+  const out={asof:asof,year:Y,years:years,types:types,no_orders:[],pendingReps:!!(isSample&&GOALS.length)};
   if(forDesign){
     const B=types.BIZ;
     if(!B.reps.length)throw new Error('Add at least one BIZ (business gift) row.');
-    if(!(B.totals[Y-1]>0||B.totals[Y-2]>0))throw new Error('The scoreboard needs at least one earlier year of BIZ data to work out pace.');
-    if(!B.reps.some(r=>r.goal!=null))B.reps.forEach(r=>{if(r.ytd>0||r.years[Y-1]>0)r.goal=Math.max(1000,Math.round(Math.max(r.years[Y-1],r.ytd)*1.1/1000)*1000);});
+    if(!/^straight/i.test(ANS.pace||'')&&!(B.totals[Y-1]>0||B.totals[Y-2]>0))throw new Error('The scoreboard needs at least one earlier year of BIZ data to work out pace.');
+    const gr=has(ANS.growth)?Number(ANS.growth)/100:0.1;
+    if(!B.reps.some(r=>r.goal!=null)||has(ANS.growth))B.reps.forEach(r=>{if(r.goal==null&&(r.ytd>0||r.years[Y-1]>0))r.goal=Math.max(1000,Math.round(Math.max(r.years[Y-1],r.ytd)*(1+gr)/1000)*1000);});
     out.no_orders=B.reps.filter(r=>r.goal!=null&&!r.ytd&&!r.orders).map(r=>r.name);
     B.reps=B.reps.filter(r=>!(r.goal!=null&&!r.ytd&&!r.orders));
     if(!B.reps.some(r=>r.goal!=null))throw new Error('Add a goal for at least one person.');
   }
   return out;
 }
-const D = EGD.init({key:"egd-business-gifts-designs-v1",columns:["type", "name", "year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "orders", "goal", "projection"],required:["name", "year"],help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year. <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year\u2019s row, <b>orders</b> = number of orders, <b>goal</b> = that person\u2019s year goal and <b>projection</b> = their projection (optional). Include at least one earlier year so pace can be worked out. The scoreboard designs use the BIZ rows; if no goals are given, goals are estimated from last year.",filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
+const D = EGD.init({setup:SETUP_ID,key:"egd-business-gifts-designs-v1",columns:["type", "name", "year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "orders", "goal", "projection"],required:["name", "year"],help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year. <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year\u2019s row, <b>orders</b> = number of orders, <b>goal</b> = that person\u2019s year goal and <b>projection</b> = their projection (optional). Include at least one earlier year so pace can be worked out. The scoreboard designs use the BIZ rows; if no goals are given, goals are estimated from last year.",filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
 BIZ,Jordan K.,2024,2750,2573,5961,9998,2876,1198,1755,6777,5364,2336,7709,2703,,,
 BIZ,Jordan K.,2025,4779,2981,17764,16083,14697,9286,6828,14075,4729,2247,0,4531,,,
 BIZ,Jordan K.,2026,8678,3623,2428,2688,4130,3641,30257,7449,7149,8511,446,0,33,145000,128000
@@ -331,7 +344,11 @@ const mi = asof.getMonth(), dim = new Date(Y, mi + 1, 0).getDate(), dayFrac = as
 
 // Seasonal pace: share of a year's business gifts usually done by this date (average of earlier years).
 const past = D.years.filter(y => y < Y);
+const STRAIGHT = /^straight/i.test(ANS.pace || '');
+const CLOSE = Math.min(1, Math.max(0, (has(ANS.behind) ? Number(ANS.behind) : 90) / 100));
+const GY = has(ANS.goalYear) ? Math.round(Number(ANS.goalYear)) : Y;
 function shareBy(m, f){
+  if (STRAIGHT) return (m + f) / 12;
   const s = past.map(y => { const a = T.monthly[y], tot = a.reduce((x,z)=>x+z,0); if(!tot) return null;
     let c = 0; for (let i=0;i<m;i++) c += a[i]; c += a[m]*f; return c/tot; }).filter(x => x != null);
   return s.reduce((a,b)=>a+b,0)/s.length;
@@ -347,7 +364,7 @@ const divYtd = T.ytd, divPace = divGoal*FR, divFore = divYtd/FR;
 function status(ytd, goal){
   const p = goal*FR, r = p ? ytd/p : 0;
   if (r >= 1) return {c:'up', t:'Ahead of pace'};
-  if (r >= .9) return {c:'mid', t:'Close to pace'};
+  if (r >= CLOSE) return {c:'mid', t:'Close to pace'};
   return {c:'down', t:'Behind pace'};
 }
 const gap = (ytd, goal) => ytd - goal*FR;
@@ -355,13 +372,15 @@ const gapTxt = (ytd, goal) => { const g = gap(ytd,goal); return g >= 0 ? `${k(g)
 const needMo = (ytd, goal) => Math.max(0, goal - ytd) / monthsLeft;
 
 $('#yr').textContent = Y;
-$('#asof').textContent = `Data through ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · ${reps.length} CSPs`;
-const lyYtd = T.ly_ytd, vsLy = (divYtd - lyYtd)/lyYtd;
+$('#asof').textContent = `Data through ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · ${reps.length} ${REPS}`;
+if (ANS.team) $('#eyebrow').textContent = ANS.team;
+const lyYtd = T.ly_ytd, vsLy = lyYtd > 0 ? (divYtd - lyYtd)/lyYtd : 0;
+const vsHtml = () => lyYtd > 0 ? `<span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span>` : '<span class="muted b">new</span>';
 
 function kpis(){
   const s = status(divYtd, divGoal);
   return `<div class="kpis">
-    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(divYtd)}</div><div class="n"><span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs same date ${Y-1}</div></div>
+    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(divYtd)}</div><div class="n">${vsHtml()} vs same date ${Y-1}</div></div>
     <div class="card kpi"><div class="l">Division goal</div><div class="v">${money(divGoal)}</div><div class="n">Team projection ${money(divProj)}</div></div>
     <div class="card kpi"><div class="l">Pace today</div><div class="v ${s.c}">${gapTxt(divYtd, divGoal)}</div><div class="n">Should be at ${money(divPace)} by now</div></div>
     <div class="card kpi"><div class="l">On track to finish</div><div class="v">${money(divFore)}</div><div class="n">${Math.round(divFore/divGoal*100)}% of goal at this speed</div></div>
@@ -418,14 +437,14 @@ function o2(){
       <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to goal and last year.</div><div class="chart big"><canvas id="c2"></canvas></div></div>
       <div class="card side">
         <div class="eyebrow">So far</div><div class="big">${money(divYtd)}</div>
-        <p><span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs same date ${Y-1}</p><hr>
+        <p>${vsHtml()} vs same date ${Y-1}</p><hr>
         <div class="eyebrow">Goal</div><div class="big">${money(divGoal)}</div>
         <p>Team projection ${money(divProj)}. <span class="${s.c} b">${gapTxt(divYtd,divGoal)}</span> of pace.</p><hr>
         <div class="eyebrow">On track to finish</div><div class="big">${money(divFore)}</div>
-        <p>If the rest of the year goes like other years.</p>
+        <p>${STRAIGHT ? 'If the rest of the year goes like so far.' : 'If the rest of the year goes like other years.'}</p>
       </div>
     </div>
-    <div class="card"><h2>Each CSP</h2><div class="h2n">Pace = where they should be today to hit their goal. Bars = each month this year.</div>
+    <div class="card"><h2>Each ${REP}</h2><div class="h2n">Pace = where they should be today to hit their goal. Bars = each month this year.</div>
       <div class="tablewrap"><table><thead><tr><th>Name</th><th>So far</th><th>Goal</th><th>Pace</th><th>On track for</th><th>${Y} by month</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
   trendChart('c2', true);
 }
@@ -451,7 +470,7 @@ function o3(){
   $('#o3').innerHTML = `
     <div class="card divcard">${ring(divYtd/divGoal, 150, s.c)}
       <div><div class="eyebrow">Whole division</div><h2 style="font-size:26px">${money(divYtd)} of ${money(divGoal)}</h2>
-      <div class="sub"><span class="${s.c} b">${gapTxt(divYtd,divGoal)}</span> of pace · on track to finish at <b>${money(divFore)}</b> · <span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs ${Y-1}</div>
+      <div class="sub"><span class="${s.c} b">${gapTxt(divYtd,divGoal)}</span> of pace · on track to finish at <b>${money(divFore)}</b> · ${vsHtml()} vs ${Y-1}</div>
       <div class="sub" style="margin-top:6px">The small dark mark on each circle is where the person should be today.</div></div></div>
     <div class="cards">${cards}</div>
     <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to goal and last year.</div><div class="chart"><canvas id="c3"></canvas></div></div>`;
@@ -472,7 +491,25 @@ function show(o){
 }
 document.querySelectorAll('.picker button').forEach(b=> b.onclick = ()=>show(b.dataset.o));
 show('1');
-$('#foot').innerHTML = `Only orders tagged <b>Business gift</b> count. "Pace" uses how business gifts usually spread across the year (${past.join(' and ')}): by ${M[mi]} ${asof.getDate()} the division normally has ${Math.round(FR*100)}% of its year done.`;
+$('#foot').innerHTML = `Only orders tagged <b>Business gift</b> count. "Pace" ` + (STRAIGHT ? `is a straight line through the year:` : `uses how business gifts usually spread across the year (${past.join(' and ')}):`) + ` by ${M[mi]} ${asof.getDate()} the division ` + (STRAIGHT ? 'should have' : 'normally has') + ` ${Math.round(FR*100)}% of its year done.`
+  + (GY !== Y ? ` Goals shown are your ${GY} goals, measured here against ${Y} sales so far.` : '')
+  + (D.pendingReps ? ` Your ${REPS} and goals from Setup are saved. They appear here as soon as you load your own data.` : '');
+if (window.EvergreenSetup) EvergreenSetup.init({
+  id: SETUP_ID,
+  title: 'Set up your business-gifts scoreboard',
+  intro: 'A few quick questions so the people, goals and pace rules match your team. About 3 minutes. Everything is optional.',
+  questions: [
+    {key:'team', q:'What should this page call your team?', why:'Shown at the top of the page so people know whose numbers these are. You can add your Vector Connect office number (Vector Connect is the order system Cutco offices use).', type:'text', optional:true, example:'Evergreen Division · Office #1234', placeholder:'e.g. Evergreen Division · Office #1234'},
+    {key:'repWord', q:'What do you call the people listed on this page?', why:'A CSP (Cutco Sales Professional) is a senior rep. Pick the word your team uses; it replaces the labels and column heading.', type:'choice', options:['CSP','Rep','Manager'], example:'CSP'},
+    {key:'realtor', q:'Do you want to see realtor gifts too?', why:'Orders in Vector Connect are tagged BIZ (business gift) or RLT (realtor gift) by whoever enters them, and only tagged orders show up here. If you do not sell to realtors, hide that view. (Business-gifts dashboard only.)', type:'choice', options:['Yes, show both','No, business gifts only'], example:'Yes, show both'},
+    {key:'goalYear', q:'Which year are your goals for?', why:'Sets the label on the goal column and goal notes in the business-gifts dashboard. Leave it blank to use next year. The scoreboard designs always measure goals against this year\u2019s pace.', type:'number', optional:true, example:'2027', placeholder:'e.g. 2027'},
+    {key:'reps', q:'Who are your CSPs, and what is each person’s goal for the year?', why:'Goals are whole-year dollars. Use the name as it appears in your data (first name and last initial is enough). Leave a goal blank if someone has none. These combine with your uploaded data: matching names get the goal, and anyone missing from your data shows at $0 so far.', type:'list', optional:true, fields:[{key:'name',label:'Name'},{key:'biz',label:'Business-gift goal ($)',type:'number'},{key:'rlt',label:'Realtor-gift goal ($)',type:'number'}], example:'Jordan K. · $60,000 business · $25,000 realtor'},
+    {key:'growth', q:'If someone has no goal, how much growth over last year should we assume?', why:'In percent. Anyone without a goal gets last year’s total (or this year so far, if higher) plus this growth. (Scoreboard designs only.)', type:'number', optional:true, example:'10', placeholder:'e.g. 10'},
+    {key:'pace', q:'How should the scoreboard decide where each person should be today?', why:'Gift sales are lumpy, for example heavy near year end. Seasonal pace uses how much of the year was usually done by this date in your earlier years, so it needs at least one earlier year of data. Straight line works for a brand new team. (Scoreboard designs only.)', type:'choice', options:['Seasonal: follow earlier years','Straight line: same each month'], example:'Seasonal: follow earlier years'},
+    {key:'behind', q:'Below what percent of pace is someone “behind”?', why:'At or above 100% of where they should be today is “ahead”. Between this number and 100% is “close”. Under this number shows red as “behind”. (Scoreboard designs only.)', type:'number', optional:true, example:'90', placeholder:'e.g. 90'}
+  ],
+  onDone(a){ if (JSON.stringify(a || {}) !== ANS_USED) location.reload(); }
+});
 </script>
 
 <a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body></html>

@@ -63,7 +63,7 @@ window.EGD=(function(){
     [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
     ov.appendChild(panel);
     try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
-    function reset(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}try{if(window.EvergreenSetup&&cfg.setup)EvergreenSetup.reset(cfg.setup);}catch(e){}location.reload();}
     open.onclick=function(){err.textContent='';ov.hidden=false;};
     cl.onclick=function(){ov.hidden=true;};
     ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
@@ -139,15 +139,20 @@ h1{font-family:"Fraunces",Georgia,serif;font-size:26px;font-weight:700;color:var
 <div class="wrap">
   <svg class="rings" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="42"/><circle cx="60" cy="60" r="28"/><circle cx="60" cy="60" r="14"/></svg>
   <p class="eyebrow">Evergreen Division &middot; Cutco</p>
-  <h1>WSF shift rankings</h1>
-  <p class="meta">Ranked by shift average &middot; Days 1&ndash;13 &middot; State Fair, Sept</p>
+  <h1 id="evTitle">WSF shift rankings</h1>
+  <p class="meta" id="evMeta">Ranked by shift average &middot; Days 1&ndash;13 &middot; State Fair, Sept</p>
   <div class="rule"></div>
   <div class="list" id="list"></div>
-  <div class="key">Gross CPO before cancellations. Sample figures: 13 of 20 days complete.</div>
-  <div class="foot"><span>Evergreen Division &middot; Fair shift rankings</span><span id="srcnote">Sample data</span></div>
+  <div class="key" id="evKey">Gross CPO before cancellations. Sample figures: 13 of 20 days complete.</div>
+  <div class="foot"><span id="evFoot">Evergreen Division &middot; Fair shift rankings</span><span id="srcnote">Sample data</span></div>
 </div>
+<script src="../shared/setup-interview.js"></script>
 <script>
-const R = EGD.init({key:"egd-wsf-shift-rankings-v1",columns:["name", "shifts", "total_sales", "avg_order", "leads_per_shift"],required:["name", "shifts", "total_sales"],help:"One row per person. <b>name</b> = person, <b>shifts</b> = shifts worked, <b>total_sales</b> = total sales in dollars, <b>avg_order</b> = average order in dollars (optional), <b>leads_per_shift</b> = average leads per shift (optional). People are ranked by total_sales divided by shifts.",filename:"shift-rankings-template.csv",sample:`name,shifts,total_sales,avg_order,leads_per_shift
+const SETUP_ID='event-shifts';
+const ANS=(function(){try{return (window.EvergreenSetup&&EvergreenSetup.answers(SETUP_ID))||{};}catch(e){return {};}})();
+const ANS_USED=JSON.stringify(ANS);
+const has=v=>v!==''&&v!=null&&isFinite(Number(v));
+const R = EGD.init({setup:SETUP_ID,key:"egd-wsf-shift-rankings-v1",columns:["name", "shifts", "total_sales", "avg_order", "leads_per_shift"],required:["name", "shifts", "total_sales"],help:"One row per person. <b>name</b> = person, <b>shifts</b> = shifts worked, <b>total_sales</b> = total sales in dollars, <b>avg_order</b> = average order in dollars (optional), <b>leads_per_shift</b> = average leads per shift (optional). People are ranked by total_sales divided by shifts.",filename:"shift-rankings-template.csv",sample:`name,shifts,total_sales,avg_order,leads_per_shift
 Jordan K.,13,72731,562,6.1
 Taylor M.,11,52312,1090,0.4
 Casey R.,8,27431,845,2.8
@@ -169,8 +174,49 @@ Sam T.,9,12498,470,2.7
 }});
 const fmt = v => '$' + Math.round(v).toLocaleString('en-US');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-document.getElementById('list').innerHTML = R.map((r, i) =>
-  `<div class="row"><div class="rk">${i+1}</div><div class="mid"><div class="nm">${esc(r.name)}</div><div class="sub">${r.shifts} shifts &middot; ${fmt(r.total)} total<br>${fmt(r.ao)} avg order &middot; ${r.leads.toFixed(1)} leads/sh</div></div><div class="avg"><b>${fmt(r.avg)}</b><span>Shift avg</span></div></div>`).join('');
+const EV = String(ANS.eventName || '').trim();
+const TD = has(ANS.totalDays) ? Math.max(1, Math.round(Number(ANS.totalDays))) : 20;
+const DD = has(ANS.daysDone) ? Math.max(0, Math.round(Number(ANS.daysDone))) : 13;
+const HALF = /half/i.test(ANS.shiftDef || '');
+const BYTOTAL = /^total/i.test(ANS.rankBy || '');
+const KEPT = /^kept/i.test(ANS.measure || '');
+const LEADS = !/^no/i.test(ANS.showLeads || '');
+const GOAL = has(ANS.teamGoal) ? Number(ANS.teamGoal) : 0;
+const unit = HALF ? 'half shift' : 'shift';
+let isSample = true; try { isSample = localStorage.getItem('egd-wsf-shift-rankings-v1') === null; } catch (e) {}
+const rows = R.slice().sort((a, b) => BYTOTAL ? b.total - a.total : b.avg - a.avg);
+document.getElementById('list').innerHTML = rows.map((r, i) =>
+  `<div class="row"><div class="rk">${i+1}</div><div class="mid"><div class="nm">${esc(r.name)}</div><div class="sub">${r.shifts} ${unit}s &middot; ${fmt(BYTOTAL ? r.avg : r.total)} ${BYTOTAL ? 'per ' + unit : 'total'}<br>${fmt(r.ao)} avg order${LEADS ? ' &middot; ' + r.leads.toFixed(1) + ' leads/sh' : ''}</div></div><div class="avg"><b>${fmt(BYTOTAL ? r.total : r.avg)}</b><span>${BYTOTAL ? 'Total sales' : (HALF ? 'Half-shift avg' : 'Shift avg')}</span></div></div>`).join('');
+if (EV) document.getElementById('evTitle').textContent = EV + ' shift rankings';
+if (EV || ANS.rankBy || ANS.daysDone) document.getElementById('evMeta').innerHTML = 'Ranked by ' + (BYTOTAL ? 'total sales' : (HALF ? 'half-shift average' : 'shift average')) + ' &middot; Days 1&ndash;' + DD + (EV ? ' &middot; ' + esc(EV) : ' &middot; State Fair, Sept');
+if (EV) document.getElementById('evFoot').textContent = 'Evergreen Division · ' + EV + ' shift rankings';
+(function () {
+  const total = R.reduce((a, r) => a + r.total, 0);
+  let t = (isSample ? 'Sample figures: ' : '') + (KEPT ? 'Kept CPO after cancellations. ' : 'Gross CPO before cancellations. ')
+    + 'A shift = one person working one ' + (HALF ? 'half day' : 'full day') + '. ' + DD + ' of ' + TD + ' days complete.';
+  if (GOAL > 0) {
+    t += ' Team: ' + fmt(total) + ' of ' + fmt(GOAL) + ' goal (' + Math.round(total / GOAL * 100) + '%).';
+    if (DD > 0 && DD < TD) t += ' At this speed: about ' + fmt(total * TD / DD) + ' by day ' + TD + '.';
+  }
+  if (!ANS.measure && !ANS.daysDone && !ANS.totalDays && !ANS.shiftDef && !GOAL) t = (isSample ? 'Sample figures: ' : '') + 'Gross CPO before cancellations. ' + DD + ' of ' + TD + ' days complete.';
+  document.getElementById('evKey').textContent = t;
+})();
+if (window.EvergreenSetup) EvergreenSetup.init({
+  id: SETUP_ID,
+  title: 'Set up your event shift rankings',
+  intro: 'A few quick questions so the title, days, ranking rule and labels match your event. About 2 minutes.',
+  questions: [
+    {key:'eventName', q:'What is the event called?', why:'Used in the title and under it. Use the name your team uses.', type:'text', example:'State Fair', placeholder:'e.g. State Fair'},
+    {key:'totalDays', q:'How many event days are there in total?', why:'Used for the progress line ("13 of 20 days complete") and for the projection if you set a team goal. Count every day the booth is open.', type:'number', example:'20', placeholder:'e.g. 20'},
+    {key:'daysDone', q:'How many event days are finished so far?', why:'Shown in the header ("Days 1–13"). Only count days that are over and fully entered, so nobody is ranked on a half-entered day.', type:'number', example:'13', placeholder:'e.g. 13'},
+    {key:'shiftDef', q:'What counts as one shift?', why:'Rankings divide sales by shifts, so everyone has to count a shift the same way. A person who works part of a day should be counted the way you count it in your CSV.', type:'choice', options:['One person working one full day','One person working one half day'], example:'One person working one full day'},
+    {key:'measure', q:'Which sales number is in your CSV?', why:'CPO is the sales dollars Cutco credits to your office. Gross is before cancellations; kept is after. The page labels the ranking so nobody argues about which one it is. Your CSV should use one or the other for everyone.', type:'choice', options:['Gross CPO (before cancellations)','Kept CPO (after cancellations)'], example:'Gross CPO (before cancellations)'},
+    {key:'rankBy', q:'How should people be ranked?', why:'Shift average is fairest when people worked different numbers of shifts. Total sales favors whoever worked the most.', type:'choice', options:['Shift average (sales per shift)','Total sales'], example:'Shift average (sales per shift)'},
+    {key:'showLeads', q:'Show leads per shift?', why:'Leads are only fair to compare if everyone logs them the same way. If some people do not enter leads, hide the column so it does not start an argument.', type:'choice', optional:true, options:['Yes','No'], example:'No'},
+    {key:'teamGoal', q:'Is there a team sales goal for the whole event?', why:'Adds one line at the bottom with the team total so far, the percent of goal, and where the total lands if the remaining days go like the days so far.', type:'money', optional:true, example:'500000', placeholder:'e.g. 500000'}
+  ],
+  onDone(a){ if (JSON.stringify(a || {}) !== ANS_USED) location.reload(); }
+});
 </script>
 <a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
 </html>

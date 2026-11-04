@@ -224,6 +224,7 @@ h2{font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.14em}
   </section>
 </div>
 
+<script src="../shared/setup-interview.js"></script>
 <script>
 (function(){
 var LS_KEY = "winter-break-launch-calendar-plan-v1";
@@ -336,13 +337,14 @@ function normalize(p){
   var out=clone(SAMPLE);
   if(p.meta) Object.keys(p.meta).forEach(function(k){ out.meta[k]=p.meta[k]; });
   ["calendar","sourcing","band","event"].forEach(function(k){ if(p[k]) out[k]=p[k]; });
+  if(p.event===null) out.event=null; // no year-end event
   LISTS.forEach(function(k){ if(p[k]!==undefined){ if(!Array.isArray(p[k])) throw new Error(k+" must be a list"); out[k]=p[k]; }});
   // check dates
   ms(out.calendar.start);
   var days=+out.calendar.days; if(!(days>=14&&days<=400)) throw new Error("calendar.days must be 14–400");
   out.calendar.days=days;
   var chk=function(o,f){ f.forEach(function(x){ if(o[x]!==undefined&&o[x]!=="") ms(o[x]); }); };
-  chk(out.sourcing,["start","end"]); chk(out.band,["start","end"]); chk(out.event,["start","end"]);
+  chk(out.sourcing,["start","end"]); chk(out.band,["start","end"]); if(out.event) chk(out.event,["start","end"]);
   out.schools.forEach(function(o){ chk(o,["start","end"]); if(["std","long","short"].indexOf(o.kind)<0) o.kind="std"; });
   out.launches.forEach(function(o){ chk(o,["date"]); o.goal=+o.goal||0; });
   out.flagged=out.flagged.map(function(d){ ms(d); return d; });
@@ -369,7 +371,7 @@ function toRows(p){
   p.launches.forEach(function(o){ add("launch","",o.date,"",o.goal,"",""); });
   p.flagged.forEach(function(d){ add("flagged","",d,"","","",""); });
   p.windows.forEach(function(o){ add("window",o.label,o.start,o.end,o.cls,o.text,""); });
-  add("event",p.event.label,p.event.start,p.event.end,"","","");
+  if(p.event) add("event",p.event.label,p.event.start,p.event.end,"","","");
   p.deadlinesRegion.forEach(function(o){ add("deadline_region",o.label,o.date,"","","",""); });
   p.deadlinesOurs.forEach(function(o){ add("deadline_ours",o.label,o.date,"","","",""); });
   p.holidays.forEach(function(o){ add("holiday",o.label,o.date,"","","",""); });
@@ -445,7 +447,7 @@ function render(){
 
   // banner + meta
   document.getElementById('banner').innerHTML = isSample
-    ? '<span><b>Sample plan</b> — load your own dates to plan your office.</span><a href="#editor" class="btn ghost" style="text-decoration:none" id="a-edit">Edit plan</a>'
+    ? '<span><b>Sample plan</b> — press <b>Setup</b> (bottom right) to answer a few questions, or load your own dates.</span><a href="#editor" class="btn ghost" style="text-decoration:none" id="a-edit">Edit plan</a>'
     : '<span><b>Your plan</b> — saved in this browser.</span><a href="#editor" class="btn ghost" style="text-decoration:none" id="a-edit">Edit plan</a>';
   document.getElementById('a-edit').onclick=function(){ document.getElementById('editor').open=true; };
   document.getElementById('m-eyebrow').textContent=P.meta.eyebrow;
@@ -457,16 +459,18 @@ function render(){
   document.title=P.meta.title;
 
   var ev=P.event, bandN=ix(P.band.end)-ix(P.band.start)+1;
+  var fl=P.launches.length?new Date(ms(P.launches[0].date)).getUTCDay():6;   // launch weekday (default Saturday)
+  var DWN=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
   document.getElementById('legend').innerHTML=
     '<span><i class="sw" style="background:transparent;border:2px dashed var(--bar)"></i>Outreach window ('+esc(P.meta.outreachDays)+' days before break)</span>'+
     '<span><i class="sw" style="background:var(--bar)"></i>On break</span>'+
     '<span><i class="sw" style="background:var(--bar-long)"></i>Extended break</span>'+
     '<span><i class="sw" style="background:var(--bar-short)"></i>Break end unverified</span>'+
     '<span><i class="sw" style="background:var(--band)"></i>'+esc(P.band.label)+' ('+esc(fmt(ix(P.band.start)))+' – '+esc(fmt(ix(P.band.end)))+')</span>'+
-    '<span><i class="sw" style="background:var(--train-bg)"></i>Training day (Th–F)</span>'+
-    '<span><i class="sw" style="background:var(--launch-bg)"></i>Saturday launch · goal</span>'+
+    '<span><i class="sw" style="background:var(--train-bg)"></i>Training day ('+DWN[(fl+5)%7].slice(0,2)+'–'+DWN[(fl+6)%7].slice(0,2)+')</span>'+
+    '<span><i class="sw" style="background:var(--launch-bg)"></i>'+DWN[fl]+' launch · goal</span>'+
     '<span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--red) 0 3px,transparent 3px 6px)"></i>Blackout: no training, interviews, meetings or events</span>'+
-    '<span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--copper) 0 3px,transparent 3px 6px)"></i>'+esc(ev.label)+' ('+esc(fmt(ix(ev.start)))+' – '+esc(fmt(ix(ev.end)))+')</span>'+
+    (ev?'<span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--copper) 0 3px,transparent 3px 6px)"></i>'+esc(ev.label)+' ('+esc(fmt(ix(ev.start)))+' – '+esc(fmt(ix(ev.end)))+')</span>':'')+
     '<span><i class="sw" style="background:var(--red);width:10px;height:10px;border-radius:50%"></i>Conflict to resolve</span>'+
     '<span><i class="sw" style="background:var(--copper);width:10px;height:10px;transform:rotate(45deg);border-radius:0"></i>Deadline (dashed line runs through the calendar)</span>';
 
@@ -474,7 +478,7 @@ function render(){
   html+='<div class="grid-lines"></div>';
   html+='<div class="overlay ov-band" style="'+pos(ix(P.band.start),bandN)+'"></div>';
   P.blackout.forEach(function(b){ html+='<div class="overlay ov-black" style="'+pos(ix(b.start),ix(b.end)-ix(b.start)+1)+'"></div>'; });
-  html+='<div class="overlay ov-event" style="'+pos(ix(ev.start),ix(ev.end)-ix(ev.start)+1)+'"></div>';
+  if(ev) html+='<div class="overlay ov-event" style="'+pos(ix(ev.start),ix(ev.end)-ix(ev.start)+1)+'"></div>';
 
   var DL_REGION=P.deadlinesRegion, DL_OURS=P.deadlinesOurs;
   DL_REGION.concat(DL_OURS).forEach(function(d){
@@ -499,7 +503,7 @@ function render(){
   r1+='</div>';
   var r2='<div class="row"><div class="lab strong">Date</div>', r3='<div class="row"><div class="lab"></div>';
   for(var i=0;i<N;i++){
-    var dt=new Date(START+i*864e5), dw=dt.getUTCDay(), sat=dw===6?' sat':'';
+    var dt=new Date(START+i*864e5), dw=dt.getUTCDay(), sat=dw===fl?' sat':'';
     r2+='<div class="cell dnum'+sat+'" style="'+col(i,i)+'">'+dt.getUTCDate()+'</div>';
     r3+='<div class="cell dow'+sat+'" style="'+col(i,i)+'">'+dows[dw]+'</div>';
   }
@@ -533,7 +537,7 @@ function render(){
   P.windows.forEach(function(w){
     html+='<div class="row"><div class="lab">'+esc(w.label)+'</div><div class="pill p-'+w.cls+'" style="'+col(ix(w.start),ix(w.end))+'">'+esc(w.text)+'</div></div>';
   });
-  html+='<div class="row"><div class="lab">'+esc(ev.label)+'</div><div class="pill p-push" style="'+col(ix(ev.start),ix(ev.end))+'">'+esc(ev.label)+'</div></div>';
+  if(ev) html+='<div class="row"><div class="lab">'+esc(ev.label)+'</div><div class="pill p-push" style="'+col(ix(ev.start),ix(ev.end))+'">'+esc(ev.label)+'</div></div>';
   html+=dlRow('Region deadlines',DL_REGION);
   html+=dlRow('Our deadlines',DL_OURS);
 
@@ -543,7 +547,7 @@ function render(){
   html+='<div class="row"><div class="lab">Blackout days</div>';
   P.blackout.forEach(function(b){ html+='<div class="pill p-black" style="'+col(ix(b.start),ix(b.end))+'">'+esc(b.label)+'</div>'; });
   html+='</div>';
-  html+='<div class="row"><div class="lab">Manager away (example)</div>';
+  html+='<div class="row"><div class="lab">'+(isSample?'Manager away (example)':'Away')+'</div>';
   P.away.forEach(function(a){ html+='<div class="pill p-away" style="'+col(ix(a.start),ix(a.end))+'">'+esc(a.label)+'</div>'; });
   html+='</div>';
   chart.innerHTML=html;
@@ -557,7 +561,7 @@ function render(){
   var tot=P.cards.reduce(function(a,c){ return a+(typeof c.goal==='number'?c.goal:0); },0);
   var nSat=P.cards.filter(function(c){ return typeof c.goal==='number'; }).length;
   var tgt=P.meta.launchTarget, gap=tgt-tot;
-  document.getElementById('total').innerHTML='Total <b>'+tot+'</b> launches across '+nSat+' Saturdays'+(tgt?' · '+(gap>0?gap+' short of':gap<0?(-gap)+' over':'at')+' the '+esc(tgt)+' goal':'');
+  document.getElementById('total').innerHTML='Total <b>'+tot+'</b> launches across '+nSat+' '+DWN[fl]+'s'+(tgt?' · '+(gap>0?gap+' short of':gap<0?(-gap)+' over':'at')+' the '+esc(tgt)+' goal':'');
 
   function flags(id,list,dateCls){
     document.getElementById(id).innerHTML=list.map(function(f){
@@ -599,10 +603,244 @@ document.getElementById('upfile').onchange=function(e){
 };
 document.getElementById('b-reset').onclick=function(){
   try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  var had=window.EvergreenSetup&&EvergreenSetup.answers("winter-break-calendar");
+  if(had){
+    if(confirm("Also erase your setup answers?\n\nOK = erase them (the setup questions will ask again next time).\nCancel = keep them.")){
+      EvergreenSetup.reset("winter-break-calendar"); try{ localStorage.removeItem("winter-break-launch-calendar-setup-v1"); }catch(e){}
+    } else { try{ localStorage.setItem("winter-break-launch-calendar-setup-v1",JSON.stringify(had)); }catch(e){} }
+  }
   plan=clone(SAMPLE); isSample=true; render(); msg("Reset to the sample plan.");
 };
 
 load(); render();
+
+/* ---------- first-run setup interview (shared/setup-interview.js) ---------- */
+var SETUP_ID="winter-break-calendar", SETUP_HASH_KEY="winter-break-launch-calendar-setup-v1";
+var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function p2(n){ return (n<10?"0":"")+n; }
+function isoOf(t){ var d=new Date(t); return d.getUTCFullYear()+"-"+p2(d.getUTCMonth()+1)+"-"+p2(d.getUTCDate()); }
+function addDays(s,n){ return isoOf(ms(s)+n*864e5); }
+function dowOf(s){ return new Date(ms(s)).getUTCDay(); }
+function lab(s){ var d=new Date(ms(s)); return MON[d.getUTCMonth()]+" "+d.getUTCDate(); }
+function md(s){ var d=new Date(ms(s)); return (d.getUTCMonth()+1)+"/"+d.getUTCDate(); }
+function span(a,b){ if(a===b) return lab(a); var x=new Date(ms(a)), y=new Date(ms(b)); return x.getUTCMonth()===y.getUTCMonth()?lab(a)+"–"+y.getUTCDate():lab(a)+" – "+lab(b); }
+function okDate(s){ try{ ms(s); return true; }catch(e){ return false; } }
+function numOf(v){ if(v===undefined||v===null||v==="") return NaN; return Number(String(v).replace(/[$,\s]/g,"")); }
+function inRange(d,a,b){ return ms(a)<=ms(d)&&ms(d)<=ms(b); }
+function overlaps(a1,b1,a2,b2){ return ms(a1)<=ms(b2)&&ms(a2)<=ms(b1); }
+function mondayOnOrBefore(t){ var d=new Date(t); return t-((d.getUTCDay()+6)%7)*864e5; }
+function thanksgiving(y){ var off=(4-new Date(Date.UTC(y,10,1)).getUTCDay()+7)%7; return Date.UTC(y,10,1+off+21); }
+
+/* Turns the interview answers into a full plan: the sample, with each answered part replaced.
+   Returns null when nothing was answered (the sample stays as it is). */
+function buildPlan(a){
+  var p=clone(SAMPLE), any=false;
+  var list=function(k,need){ return (Array.isArray(a[k])?a[k]:[]).filter(function(r){ return r&&need.every(function(f){ return okDate(r[f]); }); }); };
+
+  var tgt=numOf(a.launchTarget); if(tgt>0){ p.meta.launchTarget=Math.round(tgt); any=true; }
+  var odv=numOf(a.outreachDays), gotOd=odv>=1&&odv<=120; if(gotOd){ p.meta.outreachDays=Math.round(odv); any=true; }
+  var od=p.meta.outreachDays;
+
+  var sch=list("schools",["start","end"]).filter(function(s){ return s.name&&ms(s.end)>=ms(s.start); });
+  var gotSchools=sch.length>0;
+  if(gotSchools){
+    any=true;
+    var lens=sch.map(function(s){ return (ms(s.end)-ms(s.start))/864e5+1; }).sort(function(x,y){return x-y;}), med=lens[Math.floor(lens.length/2)];
+    p.schools=sch.map(function(s){ var n=(ms(s.end)-ms(s.start))/864e5+1; return {name:s.name,start:s.start,end:s.end,kind:(sch.length>2&&n>=med+7)?"long":"std"}; })
+      .sort(function(x,y){ return ms(x.start)-ms(y.start)||(x.name<y.name?-1:1); });
+  }
+  var launchRows=list("launches",["date"]), gotLaunch=launchRows.length>0; if(gotLaunch) any=true;
+  var awayRows=list("away",["start","end"]), gotAway=awayRows.length>0; if(gotAway) any=true;
+  var blackRows=list("blackout",["start","end"]), gotBlack=blackRows.length>0; if(gotBlack) any=true;
+  var winRows=list("windows",["start","end"]), gotWin=winRows.length>0; if(gotWin) any=true;
+  var deadRows=list("deadlines",["date"]), gotDead=deadRows.length>0; if(gotDead) any=true;
+  if(!any) return null;
+
+  /* derived dates from the schools */
+  var starts=p.schools.map(function(s){ return ms(s.start); }), ends=p.schools.map(function(s){ return ms(s.end); });
+  var earliestOut=Math.min.apply(null,starts)-od*864e5;
+  var srcEnd=isoOf(earliestOut-4*864e5), srcStart=addDays(srcEnd,-14);
+  var baseLo=isoOf(mondayOnOrBefore(ms(srcStart)-864e5)), baseHi=isoOf(Math.max.apply(null,ends)+45*864e5);
+  var keep=function(s,e){ return !gotSchools||(ms(s)>=ms(baseLo)&&ms(e||s)<=ms(baseHi)); };   // sample items from another year are dropped
+
+  /* band: the longest stretch with the most schools on break at once */
+  var lo=Math.min.apply(null,starts), hi=Math.max.apply(null,ends), cnt=[], t, best=0;
+  for(t=lo;t<=hi;t+=864e5){ var c=p.schools.filter(function(s){ return ms(s.start)<=t&&t<=ms(s.end); }).length; cnt.push(c); if(c>best) best=c; }
+  var bs=0, be=0, bestLen=0, runS=-1, k;
+  for(k=0;k<=cnt.length;k++){
+    if(k<cnt.length&&cnt[k]===best){ if(runS<0) runS=k; }
+    else if(runS>=0){ if(k-runS>bestLen){ bestLen=k-runS; bs=runS; be=k-1; } runS=-1; }
+  }
+  p.band={label:best===p.schools.length?"All schools on break":"Most schools on break ("+best+" of "+p.schools.length+")",start:isoOf(lo+bs*864e5),end:isoOf(lo+be*864e5)};
+
+  /* holidays and default blackout days for the years in range */
+  var y0=new Date(ms(baseLo)).getUTCFullYear(), y1=new Date(ms(baseHi)).getUTCFullYear(), hol=[], bk=[], y, T;
+  for(y=y0;y<=y1;y++){
+    T=thanksgiving(y);
+    [[T,"Thanksgiving"],[Date.UTC(y,11,25),"Christmas"],[Date.UTC(y,11,31),"New Year's Eve"],[Date.UTC(y+1,0,1),"New Year's Day"]].forEach(function(h){ hol.push({date:isoOf(h[0]),label:h[1]}); });
+    bk.push({start:isoOf(T-864e5),end:isoOf(T+2*864e5)},{start:isoOf(Date.UTC(y,11,23)),end:isoOf(Date.UTC(y,11,26))},{start:isoOf(Date.UTC(y,11,31)),end:isoOf(Date.UTC(y+1,0,1))});
+  }
+  p.holidays=hol.filter(function(h){ return inRange(h.date,baseLo,baseHi); });
+  if(gotBlack) p.blackout=blackRows.map(function(r){ return {label:r.label||"No training or meetings",start:r.start,end:r.end}; });
+  else p.blackout=bk.filter(function(b){ return inRange(b.start,baseLo,baseHi); }).map(function(b){ return {label:span(b.start,b.end),start:b.start,end:b.end}; });
+
+  /* away: an example absence is not information about this user, so it is dropped unless they entered one */
+  p.away=gotAway?awayRows.map(function(r){ return {label:r.label||"Away",start:r.start,end:r.end}; }):[];
+
+  /* launches */
+  var allL;
+  if(gotLaunch){
+    allL=launchRows.map(function(r){ var g=numOf(r.goal); return {date:r.date,goal:(g>=0)?Math.round(g):null}; }).sort(function(x,y){ return ms(x.date)-ms(y.date); });
+    var known=0, unknown=0; allL.forEach(function(l){ if(l.goal===null) unknown++; else known+=l.goal; });
+    if(unknown&&p.meta.launchTarget>known){ var share=Math.round((p.meta.launchTarget-known)/unknown); allL.forEach(function(l){ if(l.goal===null) l.goal=share; }); }
+    allL.forEach(function(l){ if(l.goal===null) l.goal=0; });
+  } else allL=p.launches.filter(function(l){ return keep(l.date); });
+  var blockedAt=function(d){ return p.blackout.filter(function(b){ return inRange(d,b.start,b.end); })[0]; };
+  p.launches=allL.filter(function(l){ return !blockedAt(l.date); });
+
+  /* region incentives and deadlines */
+  var cls=["fire","sales","push"];
+  if(gotWin) p.windows=winRows.sort(function(x,y){ return ms(x.start)-ms(y.start); }).map(function(r,i){
+    return {label:r.label||"Region push",start:r.start,end:r.end,cls:cls[i%3],text:md(r.start)+" – "+md(r.end)+(r.text?" · "+r.text:"")}; });
+  else p.windows=p.windows.filter(function(w){ return keep(w.start,w.end); });
+  if(gotDead){
+    var ev=null; p.deadlinesRegion=[];
+    deadRows.sort(function(x,y){ return ms(x.date)-ms(y.date); }).forEach(function(r){
+      if(!ev&&okDate(r.end)&&ms(r.end)>ms(r.date)) ev={label:r.label||"Region event",start:r.date,end:r.end};
+      else p.deadlinesRegion.push({date:r.date,label:r.label||"Deadline"});
+    });
+    p.event=ev;
+  } else {
+    p.deadlinesRegion=p.deadlinesRegion.filter(function(d){ return keep(d.date); });
+    if(p.event&&!keep(p.event.start,p.event.end)) p.event=null;
+  }
+  p.deadlinesOurs=[{date:srcEnd,label:"Student lists done"},{date:isoOf(earliestOut),label:"First outreach starts"}];
+
+  /* sourcing */
+  p.sourcing={label:"Student list sourcing",start:srcStart,end:srcEnd,text:span(srcStart,srcEnd)+" · build a student list per school"};
+
+  /* calendar range = everything that is on the page */
+  var all=[addDays(srcStart,-1)];
+  p.schools.forEach(function(s){ all.push(s.start,s.end); });
+  allL.forEach(function(l){ all.push(addDays(l.date,-2),l.date); });
+  p.windows.forEach(function(w){ all.push(w.start,w.end); });
+  p.deadlinesRegion.concat(p.deadlinesOurs,p.holidays).forEach(function(d){ all.push(d.date); });
+  p.blackout.concat(p.away).forEach(function(b){ all.push(b.start,b.end); });
+  if(p.event) all.push(p.event.start,p.event.end);
+  var tms=all.map(ms), calS=mondayOnOrBefore(Math.min.apply(null,tms)), calE=Math.max.apply(null,tms)+864e5;
+  var days=Math.round((calE-calS)/864e5)+1;
+  if(days>400) throw new Error("the dates you entered span more than 400 days (check the years)");
+  p.calendar={start:isoOf(calS),days:Math.max(days,28)};
+  p.flagged=[];
+  allL.forEach(function(l){ [-2,-1].forEach(function(o){ var d=addDays(l.date,o);
+    if(p.away.some(function(x){ return inRange(d,x.start,x.end); })||blockedAt(d)) p.flagged.push(d); }); });
+
+  /* texts */
+  var m1=MON[new Date(calS).getUTCMonth()], m2=MON[new Date(calE-864e5).getUTCMonth()];
+  p.meta.eyebrow="Your Division · Winter Break";
+  p.meta.title="Winter Break Launch Calendar ("+m1+(m1===m2?"":" – "+m2)+")";
+  p.meta.sub="Sourcing, each school's outreach window and break, training classes and launches, and the region push, built from your setup answers.";
+  p.meta.timelineNote="Take break dates from each school's registrar calendar and double-check any that are not confirmed.";
+  p.meta.recruitingNote=(gotAway?"Outreach that starts while someone is away is sent by the people covering for them. ":"")+"Interviews set before a region credit window opens may not count toward the credit; check your region's rules.";
+  p.meta.pushNote=gotWin||gotDead?"Dates and amounts come from your setup answers. Check them against your region's latest announcement.":"Sample push rules. Incentive levels and dollar amounts here are examples only; use your region's announced numbers.";
+
+  var count=function(d){ return p.schools.filter(function(s){ return inRange(d,s.start,s.end); }).length; };
+  var regenCal=gotSchools||gotLaunch||gotAway||gotBlack||gotOd, regenPush=gotWin||gotDead||gotSchools;
+
+  if(regenCal){
+    p.cards=[]; p.conflicts=[];
+    allL.forEach(function(l){
+      var t0=addDays(l.date,-2), bl=blockedAt(l.date), dn=DOW[dowOf(l.date)]+" "+lab(l.date);
+      if(bl){ p.cards.push({date:dn,goal:null,note:"Blocked: no training or meetings "+span(bl.start,bl.end)+". Move this class or fold it into another date."}); return; }
+      var a0=count(t0), a1=count(l.date), warn=[];
+      p.away.forEach(function(x){ if(overlaps(t0,l.date,x.start,x.end)) warn.push(x.label+" ("+span(x.start,x.end)+"): name who runs this class"); });
+      p.blackout.forEach(function(x){ if(overlaps(t0,addDays(l.date,-1),x.start,x.end)) warn.push("Training overlaps "+span(x.start,x.end)); });
+      if(a1*2<p.schools.length) warn.push("Fewer than half your schools are on break by launch day");
+      p.cards.push({date:dn,goal:l.goal,note:"Trains "+span(t0,l.date)+" · "+(a0===a1?a0:a0+" → "+a1)+" schools on break",warn:warn.join(" · ")});
+    });
+    p.away.forEach(function(x){
+      var hit=allL.filter(function(l){ return overlaps(addDays(l.date,-2),l.date,x.start,x.end); });
+      if(hit.length) p.conflicts.push({k:span(x.start,x.end)+" · "+x.label,text:"Classes affected: "+hit.map(function(l){ return lab(l.date); }).join(", ")+". Decide who runs training and interviews while this person is away."});
+    });
+    p.blackout.forEach(function(x){
+      var hit=allL.filter(function(l){ return overlaps(addDays(l.date,-2),l.date,x.start,x.end); });
+      if(hit.length) p.conflicts.push({k:span(x.start,x.end)+" · Blackout",text:"No training, interviews or meetings on these days. Classes affected: "+hit.map(function(l){ return lab(l.date); }).join(", ")+"."});
+    });
+    allL.forEach(function(l){ var c=count(l.date);
+      if(!blockedAt(l.date)&&c*2<p.schools.length) p.conflicts.push({k:lab(l.date)+" · Many students in class",text:"Only "+c+" of "+p.schools.length+" schools are on break by this launch day. Fill the class from students who are already home, community colleges and non-students."}); });
+    if(!p.conflicts.length) p.conflicts.push({k:"No conflicts found",text:"None of your classes overlap away dates or blackout days, and most schools are on break by each launch day."});
+
+    var groups={}, order=[];
+    p.schools.forEach(function(s){ var d=addDays(s.start,-od); if(!groups[d]){ groups[d]=[]; order.push(d); } groups[d].push(s); });
+    order.sort();
+    p.recruiting=[{k:span(srcStart,srcEnd),text:"Sourcing: build a list of current students at each school. Collect by hand through LinkedIn search. Automated scraping tools break LinkedIn's terms and can get accounts restricted."}];
+    order.forEach(function(d){
+      var g=groups[d], bl=blockedAt(d);
+      p.recruiting.push({k:lab(d),text:"Outreach starts for "+g.map(function(s){ return s.name; }).join(", ")+" (break starts "+lab(g[0].start)+")."+(bl?" This falls inside a blackout: messages can go out, but book interviews after it.":"")});
+    });
+  }
+  if(regenPush){
+    var items=[];
+    p.windows.forEach(function(w){ items.push({d:w.start,k:md(w.start)+" – "+md(w.end),text:w.label+(w.text?" · "+w.text.replace(/^[\d\/]+ – [\d\/]+ · ?/,""):"")}); });
+    p.deadlinesRegion.forEach(function(x){ items.push({d:x.date,k:lab(x.date),text:x.label}); });
+    if(p.event) items.push({d:p.event.start,k:span(p.event.start,p.event.end),text:p.event.label});
+    items.sort(function(x,y){ return ms(x.d)-ms(y.d); });
+    p.push=items.length?items.map(function(x){ return {k:x.k,text:x.text}; }):[{k:"None entered",text:"No region incentives or deadlines were entered. Use Setup or Edit plan to add them."}];
+  }
+  return p;
+}
+
+function applySetup(a){
+  var h=JSON.stringify(a), seen=null, hadPlan=!isSample;
+  try{ seen=localStorage.getItem(SETUP_HASH_KEY); }catch(e){}
+  if(seen===h) return;                                   // already applied; later edits to the plan are kept
+  var p; try{ p=buildPlan(a); }catch(e){ console.error(e); msg("Setup answers could not be applied: "+e.message,true); return; }
+  if(!p) return;                                         // nothing answered: keep what is on the page
+  var ok=!hadPlan||confirm("Replace the plan saved in this browser with your setup answers?");
+  try{ localStorage.setItem(SETUP_HASH_KEY,h); }catch(e){}
+  if(ok) setPlan(p,"Your setup answers");
+}
+
+if(window.EvergreenSetup){
+  EvergreenSetup.init({
+    id:SETUP_ID,
+    title:"Set up your Winter Break calendar",
+    intro:"Eight short questions (most can be skipped) so the dates, goals and warnings fit your office instead of the sample. About 3 minutes.",
+    onDone:applySetup,
+    questions:[
+      {key:"launchTarget",q:"How many new reps do you want to launch this winter break?",type:"number",placeholder:"e.g. 40",example:"40",
+        why:"A “launch” is a new rep's first sales day. This sets the goal line, and any class where you leave the goal blank gets an equal share."},
+      {key:"schools",q:"Which schools will you recruit from, and when is each one's winter break?",type:"list",
+        fields:[{key:"name",label:"School"},{key:"start",label:"Break starts",type:"date"},{key:"end",label:"Break ends",type:"date"}],
+        example:"Lincoln University · Dec 19 – Jan 3",
+        why:"Break dates decide when you start reaching out, how many schools are on break each weekend, and the whole calendar range. Copy them from each school's registrar calendar."},
+      {key:"launches",q:"On which dates will you launch classes, and how many new reps do you expect in each?",type:"list",
+        fields:[{key:"date",label:"Launch day",type:"date"},{key:"goal",label:"New reps goal",type:"number"}],
+        example:"Dec 19 · 12 new reps",
+        why:"Training is shown on the two days before each launch day. Bigger classes usually fall when most schools are already on break. Pick the weekday you normally launch on."},
+      {key:"outreachDays",q:"How many days before a school's break do you start messaging its students?",type:"number",optional:true,placeholder:"e.g. 21",example:"21",
+        why:"Draws the dashed outreach bar before each break and dates the recruiting timeline. Students tend to plan their winter schedules before they leave campus."},
+      {key:"away",q:"When will you, or whoever normally runs training, be away?",type:"list",optional:true,
+        fields:[{key:"label",label:"Who / why"},{key:"start",label:"From",type:"date"},{key:"end",label:"Until",type:"date"}],
+        example:"Manager traveling · Nov 21 – Dec 5",
+        why:"Any class that trains while someone is away gets a warning, so you can name who covers it."},
+      {key:"blackout",q:"Which days are off-limits for training, interviews and meetings?",type:"list",optional:true,
+        fields:[{key:"label",label:"Label"},{key:"start",label:"From",type:"date"},{key:"end",label:"Until",type:"date"}],
+        example:"Thanksgiving week · Nov 25 – 28",
+        why:"Usually holiday weeks. A class that falls on these days is shown as blocked. Leave this empty to use Thanksgiving, Christmas and New Year's."},
+      {key:"windows",q:"What incentive or push periods has your region announced for winter break?",type:"list",optional:true,
+        fields:[{key:"label",label:"Name"},{key:"start",label:"Starts",type:"date"},{key:"end",label:"Ends",type:"date"},{key:"text",label:"What it pays"}],
+        example:"Appointment credit · Dec 1 – Jan 3 · 25 interviews set = $1,000 trip credit",
+        why:"A “push” is a stretch where your region pays extra for results. These show as bars under Region push. Skip this if nothing has been announced yet."},
+      {key:"deadlines",q:"Any region deadlines or year-end event dates to track?",type:"list",optional:true,
+        fields:[{key:"label",label:"What"},{key:"date",label:"Date",type:"date"},{key:"end",label:"Last day (multi-day events only)",type:"date"}],
+        example:"Top-50 lists due · Nov 15 (a top-50 list is the 50 people you personally plan to recruit)",
+        why:"Deadlines get a dashed line down the whole calendar. Add a last day for a multi-day event and it shows as a banner."}
+    ]
+  });
+}
+
 })();
 </script>
 

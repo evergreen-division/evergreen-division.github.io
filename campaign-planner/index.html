@@ -201,12 +201,12 @@ input,select{border-radius:10px}
   </section>
 
   <section class="sec">
-    <h2>Bonuses/incentives <small>example amounts</small></h2>
+    <h2>Bonuses/incentives <small id="bonsub">example amounts</small></h2>
     <div class="gates" id="gates"></div>
   </section>
 
   <section class="sec">
-    <h2>Banquet qualification (example) <small>new business, September–November</small></h2>
+    <h2>Banquet qualification<span id="banqtag"> (example)</span> <small>new business, September–November</small></h2>
     <div id="banquet"></div>
   </section>
 
@@ -251,40 +251,58 @@ input,select{border-radius:10px}
           <label>August 2026 new business ($)<input id="s-aug" inputmode="decimal"></label>
           <label>Monthly expenses ($)<input id="s-exp" inputmode="decimal"></label>
         </div>
-        <p class="note">EXAMPLE assumptions, replace with your own program rules. Profit: 15% of new business, 7% of other business. Monthly bonus: $250 at base ($5,000 each month), +$25 per $500 above. Next-month bonus: $1,000 when the prior month's new business is $5,000+. Car bonus $400/month. Recruiting bonus: $25 per recruit. Campaign bonus: $5,000 at $200K total + $50K new business. Year-end performance and growth bonuses are not in campaign net. To change these amounts, edit the constants at the top of the script in this page.</p>
+        <p class="note" id="assumpnote"></p>
         <div class="actions"><button class="btn ghost" type="button" id="saveset">Save assumptions</button></div>
       </details>
     </form>
   </section>
 
-  <div class="foot"><span>Evergreen Division · Fall campaign dashboard</span><span>Example numbers · edit to match your office</span></div>
+  <div class="foot"><span>Evergreen Division · Fall campaign dashboard</span><span id="footnote">Example numbers · edit to match your office</span></div>
 </div>
 
+<script src="../shared/setup-interview.js"></script>
 <script>
 (function(){
-const MONTHS=[
-  {name:"September",short:"Sep",base:5000,nbPlan:4000,fsmPlan:100000},
-  {name:"October",short:"Oct",base:5000,nbPlan:5000,fsmPlan:50000},
-  {name:"November",short:"Nov",base:5000,nbPlan:6000,fsmPlan:50000},
-  {name:"December",short:"Dec",base:5000,nbPlan:5000,fsmPlan:40000}
-];
-const ENDS=["2026-09-08","2026-09-15","2026-09-22","2026-09-29","2026-10-06","2026-10-13","2026-10-20","2026-10-27","2026-11-03","2026-11-10","2026-11-17","2026-11-24","2026-12-01","2026-12-08","2026-12-15","2026-12-22","2026-12-29"];
 const WMONTH=[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,3];
-const REC_PLAN=[0,2,3,5,3,3,3,3,3,4,4,0,0,0,10,0,0];
-const WEEKS=ENDS.map((end,i)=>{
-  const m=WMONTH[i];const n=WMONTH.slice(0,i+1).filter(x=>x===m).length;
-  return {i,m,n,end,nbPlan:MONTHS[m].nbPlan,totalPlan:MONTHS[m].nbPlan+MONTHS[m].fsmPlan,recPlan:REC_PLAN[i]};
-});
-const FIRE_GOAL=150;
-const GOALS={fire:FIRE_GOAL,nb:100000,fsm:1000000,total:1100000,recruits:REC_PLAN.reduce((a,b)=>a+b,0)};
-/* EXAMPLE numbers: replace with your own */
-const PRIOR_YTD=1500000, CII=800000, GROWTH_BASE=2000000;
-const PERF=[[2000000,10000],[1750000,7500],[1500000,5000],[1250000,2500]];
-const CAMP_NB=50000, CAMP_TOT=200000, CAMP_BONUS=5000;
-const TRIP_NB=50000;
-const BIZ_MIN=5000, BIZ_BONUS=1000;
-const MB_FIRST=250, MB_STEP=500, MB_INC=25;
-const CAR_BONUS=400, REC_BONUS=25, PB_GOAL=100000, DEF_EXP=5000;
+/* EXAMPLE numbers: replace with your own (or answer the Setup questions) */
+const D0={
+  months:[
+    {name:"September",short:"Sep",base:5000,nbPlan:4000,fsmPlan:100000},
+    {name:"October",short:"Oct",base:5000,nbPlan:5000,fsmPlan:50000},
+    {name:"November",short:"Nov",base:5000,nbPlan:6000,fsmPlan:50000},
+    {name:"December",short:"Dec",base:5000,nbPlan:5000,fsmPlan:40000}
+  ],
+  first:"2026-09-08",                                   /* closeout of tab week 1; the other 16 follow every 7 days */
+  recPlan:[0,2,3,5,3,3,3,3,3,4,4,0,0,0,10,0,0],
+  fire:150, nb:100000, fsm:1000000, pb:100000,
+  rateNb:0.15, rateOther:0.07,
+  mbFirst:250, mbStep:500, mbInc:25,
+  campNb:50000, campTot:200000, campBonus:5000, tripNb:50000,
+  perf:[[2000000,10000],[1750000,7500],[1500000,5000],[1250000,2500]],
+  priorYtd:1500000, cii:800000, growthBase:2000000,
+  exp:5000, aug:0, car:400, recBonus:25, bizMin:5000, bizBonus:1000
+};
+let MONTHS,ENDS,REC_PLAN,WEEKS,FIRE_GOAL,GOALS,PRIOR_YTD,CII,GROWTH_BASE,PERF,CAMP_NB,CAMP_TOT,CAMP_BONUS,TRIP_NB,BIZ_MIN,BIZ_BONUS,MB_FIRST,MB_STEP,MB_INC,CAR_BONUS,REC_BONUS,PB_GOAL,DEF_EXP,DEF_AUG,RATE_NB,RATE_OTHER;
+/* which groups of numbers are still the built-in examples (shown with "(example)") */
+let EX={camp:true,trip:true,monthly:true,biz:true,perf:true,growth:true,banquet:true};
+const tag=k=>EX[k]?" (example)":"";
+function setConsts(c){
+  MONTHS=c.months.map(m=>Object.assign({},m));
+  ENDS=WMONTH.map((_,i)=>{const d=new Date(c.first+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+7*i);return d.toISOString().slice(0,10);});
+  REC_PLAN=c.recPlan.slice();
+  WEEKS=ENDS.map((end,i)=>{
+    const m=WMONTH[i];const n=WMONTH.slice(0,i+1).filter(x=>x===m).length;
+    return {i,m,n,end,nbPlan:MONTHS[m].nbPlan,totalPlan:MONTHS[m].nbPlan+MONTHS[m].fsmPlan,recPlan:REC_PLAN[i]};
+  });
+  FIRE_GOAL=c.fire;
+  GOALS={fire:FIRE_GOAL,nb:c.nb,fsm:c.fsm,total:c.nb+c.fsm,recruits:REC_PLAN.reduce((a,b)=>a+b,0)};
+  PRIOR_YTD=c.priorYtd;CII=c.cii;GROWTH_BASE=c.growthBase;PERF=c.perf.map(r=>r.slice());
+  CAMP_NB=c.campNb;CAMP_TOT=c.campTot;CAMP_BONUS=c.campBonus;TRIP_NB=c.tripNb;
+  BIZ_MIN=c.bizMin;BIZ_BONUS=c.bizBonus;MB_FIRST=c.mbFirst;MB_STEP=c.mbStep;MB_INC=c.mbInc;
+  CAR_BONUS=c.car;REC_BONUS=c.recBonus;PB_GOAL=c.pb;DEF_EXP=c.exp;DEF_AUG=c.aug;RATE_NB=c.rateNb;RATE_OTHER=c.rateOther;
+}
+const clone=o=>JSON.parse(JSON.stringify(o));
+setConsts(clone(D0));
 const LS_KEY="fall-campaign-planner-v1";
 
 const blankWeeks=()=>WEEKS.map(()=>({nb:null,total:null,recruits:null,fire:null,comm:null}));
@@ -292,7 +310,7 @@ function defaults(){
   const w=blankWeeks();
   w[0]={nb:3000,total:100000,recruits:0,fire:null,comm:null};
   w[1]={nb:null,total:null,recruits:1,fire:null,comm:null};
-  return {weeks:w,settings:{augNB:0,expenses:DEF_EXP}};
+  return {weeks:w,settings:{augNB:DEF_AUG,expenses:DEF_EXP}};
 }
 let state=defaults();
 let metric="nb", selected=currentWeek();
@@ -300,6 +318,7 @@ let metric="nb", selected=currentWeek();
 const $=id=>document.getElementById(id);
 const money=n=>(n<0?"−$":"$")+Math.round(Math.abs(n)).toLocaleString("en-US");
 const num=n=>Math.round(n).toLocaleString("en-US");
+const pc=x=>+(x*100).toFixed(2)+"%";
 const dLabel=s=>new Date(s+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
 const wkName=i=>MONTHS[WEEKS[i].m].short+" wk "+WEEKS[i].n;
 function currentWeek(){
@@ -341,8 +360,8 @@ function income(src){
     const fsm=totM[k]-nbM[k];
     const prior=k===0?(+state.settings.augNB||0):nbM[k-1];
     const lines=[
-      ["New business profit (15%)",nbM[k]*0.15],
-      ["Other-business profit (7%)",fsm*0.07],
+      ["New business profit ("+pc(RATE_NB)+")",nbM[k]*RATE_NB],
+      ["Other-business profit ("+pc(RATE_OTHER)+")",fsm*RATE_OTHER],
       ["Monthly bonus",monthBonus(nbM[k],M.base)],
       ["Next-month bonus",prior>=BIZ_MIN?BIZ_BONUS:0],
       ["Car bonus",CAR_BONUS],
@@ -358,7 +377,14 @@ function income(src){
 
 function render(){
   const cw=currentWeek();
-  $("asof").textContent="Tab week "+(cw+1)+" of 17 · "+wkName(cw)+" closes Tue, "+dLabel(ENDS[cw]);
+  $("asof").textContent="Tab week "+(cw+1)+" of 17 · "+wkName(cw)+" closes "+new Date(ENDS[cw]+"T12:00:00").toLocaleDateString("en-US",{weekday:"short"})+", "+dLabel(ENDS[cw]);
+
+  /* Setup-dependent labels */
+  $("bonsub").textContent=Object.values(EX).some(Boolean)?"amounts marked (example) are still samples":"from your setup answers";
+  $("banqtag").textContent=tag("banquet");
+  $("footnote").textContent=Object.values(EX).some(Boolean)?"Example numbers · edit to match your office":"Your numbers · saved in this browser";
+  $("assumpnote").textContent=(Object.values(EX).some(Boolean)?"Items marked (example) are still samples; use the Setup button (bottom right) to replace them. ":"From your setup answers. ")+
+    "Profit: "+pc(RATE_NB)+" of new business, "+pc(RATE_OTHER)+" of other business. Monthly bonus: "+money(MB_FIRST)+" at base ("+money(MONTHS[0].base)+" new business each month), +"+money(MB_INC)+" per "+money(MB_STEP)+" above. Next-month bonus: "+money(BIZ_BONUS)+" when the prior month's new business is "+money(BIZ_MIN)+"+. Car bonus "+money(CAR_BONUS)+"/month. Recruiting bonus: "+money(REC_BONUS)+" per recruit. Campaign bonus: "+money(CAMP_BONUS)+" at "+money(CAMP_TOT)+" total + "+money(CAMP_NB)+" new business. Year-end performance and growth bonuses are not in campaign net. The Setup button changes these; so does editing the D0 defaults at the top of the script in this page.";
 
   /* Hero */
   document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===metric)));
@@ -411,22 +437,22 @@ function render(){
   const gate=(state_,title,amt,body)=>'<div class="gate '+state_+'"><h3>'+title+'<span>'+amt+'</span></h3>'+body+'</div>';
   let g="";
   const campOK=nbA>=CAMP_NB&&totA>=CAMP_TOT;
-  g+=gate(campOK?"open":"pending","Campaign bonus (example)",money(CAMP_BONUS),
+  g+=gate(campOK?"open":"pending","Campaign bonus"+tag("camp"),money(CAMP_BONUS),
     cond(nbA>=CAMP_NB,"New business",money(nbA)+" / "+money(CAMP_NB))+cond(totA>=CAMP_TOT,"Total business",money(totA)+" / "+money(CAMP_TOT))+
     '<p>'+(campOK?"Qualified.":"Projected: "+(P.campNB>=CAMP_NB&&P.campTot>=CAMP_TOT?"qualifies":"does not qualify")+".")+'</p>');
   const romeOK=nbA>=TRIP_NB,romeLeft=WEEKS.length-(goal("nb").l+1);
-  g+=gate(romeOK?"open":"pending","Trip qualification (example)","Qualification",
+  g+=gate(romeOK?"open":"pending","Trip qualification"+tag("trip"),"Qualification",
     cond(romeOK,"Fall new business",money(nbA)+" / "+money(TRIP_NB))+
     '<p>'+(romeOK?"Qualified for the trip.":money(TRIP_NB-nbA)+" to go"+(romeLeft>0?" · "+money((TRIP_NB-nbA)/romeLeft)+" a week over "+romeLeft+" weeks":"")+". Projected: "+(P.campNB>=TRIP_NB?"qualifies":"short by "+money(TRIP_NB-P.campNB))+".")+'</p>');
-  g+=gate(mNB>=base?"open":"pending",MONTHS[cm].name+" monthly bonus (example)",money(mb),
+  g+=gate(mNB>=base?"open":"pending",MONTHS[cm].name+" monthly bonus"+tag("monthly"),money(mb),
     cond(mNB>=base,"New business this month",money(mNB)+" / "+money(base))+
     '<p>'+(mNB>=base?"Next +"+money(MB_INC)+" at "+money(base+MB_STEP*(Math.floor((mNB-base)/MB_STEP)+1))+".":money(base-mNB)+" more by closeout "+dLabel(ENDS[WEEKS.filter(w=>w.m===cm).slice(-1)[0].i])+". Resets next month.")+'</p>');
-  g+=gate(mNB>=BIZ_MIN?"open":"pending",(MONTHS[cm+1]?MONTHS[cm+1].name:"January")+" next-month bonus (example)",money(BIZ_BONUS),
+  g+=gate(mNB>=BIZ_MIN?"open":"pending",(MONTHS[cm+1]?MONTHS[cm+1].name:"January")+" next-month bonus"+tag("biz"),money(BIZ_BONUS),
     cond(mNB>=BIZ_MIN,MONTHS[cm].name+" new business",money(mNB)+" / "+money(BIZ_MIN))+'<p>'+(mNB>=BIZ_MIN?"Earned for next month.":money(BIZ_MIN-mNB)+" more this month.")+'</p>');
-  g+=gate(bA?"open":"pending","Performance bonus (year, example)",money(bA),
+  g+=gate(bA?"open":"pending","Performance bonus (year"+(EX.perf?", example":"")+")",money(bA),
     cond(!!bA,"2026 total to date",money(yearA))+
     '<p>'+(nextT?money(nextT[0]-yearA)+" to the "+money(nextT[0])+" tier ("+money(nextT[1])+"). ":"Top tier reached. ")+"Projected year "+money(yearP)+" → "+money(bP)+'.</p>');
-  g+=gate(growthA>GROWTH_BASE?"open":"pending","Growth bonus (example, 1.5%)",money(Math.max(0,growthA-GROWTH_BASE)*0.015),
+  g+=gate(growthA>GROWTH_BASE?"open":"pending","Growth bonus ("+(EX.growth?"example, ":"")+"1.5%)",money(Math.max(0,growthA-GROWTH_BASE)*0.015),
     cond(growthA>GROWTH_BASE,"Prior campaigns + this one",money(growthA)+" / "+money(GROWTH_BASE))+
     '<p>'+(growthP>GROWTH_BASE?"Projected: "+money((growthP-GROWTH_BASE)*0.015)+".":"Projected short by "+money(GROWTH_BASE-growthP)+".")+'</p>');
   $("gates").innerHTML=g;
@@ -540,15 +566,134 @@ $("impfile").addEventListener("change",e=>{
   r.readAsText(f);
 });
 $("rst").addEventListener("click",()=>{
+  const had=window.EvergreenSetup&&EvergreenSetup.answers(SETUP_ID);
+  if(had){
+    if(confirm("Also erase your setup answers?\n\nOK = erase them and go back to the example numbers (the setup questions will ask again next time).\nCancel = keep them.")){
+      EvergreenSetup.reset(SETUP_ID);try{localStorage.removeItem(SETUP_HASH_KEY);}catch(e){}
+      setConsts(clone(D0));Object.keys(EX).forEach(k=>EX[k]=true);weekOptions();selected=currentWeek();
+      $("banner").textContent=BANNER0;
+    }else{try{localStorage.setItem(SETUP_HASH_KEY,JSON.stringify(had));}catch(e){}}
+  }
   state=defaults();fillForm();render();persist();
   $("msg").className="msg";$("msg").textContent="Reset to example.";
 });
 
 /* Init */
-$("f-week").innerHTML=WEEKS.map(w=>'<option value="'+w.i+'">'+MONTHS[w.m].name+" week "+w.n+" · closes "+dLabel(w.end)+'</option>').join("");
+const weekOptions=()=>{$("f-week").innerHTML=WEEKS.map(w=>'<option value="'+w.i+'">'+MONTHS[w.m].name+" week "+w.n+" · closes "+dLabel(w.end)+'</option>').join("");};
+weekOptions();
 try{const raw=localStorage.getItem(LS_KEY);if(raw)state=hydrate(JSON.parse(raw));}catch(e){}
 fillForm();render();
 $("sync").textContent="Saved in this browser";
+
+/* ---------- first-run setup interview (shared/setup-interview.js) ---------- */
+const SETUP_ID="fall-campaign-planner", SETUP_HASH_KEY="fall-campaign-planner-setup-v1";
+const BANNER0=$("banner").textContent;
+const nOf=v=>{ if(v===undefined||v===null||v==="")return NaN; const n=Number(String(v).replace(/[$,%\s]/g,"")); return isNaN(n)?NaN:n; };
+const posN=v=>{const n=nOf(v);return n>0?n:NaN;};      /* > 0 */
+const zeroN=v=>{const n=nOf(v);return n>=0?n:NaN;};    /* >= 0 (0 is a real answer: "this does not apply") */
+const pctN=v=>{const n=nOf(v);if(!(n>=0))return NaN;const f=n<=1?n:n/100;return f<1?f:NaN;};   /* "15" or "15%" -> .15 */
+
+/* Merges the interview answers over the example numbers. Returns null if nothing usable was answered. */
+function buildConsts(a){
+  const c=clone(D0), ex={camp:true,trip:true,monthly:true,biz:true,perf:true,growth:true,banquet:true};
+  let any=false, touchesSettings=false;
+  const row=k=>(Array.isArray(a[k])&&a[k][0]&&typeof a[k][0]==="object")?a[k][0]:{};
+  const set=(key,v)=>{ if(!isNaN(v)){c[key]=v;any=true;return true;} return false; };
+
+  if(a.firstCloseout&&/^\d{4}-\d{2}-\d{2}$/.test(a.firstCloseout)&&!isNaN(new Date(a.firstCloseout+"T12:00:00Z"))){c.first=a.firstCloseout;any=true;}
+
+  const g=row("goals"), nb=posN(g.nb), tot=posN(g.total), rec=posN(g.recruits);
+  if(set("nb",nb)){ const sum=WMONTH.length&&c.months.reduce((t,m,k)=>t+m.nbPlan*WMONTH.filter(x=>x===k).length,0); const f=nb/sum; c.months.forEach(m=>m.nbPlan=Math.round(m.nbPlan*f)); }
+  if(tot>c.nb){ c.fsm=tot-c.nb; any=true; }
+  if(!isNaN(nb)||tot>c.nb){ const sum=c.months.reduce((t,m,k)=>t+m.fsmPlan*WMONTH.filter(x=>x===k).length,0); const f=c.fsm/sum; c.months.forEach(m=>m.fsmPlan=Math.round(m.fsmPlan*f)); }
+  if(!isNaN(rec)){ const R=Math.round(rec), cur=c.recPlan.reduce((x,y)=>x+y,0); c.recPlan=c.recPlan.map(x=>Math.round(x*R/cur)); const diff=R-c.recPlan.reduce((x,y)=>x+y,0); c.recPlan[c.recPlan.indexOf(Math.max.apply(null,c.recPlan))]+=diff; any=true; }
+  set("fire",posN(g.fire));
+  if(set("pb",posN(g.pb))) ex.banquet=false;
+
+  const r=row("rates"); const rn=pctN(r.nbPct), ro=pctN(r.otherPct);
+  if(!isNaN(rn)){c.rateNb=rn;any=true;} if(!isNaN(ro)){c.rateOther=ro;any=true;}
+
+  const m=row("monthlyBonus"), mb=posN(m.base), mf=zeroN(m.first), ms_=posN(m.step), mi=zeroN(m.inc);
+  if(!isNaN(mb)){c.months.forEach(x=>x.base=mb);any=true;}
+  set("mbFirst",mf); set("mbStep",ms_); set("mbInc",mi);
+  if(![mb,mf,ms_,mi].some(isNaN)) ex.monthly=false;
+
+  const cb=row("campaignBonus"), cn=posN(cb.nbGate), ct=posN(cb.totGate), cp=zeroN(cb.payout), tr=posN(cb.trip);
+  set("campNb",cn); set("campTot",ct); set("campBonus",cp); set("tripNb",tr);
+  if(![cn,ct,cp].some(isNaN)) ex.camp=false;
+  if(!isNaN(tr)) ex.trip=false;
+
+  const tiers=(Array.isArray(a.perfTiers)?a.perfTiers:[]).map(t=>[posN(t.total),zeroN(t.bonus)]).filter(t=>!isNaN(t[0])&&!isNaN(t[1])).sort((x,y)=>y[0]-x[0]);
+  if(tiers.length){c.perf=tiers;any=true;}
+
+  const y=row("yearToDate"), py=zeroN(y.priorYtd), cii=zeroN(y.cii), gb=posN(y.growthBase);
+  set("priorYtd",py); set("cii",cii); set("growthBase",gb);
+  if(tiers.length&&!isNaN(py)) ex.perf=false;
+  if(![cii,gb].some(isNaN)) ex.growth=false;
+
+  const k=row("costs"), e=zeroN(k.exp), car=zeroN(k.car), rb=zeroN(k.recBonus), au=zeroN(k.aug), bm=posN(k.bizMin), bb=zeroN(k.bizBonus);
+  set("exp",e); set("car",car); set("recBonus",rb); set("aug",au); set("bizMin",bm); set("bizBonus",bb);
+  if(!isNaN(e)||!isNaN(au)) touchesSettings=true;
+  if(![bm,bb].some(isNaN)) ex.biz=false;
+
+  return any?{c,ex,touchesSettings}:null;
+}
+
+function applySetup(a){
+  let built; try{ built=buildConsts(a); }catch(err){ console.error(err); return; }
+  if(!built) return;                                    /* nothing answered: keep the example numbers */
+  setConsts(built.c);
+  Object.keys(EX).forEach(k=>EX[k]=built.ex[k]);
+  $("banner").textContent="Your setup answers are applied. Anything you left blank still uses the example number (marked “example”). Enter your weeks below; use the Setup button to change answers.";
+  const h=JSON.stringify(a); let seen=null; try{seen=localStorage.getItem(SETUP_HASH_KEY);}catch(e){}
+  if(seen!==h){                                         /* new answers: push expenses / prior-month figure into the saved assumptions once */
+    if(built.touchesSettings){ state.settings={augNB:DEF_AUG,expenses:DEF_EXP}; persist(); }
+    try{localStorage.setItem(SETUP_HASH_KEY,h);}catch(e){}
+  }
+  weekOptions(); selected=currentWeek(); fillForm(); render();
+}
+
+if(window.EvergreenSetup){
+  EvergreenSetup.init({
+    id:SETUP_ID,
+    title:"Set up your fall campaign planner",
+    intro:"Eight short questions so the goals, pay rules and projections match your pay plan instead of the example numbers. Enter 0 for anything that does not apply to you; a blank box keeps the example number.",
+    onDone:applySetup,
+    questions:[
+      {key:"firstCloseout",q:"What date does your first weekly tab close?",type:"date",
+        why:"Your “tab” is the week's sold total minus cancellations and pending. Each campaign week ends on a fixed closeout day (the last day to enter orders), and all 17 weeks are dated from this one.",
+        example:"Sep 8, 2026 (a Tuesday)"},
+      {key:"goals",q:"What are your goals for this campaign?",type:"group",
+        fields:[{key:"nb",label:"New business ($)",type:"number"},{key:"total",label:"Total business ($)",type:"number"},{key:"recruits",label:"Recruits to launch",type:"number"},{key:"fire",label:"Interviews booked (Fire)",type:"number"},{key:"pb",label:"Banquet new-business goal ($)",type:"number"}],
+        why:"“New business” is the figure your region reports as new business; “total” also includes everything else. These set the goals, the weekly plan bars and the “needed per week” numbers. A recruit launches on a new rep's first sales day.",
+        example:"New business 100,000 · total 1,100,000 · 40 recruits · 150 interviews booked"},
+      {key:"rates",q:"What share of each dollar of business do you keep as profit?",type:"group",
+        fields:[{key:"nbPct",label:"On new business (%)",type:"number"},{key:"otherPct",label:"On other business (%)",type:"number"}],
+        why:"Turns weekly sales into your projected income. It depends on your override or commission plan; if you are unsure, ask your region leader.",
+        example:"New business 15 · other business 7"},
+      {key:"monthlyBonus",q:"How does your monthly new-business bonus work?",type:"group",
+        fields:[{key:"base",label:"New business needed ($)",type:"number"},{key:"first",label:"Bonus at that level ($)",type:"number"},{key:"step",label:"Each extra step ($)",type:"number"},{key:"inc",label:"Extra bonus per step ($)",type:"number"}],
+        why:"It restarts every month. This drives the monthly bonus card and the income table. Use your region's monthly bonus table.",
+        example:"5,000 earns 250, then 25 more for every extra 500"},
+      {key:"campaignBonus",q:"Is there a campaign bonus or a company trip, and what does it take?",type:"group",optional:true,
+        fields:[{key:"nbGate",label:"Campaign: new business needed ($)",type:"number"},{key:"totGate",label:"Campaign: total business needed ($)",type:"number"},{key:"payout",label:"Campaign bonus ($)",type:"number"},{key:"trip",label:"Trip: new business needed ($)",type:"number"}],
+        why:"Both campaign requirements must be met to earn the bonus. Enter 0 as the bonus if you have none.",
+        example:"5,000 bonus at 200,000 total and 50,000 new business; trip needs 50,000 new business"},
+      {key:"perfTiers",q:"What year-end performance bonus tiers does your pay plan have?",type:"list",optional:true,
+        fields:[{key:"total",label:"Year total business ($)",type:"number"},{key:"bonus",label:"Bonus ($)",type:"number"}],
+        why:"Shows which tier you are on, how far the next one is, and where your projection lands. Add one row per tier.",
+        example:"1,500,000 pays 5,000 · 1,750,000 pays 7,500"},
+      {key:"yearToDate",q:"What have you done so far this year, and what is your growth bonus target?",type:"group",optional:true,
+        fields:[{key:"priorYtd",label:"Business earlier this year ($)",type:"number"},{key:"cii",label:"Earlier campaigns that count toward growth ($)",type:"number"},{key:"growthBase",label:"Growth bonus target ($)",type:"number"}],
+        why:"Needed for the performance and growth bonus cards. Your region leader or promotion letter has the growth target.",
+        example:"1,500,000 earlier this year · 800,000 · target 2,000,000"},
+      {key:"costs",q:"What are your monthly costs, and which smaller bonuses apply?",type:"group",
+        fields:[{key:"exp",label:"Monthly expenses ($)",type:"number"},{key:"car",label:"Car bonus per month ($)",type:"number"},{key:"recBonus",label:"Bonus per qualified recruit ($)",type:"number"},{key:"aug",label:"Last month's new business ($)",type:"number"},{key:"bizMin",label:"Prior-month new business that earns the next-month bonus ($)",type:"number"},{key:"bizBonus",label:"Next-month bonus ($)",type:"number"}],
+        why:"Expenses turn gross income into net. Enter 0 for any bonus you do not get, or the example amount stays in your income. “Last month's new business” is the month before your campaign starts.",
+        example:"5,000 expenses · 400 car · 25 per recruit · 3,200 last month · 5,000 earns 1,000"}
+    ]
+  });
+}
 
 })();
 </script>

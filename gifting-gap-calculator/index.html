@@ -134,6 +134,8 @@ header>*{max-width:680px}
 .inputs{border-radius:16px;box-shadow:0 1px 2px rgba(30,58,47,.08),0 10px 24px -14px rgba(30,58,47,.3)}
 .result{border-radius:16px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23c98f61' stroke-width='1.2'%3E%3Ccircle cx='120' cy='120' r='18'/%3E%3Ccircle cx='120' cy='120' r='38'/%3E%3Ccircle cx='120' cy='120' r='60'/%3E%3Ccircle cx='120' cy='120' r='84'/%3E%3Ccircle cx='120' cy='120' r='110'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right -60px top -60px;background-size:240px 240px}
 .eyebrow{color:var(--brass)}
+/* keep the Setup button clear of the sticky mobile bar */
+@media (max-width:820px){html body .es-fab{bottom:auto;top:10px;right:10px}}
 </style>
 
 <div class="wrap">
@@ -251,8 +253,10 @@ header>*{max-width:680px}
   <a href="https://calendly.com/austinoberbillig/general" target="_blank" rel="noopener" tabindex="-1">Book a consult</a>
 </div>
 
+<script src="../shared/setup-interview.js"></script>
 <script>
 (function(){
+  var FIVE = true;
   var PRESETS = {
     realestate:{clients:24, profit:9000, refrate:10, budget:150, lift:5},
     mortgage:{clients:60, profit:3500, refrate:8, budget:100, lift:4},
@@ -283,7 +287,7 @@ header>*{max-width:680px}
     var roi = cost>0 ? lost/cost : 0;
     $("lost").textContent = fmt(lost);
     $("m-lost").textContent = fmt(lost);
-    $("lost-sub").textContent = "per year · " + fmt(lost*5) + " over five years";
+    $("lost-sub").textContent = "per year" + (FIVE ? " · " + fmt(lost*5) + " over five years" : "");
     $("r-now").textContent = fmt(now);
     $("r-with").textContent = fmt(withG);
     $("r-cost").textContent = fmt(cost);
@@ -306,7 +310,34 @@ header>*{max-width:680px}
   });
   $("industry").addEventListener("change", function(e){ loadPreset(e.target.value); });
   $("calc").addEventListener("submit", function(e){ e.preventDefault(); });
+  var INDUSTRY = {"Real estate agent or team":"realestate","Mortgage lender":"mortgage","Remodeler or builder":"remodel","Financial advisor or insurance":"financial","Other service business":"other"};
+  function given(v){ return v !== "" && v != null && isFinite(Number(v)); }
+  function applyAnswers(a){
+    a = a || {};
+    var key = INDUSTRY[a.industry] || $("industry").value || "realestate";
+    var base = {}; keys.forEach(function(k){ base[k] = PRESETS[key][k]; });
+    keys.forEach(function(k){ if(given(a[k])) base[k] = Number(a[k]); });
+    PRESETS[key] = base;
+    FIVE = !/^show one/i.test(a.horizon || "");
+    $("industry").value = key;
+    loadPreset(key);
+  }
   loadPreset("realestate");
+  if(window.EvergreenSetup) EvergreenSetup.init({
+    id: "gifting-gap",
+    title: "Set up your gifting calculator",
+    intro: "A few quick questions to choose the starting numbers your visitors see when they open the calculator. They can still change every number. About 2 minutes, and everything is optional.",
+    questions: [
+      {key:"industry", q:"Which kind of business do you mostly talk to?", why:"The calculator opens on this business type with its example numbers. Visitors can switch.", type:"choice", options:["Real estate agent or team","Mortgage lender","Remodeler or builder","Financial advisor or insurance","Other service business"], example:"Real estate agent or team"},
+      {key:"clients", q:"How many clients does a typical one of them close in a year?", why:"This is the biggest number in the math: revenue left on the table = clients x extra referral rate x profit per client. A starting number only; the visitor replaces it with their own.", type:"number", optional:true, example:"24", placeholder:"e.g. 24"},
+      {key:"profit", q:"What does a typical client earn them, in profit?", why:"The commission, fee or gross profit they keep on one client. One extra referral is worth this much to them.", type:"money", optional:true, example:"9000", placeholder:"e.g. 9000"},
+      {key:"refrate", q:"Out of 100 clients, how many send them someone today?", why:"Their current referral rate, in percent. Most small businesses guess low, around 5 to 15.", type:"number", optional:true, example:"10", placeholder:"e.g. 10"},
+      {key:"budget", q:"What would a lasting closing gift cost them per client?", why:"Used for the gift investment, net gain and return numbers. Use the price of the gift you would normally suggest to them, such as an engraved set.", type:"money", optional:true, example:"150", placeholder:"e.g. 150"},
+      {key:"lift", q:"How many more clients out of 100 do you think refer after a memorable gift?", why:"The honest assumption behind the whole estimate. Start low; the page labels it as the visitor’s own assumption, not a guarantee. 5 means five more clients in every hundred send someone.", type:"number", optional:true, example:"5", placeholder:"e.g. 5"},
+      {key:"horizon", q:"Show a five-year number as well?", why:"By default the big number also shows five years of the same gain. Choose one year if you would rather not stretch the claim. Each referral is counted once either way.", type:"choice", optional:true, options:["Show five years too","Show one year only"], example:"Show one year only"}
+    ],
+    onDone: applyAnswers
+  });
 })();
 </script>
 

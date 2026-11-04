@@ -1,0 +1,178 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WSF shift rankings</title>
+<style>
+.egd-banner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:center;padding:8px 12px;background:var(--cream,var(--panel,#efe9dc));border-bottom:1px solid var(--line,var(--rule,#dcd3bf));color:var(--ink,#1e2a24);font:600 12.5px/1.4 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:center}
+.egd-btn{border:1px solid var(--line,var(--rule,#dcd3bf));background:var(--card,#fff);color:var(--ink,#1e2a24);font:700 12px/1 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.egd-btn.pri{background:var(--forest,var(--ink,#1e3a2f));color:var(--bg,var(--ground,#fff));border-color:var(--forest,var(--ink,#1e3a2f))}
+.egd-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.egd-ov[hidden]{display:none!important}
+.egd-panel{background:var(--card,#fff);color:var(--ink,#1e2a24);border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;font:13.5px/1.5 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:left}
+.egd-panel h3{margin:0 0 6px;font-size:17px}
+.egd-panel p{margin:0 0 10px;color:var(--muted,#6b6f63)}
+.egd-panel code{display:block;background:var(--cream,var(--panel,#efe9dc));border-radius:8px;padding:8px 10px;font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-word;margin-bottom:10px;color:var(--ink,#1e2a24)}
+.egd-panel textarea{width:100%;min-height:110px;box-sizing:border-box;border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:8px;padding:8px;background:var(--bg,var(--ground,#fff));color:var(--ink,#1e2a24);font:12px/1.4 ui-monospace,Menlo,monospace;margin:6px 0 10px}
+.egd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.egd-err{color:var(--down,#b3412f);font-weight:700;margin-bottom:8px;white-space:pre-wrap}
+</style>
+<script>
+window.EGD=(function(){
+  var cfg,KEY;
+  function parseCSV(text){
+    text=String(text).replace(/^﻿/,'');
+    var rows=[],row=[],f='',q=false,i,c;
+    for(i=0;i<text.length;i++){c=text[i];
+      if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+      else if(c==='"')q=true;
+      else if(c===','){row.push(f);f='';}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[];}
+      else f+=c;
+    }
+    if(f!==''||row.length){row.push(f);rows.push(row);}
+    rows=rows.filter(function(r){return r.some(function(x){return String(x).trim()!=='';});});
+    if(rows.length<2)throw new Error('Need a header row and at least one data row.');
+    var head=rows[0].map(function(h){return String(h).trim().toLowerCase().replace(/\s+/g,'_');});
+    var miss=cfg.required.filter(function(c){return head.indexOf(c)<0;});
+    if(miss.length)throw new Error('Missing column(s): '+miss.join(', '));
+    return rows.slice(1).map(function(r){var o={};head.forEach(function(h,j){o[h]=(r[j]==null?'':String(r[j]).trim());});return o;});
+  }
+  function load(text,isSample){return cfg.build(parseCSV(text),isSample);}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e;}
+  function mount(isSample){
+    var banner=el('div',{'class':'egd-banner'});
+    banner.appendChild(el('span',{},isSample?'Sample data — load your own to see your team.':'Showing your data (kept only in this browser).'));
+    var open=el('button',{'class':'egd-btn pri',type:'button'},'Load your own data');
+    banner.appendChild(open);
+    var ov=el('div',{'class':'egd-ov',hidden:''});
+    var panel=el('div',{'class':'egd-panel',role:'dialog','aria-label':'Load your own data'});
+    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
+    panel.querySelector('code').textContent=cfg.columns.join(',');
+    var file=el('input',{type:'file',accept:'.csv,text/csv,text/plain'});
+    var ta=el('textarea',{placeholder:'Or paste CSV text here',spellcheck:'false'});
+    var err=el('div',{'class':'egd-err'});
+    var row=el('div',{'class':'egd-row'});
+    var go=el('button',{'class':'egd-btn pri',type:'button'},'Load data');
+    var tpl=el('a',{'class':'egd-btn',href:'#',download:cfg.filename},'Download CSV template');
+    var rst=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');
+    var cl=el('button',{'class':'egd-btn',type:'button'},'Close');
+    [go,tpl,rst,cl].forEach(function(b){row.appendChild(b);});
+    [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
+    ov.appendChild(panel);
+    try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+    open.onclick=function(){err.textContent='';ov.hidden=false;};
+    cl.onclick=function(){ov.hidden=true;};
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
+    rst.onclick=reset;
+    function apply(){
+      var text=ta.value;err.textContent='';
+      try{load(text,false);}catch(e){err.textContent='Could not read that data: '+e.message;return;}
+      try{localStorage.setItem(KEY,text);}catch(e){err.textContent='Your browser blocked local storage, so the data cannot be saved.';return;}
+      location.reload();
+    }
+    go.onclick=apply;
+    file.onchange=function(){var f=file.files&&file.files[0];if(!f)return;var r=new FileReader();r.onload=function(){ta.value=String(r.result);apply();};r.readAsText(f);};
+    if(!isSample){var b2=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');b2.onclick=reset;banner.appendChild(b2);}
+    document.body.insertBefore(banner,document.body.firstChild);
+    document.body.appendChild(ov);
+  }
+  return {init:function(c){
+    cfg=c;KEY=c.key;var saved=null,D=null,isSample=true;
+    try{saved=localStorage.getItem(KEY);}catch(e){}
+    if(saved){try{D=load(saved,false);isSample=false;}catch(e){D=null;}}
+    if(!D)D=load(c.sample,true);
+    mount(isSample);
+    return D;
+  }};
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ground:#e7e0cf; --panel:#efe9dc; --card:#f6f2e8; --ink:#1e3a2f; --body:#2c3a32; --muted:#6d6a5e;
+  --copper:#966139; --copper-hi:#b0764a; --rule:#dcd3bf; --ring:#1e3a2f;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#14211b; --panel:#1b2b23; --card:#21342a; --ink:#efe9dc; --body:#dcd6c6; --muted:#a8b0a2;
+    --copper:#c98f61; --copper-hi:#c98f61; --rule:#2f4538; --ring:#efe9dc; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#14211b; --panel:#1b2b23; --card:#21342a; --ink:#efe9dc; --body:#dcd6c6; --muted:#a8b0a2;
+  --copper:#c98f61; --copper-hi:#c98f61; --rule:#2f4538; --ring:#efe9dc; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--ground);color:var(--body);font-family:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:420px;margin:0 auto;padding:22px 16px 26px;position:relative;overflow:hidden}
+.rings{position:absolute;top:-34px;right:-40px;width:170px;height:170px;opacity:.12;pointer-events:none}
+.rings circle{fill:none;stroke:var(--ring);stroke-width:3}
+.eyebrow{font-size:9.5px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;color:var(--copper);margin:0 0 6px;position:relative}
+h1{font-family:"Fraunces",Georgia,serif;font-size:26px;font-weight:700;color:var(--ink);margin:0 0 4px;letter-spacing:-.015em;line-height:1.1;position:relative}
+.meta{font-size:11px;color:var(--muted);margin:0 0 11px;position:relative}
+.rule{height:2px;background:linear-gradient(90deg,var(--copper-hi) 0,var(--copper-hi) 44px,var(--rule) 44px);margin:0 0 12px}
+.list{background:var(--card);border:1px solid var(--rule);border-radius:14px;padding:2px 14px}
+.row{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--rule)}
+.row:last-of-type{border-bottom:none}
+.rk{width:20px;flex:0 0 20px;font-family:"Fraunces",Georgia,serif;font-size:15px;font-weight:700;color:var(--copper);text-align:right;line-height:1.2}
+.mid{flex:1 1 auto;min-width:0}
+.nm{font-size:14px;font-weight:600;color:var(--ink);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{font-size:10.5px;color:var(--muted);line-height:1.5;margin-top:2px;font-variant-numeric:tabular-nums}
+.avg{flex:0 0 auto;text-align:right}
+.avg b{display:block;font-family:"Fraunces",Georgia,serif;font-size:18px;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.1}
+.avg span{display:block;font-size:8.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.key{background:var(--panel);border-left:3px solid var(--copper-hi);border-radius:0 10px 10px 0;padding:9px 11px;margin:14px 0 0;font-size:10px;color:var(--muted);line-height:1.5}
+.foot{border-top:1px solid var(--rule);margin-top:14px;padding-top:8px;display:flex;justify-content:space-between;font-size:9px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <svg class="rings" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="56"/><circle cx="60" cy="60" r="42"/><circle cx="60" cy="60" r="28"/><circle cx="60" cy="60" r="14"/></svg>
+  <p class="eyebrow">Evergreen Division &middot; Cutco</p>
+  <h1>WSF shift rankings</h1>
+  <p class="meta">Ranked by shift average &middot; Days 1&ndash;13 &middot; State Fair, Sept</p>
+  <div class="rule"></div>
+  <div class="list" id="list"></div>
+  <div class="key">Gross CPO before cancellations. Sample figures: 13 of 20 days complete.</div>
+  <div class="foot"><span>Evergreen Division &middot; Fair shift rankings</span><span id="srcnote">Sample data</span></div>
+</div>
+<script>
+const R = EGD.init({key:"egd-wsf-shift-rankings-v1",columns:["name", "shifts", "total_sales", "avg_order", "leads_per_shift"],required:["name", "shifts", "total_sales"],help:"One row per person. <b>name</b> = person, <b>shifts</b> = shifts worked, <b>total_sales</b> = total sales in dollars, <b>avg_order</b> = average order in dollars (optional), <b>leads_per_shift</b> = average leads per shift (optional). People are ranked by total_sales divided by shifts.",filename:"shift-rankings-template.csv",sample:`name,shifts,total_sales,avg_order,leads_per_shift
+Jordan K.,13,72731,562,6.1
+Taylor M.,11,52312,1090,0.4
+Casey R.,8,27431,845,2.8
+Jamie D.,4,11192,640,0.0
+Riley P.,13,33155,395,11.2
+Morgan S.,12,28249,470,3.2
+Avery L.,6,12819,610,3.6
+Quinn B.,13,26006,455,4.4
+Parker W.,4,6818,505,1.1
+Drew N.,9,14937,380,3.5
+Sam T.,9,12498,470,2.7
+`,build:(rows)=>{
+  const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
+  const out=rows.map(r=>({name:r.name,shifts:num(r.shifts),total:num(r.total_sales),ao:num(r.avg_order),leads:num(r.leads_per_shift)})).filter(r=>r.name&&r.shifts>0);
+  if(!out.length)throw new Error('No usable rows (each row needs a name and shifts above 0).');
+  out.forEach(r=>{r.avg=r.total/r.shifts;});
+  out.sort((a,b)=>b.avg-a.avg);
+  return out;
+}});
+const fmt = v => '$' + Math.round(v).toLocaleString('en-US');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+document.getElementById('list').innerHTML = R.map((r, i) =>
+  `<div class="row"><div class="rk">${i+1}</div><div class="mid"><div class="nm">${esc(r.name)}</div><div class="sub">${r.shifts} shifts &middot; ${fmt(r.total)} total<br>${fmt(r.ao)} avg order &middot; ${r.leads.toFixed(1)} leads/sh</div></div><div class="avg"><b>${fmt(r.avg)}</b><span>Shift avg</span></div></div>`).join('');
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
+</html>
+
+</body></html>

@@ -1,0 +1,478 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Business Gifts Designs</title>
+<style>
+.egd-banner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:center;padding:8px 12px;background:var(--cream,var(--panel,#efe9dc));border-bottom:1px solid var(--line,var(--rule,#dcd3bf));color:var(--ink,#1e2a24);font:600 12.5px/1.4 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:center}
+.egd-btn{border:1px solid var(--line,var(--rule,#dcd3bf));background:var(--card,#fff);color:var(--ink,#1e2a24);font:700 12px/1 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.egd-btn.pri{background:var(--forest,var(--ink,#1e3a2f));color:var(--bg,var(--ground,#fff));border-color:var(--forest,var(--ink,#1e3a2f))}
+.egd-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.egd-ov[hidden]{display:none!important}
+.egd-panel{background:var(--card,#fff);color:var(--ink,#1e2a24);border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;font:13.5px/1.5 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:left}
+.egd-panel h3{margin:0 0 6px;font-size:17px}
+.egd-panel p{margin:0 0 10px;color:var(--muted,#6b6f63)}
+.egd-panel code{display:block;background:var(--cream,var(--panel,#efe9dc));border-radius:8px;padding:8px 10px;font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-word;margin-bottom:10px;color:var(--ink,#1e2a24)}
+.egd-panel textarea{width:100%;min-height:110px;box-sizing:border-box;border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:8px;padding:8px;background:var(--bg,var(--ground,#fff));color:var(--ink,#1e2a24);font:12px/1.4 ui-monospace,Menlo,monospace;margin:6px 0 10px}
+.egd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.egd-err{color:var(--down,#b3412f);font-weight:700;margin-bottom:8px;white-space:pre-wrap}
+</style>
+<script>
+window.EGD=(function(){
+  var cfg,KEY;
+  function parseCSV(text){
+    text=String(text).replace(/^﻿/,'');
+    var rows=[],row=[],f='',q=false,i,c;
+    for(i=0;i<text.length;i++){c=text[i];
+      if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+      else if(c==='"')q=true;
+      else if(c===','){row.push(f);f='';}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[];}
+      else f+=c;
+    }
+    if(f!==''||row.length){row.push(f);rows.push(row);}
+    rows=rows.filter(function(r){return r.some(function(x){return String(x).trim()!=='';});});
+    if(rows.length<2)throw new Error('Need a header row and at least one data row.');
+    var head=rows[0].map(function(h){return String(h).trim().toLowerCase().replace(/\s+/g,'_');});
+    var miss=cfg.required.filter(function(c){return head.indexOf(c)<0;});
+    if(miss.length)throw new Error('Missing column(s): '+miss.join(', '));
+    return rows.slice(1).map(function(r){var o={};head.forEach(function(h,j){o[h]=(r[j]==null?'':String(r[j]).trim());});return o;});
+  }
+  function load(text,isSample){return cfg.build(parseCSV(text),isSample);}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e;}
+  function mount(isSample){
+    var banner=el('div',{'class':'egd-banner'});
+    banner.appendChild(el('span',{},isSample?'Sample data — load your own to see your team.':'Showing your data (kept only in this browser).'));
+    var open=el('button',{'class':'egd-btn pri',type:'button'},'Load your own data');
+    banner.appendChild(open);
+    var ov=el('div',{'class':'egd-ov',hidden:''});
+    var panel=el('div',{'class':'egd-panel',role:'dialog','aria-label':'Load your own data'});
+    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
+    panel.querySelector('code').textContent=cfg.columns.join(',');
+    var file=el('input',{type:'file',accept:'.csv,text/csv,text/plain'});
+    var ta=el('textarea',{placeholder:'Or paste CSV text here',spellcheck:'false'});
+    var err=el('div',{'class':'egd-err'});
+    var row=el('div',{'class':'egd-row'});
+    var go=el('button',{'class':'egd-btn pri',type:'button'},'Load data');
+    var tpl=el('a',{'class':'egd-btn',href:'#',download:cfg.filename},'Download CSV template');
+    var rst=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');
+    var cl=el('button',{'class':'egd-btn',type:'button'},'Close');
+    [go,tpl,rst,cl].forEach(function(b){row.appendChild(b);});
+    [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
+    ov.appendChild(panel);
+    try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+    open.onclick=function(){err.textContent='';ov.hidden=false;};
+    cl.onclick=function(){ov.hidden=true;};
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
+    rst.onclick=reset;
+    function apply(){
+      var text=ta.value;err.textContent='';
+      try{load(text,false);}catch(e){err.textContent='Could not read that data: '+e.message;return;}
+      try{localStorage.setItem(KEY,text);}catch(e){err.textContent='Your browser blocked local storage, so the data cannot be saved.';return;}
+      location.reload();
+    }
+    go.onclick=apply;
+    file.onchange=function(){var f=file.files&&file.files[0];if(!f)return;var r=new FileReader();r.onload=function(){ta.value=String(r.result);apply();};r.readAsText(f);};
+    if(!isSample){var b2=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');b2.onclick=reset;banner.appendChild(b2);}
+    document.body.insertBefore(banner,document.body.firstChild);
+    document.body.appendChild(ov);
+  }
+  return {init:function(c){
+    cfg=c;KEY=c.key;var saved=null,D=null,isSample=true;
+    try{saved=localStorage.getItem(KEY);}catch(e){}
+    if(saved){try{D=load(saved,false);isSample=false;}catch(e){D=null;}}
+    if(!D)D=load(c.sample,true);
+    mount(isSample);
+    return D;
+  }};
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f6f2e8; --card:#fffdf8; --ink:#1e2a24; --muted:#6b6f63; --line:#e3dccb;
+  --forest:#1e3a2f; --forest-2:#2f5644; --copper:#b0764a; --copper-2:#966139; --cream:#efe9dc;
+  --up:#2e7d4f; --mid:#b8862b; --down:#b3412f; --grid:rgba(30,42,36,.08); --track:#ebe4d3;
+  --ly:#9fb3a6; --pace:#1e3a2f;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+    --forest:#cfe0d4; --forest-2:#9dbfaa; --copper:#d39a6c; --copper-2:#e0ad83; --cream:#232d27;
+    --up:#6fcf97; --mid:#e2b45a; --down:#ef8a75; --grid:rgba(236,230,216,.08); --track:#2a352f; --ly:#5e7a6a; --pace:#cfe0d4;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+  --forest:#cfe0d4; --forest-2:#9dbfaa; --copper:#d39a6c; --copper-2:#e0ad83; --cream:#232d27;
+  --up:#6fcf97; --mid:#e2b45a; --down:#ef8a75; --grid:rgba(236,230,216,.08); --track:#2a352f; --ly:#5e7a6a; --pace:#cfe0d4;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 48px}
+.picker{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.picker .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.picker .lab{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-right:4px}
+.picker button{border:1px solid var(--line);background:var(--card);color:var(--ink);font:700 14px Manrope,sans-serif;padding:9px 14px;border-radius:10px;cursor:pointer}
+.picker button.on{background:var(--forest);color:var(--bg);border-color:var(--forest)}
+.picker .desc{font-size:13.5px;color:var(--muted);margin-top:8px}
+.example{display:inline-block;background:var(--cream);border:1px dashed var(--copper);color:var(--copper-2);font-size:12.5px;font-weight:700;border-radius:8px;padding:4px 9px;margin-top:8px}
+header{margin-bottom:18px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);font-weight:700}
+h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(26px,4vw,36px);margin:4px 0 2px;color:var(--forest);line-height:1.1}
+h2{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 4px;color:var(--forest)}
+.sub,.h2n{color:var(--muted);font-size:13.5px}
+.h2n{margin-bottom:12px}
+.card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.kpi .l{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-size:clamp(22px,3vw,30px);font-weight:800;margin-top:6px;color:var(--forest)}
+.kpi .n{font-size:13px;color:var(--muted);margin-top:4px}
+.up{color:var(--up)}.mid{color:var(--mid)}.down{color:var(--down)}
+.b{font-weight:800}
+.chart{position:relative;height:280px}
+.chart.big{height:360px}
+.stack{display:grid;gap:14px}
+.muted{color:var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.up{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.pill.mid{background:color-mix(in srgb,var(--mid) 16%,transparent)}
+.pill.down{background:color-mix(in srgb,var(--down) 14%,transparent)}
+.pill.none{background:var(--cream);color:var(--muted)}
+/* Option 1: race */
+.race{display:grid;gap:4px}
+.rrow{display:grid;grid-template-columns:28px minmax(120px,190px) minmax(0,1fr) minmax(150px,210px);gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.rank{font-weight:800;color:var(--muted);text-align:right}
+.rname{font-weight:800}
+.rname small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.track{position:relative;height:14px;background:var(--track);border-radius:7px}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px;background:var(--copper)}
+.tick{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--pace)}
+.rnum{text-align:right;font-size:13.5px}
+.rnum .b{font-size:15px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+/* Option 2: table */
+.hero2{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+.side .big{font-size:34px;font-weight:800;color:var(--forest);margin:4px 0}
+.side p{margin:0 0 14px;font-size:13.5px;color:var(--muted)}
+.side hr{border:0;border-top:1px solid var(--line);margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;font-weight:700;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td.name{font-weight:800}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* Option 3: cards */
+.divcard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.pc{display:grid;gap:10px}
+.pc .top{display:flex;gap:12px;align-items:center}
+.pc .nm{font-weight:800;font-size:16px}
+.pc .line{display:flex;justify-content:space-between;font-size:13.5px}
+.pc .need{background:var(--cream);border-radius:10px;padding:8px 10px;font-size:13px}
+.ringtxt{font-weight:800;font-size:15px;fill:var(--forest)}
+footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi .v{font-size:19px;overflow-wrap:anywhere}
+  .kpi .l{font-size:10.5px}
+  .card{padding:13px}
+  .picker{position:static}
+  .picker button{padding:7px 10px;font-size:13px}
+  .side .big{font-size:28px}
+  .hero2{grid-template-columns:minmax(0,1fr)}
+  .chart.big{height:260px}
+  .rrow{grid-template-columns:22px minmax(0,1fr) auto;gap:6px 10px}
+  .rrow .track{grid-column:2 / 4;grid-row:2}
+  .rnum{font-size:12.5px}
+  .divcard{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}
+  td.name{position:sticky;left:0;background:var(--card)}
+}
+</style>
+<div class="wrap">
+  <div class="picker">
+    <div class="row">
+      <span class="lab">Design</span>
+      <button data-o="1" class="on">1 · Scoreboard</button>
+      <button data-o="2">2 · Trend line first</button>
+      <button data-o="3">3 · Person cards</button>
+    </div>
+    <div class="desc" id="desc"></div>
+    <div class="example">Preview only: sample sales and made-up goals.</div>
+  </div>
+
+  <header>
+    <div class="eyebrow">Evergreen Division</div>
+    <h1>Business Gifts <span id="yr"></span></h1>
+    <div class="sub" id="asof"></div>
+  </header>
+
+  <section id="o1" class="stack"></section>
+  <section id="o2" class="stack" hidden></section>
+  <section id="o3" class="stack" hidden></section>
+
+  <footer id="foot"></footer>
+</div>
+<script>
+function buildGifts(rows, forDesign, isSample){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
+  const opt=v=>{if(v==null||String(v).trim()==='')return null;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isFinite(n)?n:null;};
+  const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:num(r.orders),goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
+  if(!recs.length)throw new Error('No usable rows (each row needs a name and a year).');
+  const Y=Math.max(...recs.map(x=>x.year)), years=[Y-2,Y-1,Y];
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  const asof=isSample?'2026-11-03':(now.getFullYear()===Y?`${Y}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`:`${Y}-12-31`);
+  const ad=new Date(asof+'T12:00:00'), cm=ad.getMonth(), frac=ad.getDate()/new Date(Y,cm+1,0).getDate();
+  const sum=a=>a.reduce((x,z)=>x+z,0);
+  const zero=()=>Array(12).fill(0);
+  const toDate=a=>Math.round(sum(a.slice(0,cm))+a[cm]*frac);
+  const labels={BIZ:'Business gifts',RLT:'Realtor gifts'};
+  const types={};
+  ['BIZ','RLT'].forEach(T=>{
+    const byName={};
+    recs.filter(x=>x.type===T).forEach(x=>{
+      const o=byName[x.name]||(byName[x.name]={name:x.name,y:{},orders:0,goal:null,proj:null});
+      const cur=o.y[x.year]||(o.y[x.year]=zero());
+      x.m.forEach((v,i)=>{cur[i]+=v;});
+      if(x.year===Y)o.orders+=x.orders;
+      if(x.goal!=null)o.goal=x.goal;
+      if(x.proj!=null)o.proj=x.proj;
+    });
+    const monthly={};years.forEach(y=>{monthly[y]=zero();});
+    const reps=Object.values(byName).map(o=>{
+      const yrs={};
+      years.forEach(y=>{const a=o.y[y]||zero();yrs[y]=sum(a);a.forEach((v,i)=>{monthly[y][i]+=v;});});
+      const cur=o.y[Y]||zero(), ly=o.y[Y-1]||zero(), ytd=sum(cur);
+      const r={name:o.name,years:yrs,ytd:ytd,ly_ytd:toDate(ly),orders:o.orders,avg:o.orders?Math.round(ytd/o.orders):null,months:cur,goal:o.goal};
+      if(forDesign)r.projection=o.proj;
+      return r;
+    });
+    reps.sort((a,b)=>b.ytd-a.ytd);
+    const totals={};years.forEach(y=>{totals[y]=sum(monthly[y]);});
+    types[T]={label:labels[T],monthly:monthly,totals:totals,ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),reps:reps};
+  });
+  const out={asof:asof,year:Y,years:years,types:types,no_orders:[]};
+  if(forDesign){
+    const B=types.BIZ;
+    if(!B.reps.length)throw new Error('Add at least one BIZ (business gift) row.');
+    if(!(B.totals[Y-1]>0||B.totals[Y-2]>0))throw new Error('The scoreboard needs at least one earlier year of BIZ data to work out pace.');
+    if(!B.reps.some(r=>r.goal!=null))B.reps.forEach(r=>{if(r.ytd>0||r.years[Y-1]>0)r.goal=Math.max(1000,Math.round(Math.max(r.years[Y-1],r.ytd)*1.1/1000)*1000);});
+    out.no_orders=B.reps.filter(r=>r.goal!=null&&!r.ytd&&!r.orders).map(r=>r.name);
+    B.reps=B.reps.filter(r=>!(r.goal!=null&&!r.ytd&&!r.orders));
+    if(!B.reps.some(r=>r.goal!=null))throw new Error('Add a goal for at least one person.');
+  }
+  return out;
+}
+const D = EGD.init({key:"egd-business-gifts-designs-v1",columns:["type", "name", "year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "orders", "goal", "projection"],required:["name", "year"],help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year. <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year\u2019s row, <b>orders</b> = number of orders, <b>goal</b> = that person\u2019s year goal and <b>projection</b> = their projection (optional). Include at least one earlier year so pace can be worked out. The scoreboard designs use the BIZ rows; if no goals are given, goals are estimated from last year.",filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
+BIZ,Jordan K.,2024,2750,2573,5961,9998,2876,1198,1755,6777,5364,2336,7709,2703,,,
+BIZ,Jordan K.,2025,4779,2981,17764,16083,14697,9286,6828,14075,4729,2247,0,4531,,,
+BIZ,Jordan K.,2026,8678,3623,2428,2688,4130,3641,30257,7449,7149,8511,446,0,33,145000,128000
+BIZ,Taylor M.,2024,145,72,98,110,90,207,126,128,728,624,72,0,,,
+BIZ,Taylor M.,2025,1386,0,2458,0,1227,1029,0,0,0,0,0,0,,,
+BIZ,Taylor M.,2026,0,1410,0,0,0,2397,17593,7210,1474,2771,145,0,12,40000,36000
+BIZ,Casey R.,2024,343,98,349,122,0,0,84,0,0,112,137,655,,,
+BIZ,Casey R.,2025,3927,0,1192,2784,572,1214,4179,2785,5406,2674,2066,1701,,,
+BIZ,Casey R.,2026,2603,0,1931,0,0,8321,5401,0,0,6789,955,0,12,38000,34000
+BIZ,Riley P.,2024,0,0,729,0,0,2780,937,1366,0,588,0,0,,,
+BIZ,Riley P.,2025,0,611,219,0,0,0,650,167,0,0,253,0,,,
+BIZ,Riley P.,2026,687,371,524,1342,649,1724,0,2980,0,862,61,0,5,12000,11000
+BIZ,Morgan S.,2024,451,0,702,348,983,0,0,0,460,413,743,0,,,
+BIZ,Morgan S.,2025,0,0,0,0,0,0,0,3819,0,4981,0,0,,,
+BIZ,Morgan S.,2026,5345,0,0,0,0,0,0,0,0,0,2255,0,3,10000,8000
+BIZ,Avery L.,2024,0,0,0,1282,0,0,0,0,0,4218,0,0,,,
+BIZ,Avery L.,2025,0,0,0,0,0,0,0,0,0,2321,1579,0,,,
+BIZ,Avery L.,2026,1317,0,0,0,0,0,0,0,0,5783,0,0,4,10000,8000
+BIZ,Quinn B.,2024,1605,0,1486,0,772,0,0,337,0,0,0,0,,,
+BIZ,Quinn B.,2025,1144,0,0,1156,0,0,0,0,0,0,0,0,,,
+BIZ,Quinn B.,2026,2565,0,0,0,1023,0,0,612,0,0,0,0,2,10000,8000
+BIZ,Jamie D.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Jamie D.,2025,0,1800,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Jamie D.,2026,0,420,0,0,0,0,0,0,0,0,0,0,0,10000,8000
+BIZ,Sam T.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Sam T.,2025,0,0,0,180,0,0,0,0,0,0,0,0,,,
+BIZ,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,10000,8000
+RLT,Jordan K.,2024,0,0,25685,0,14251,14037,3735,6671,0,0,24395,1226,,,
+RLT,Jordan K.,2025,5216,0,0,15042,8809,2712,0,10110,10134,0,4252,5725,,,
+RLT,Jordan K.,2026,2471,0,1303,23328,4311,1206,0,3632,2465,8284,0,0,38,,
+RLT,Casey R.,2024,313,1149,399,0,0,0,213,0,0,0,0,326,,,
+RLT,Casey R.,2025,0,1774,0,0,0,520,0,0,2774,0,0,2332,,,
+RLT,Casey R.,2026,0,0,0,0,0,0,5633,0,3219,0,648,0,6,,
+RLT,Morgan S.,2024,672,0,0,0,0,689,0,513,5384,0,1942,0,,,
+RLT,Morgan S.,2025,628,1647,1245,672,0,321,2921,1339,0,2458,2511,1058,,,
+RLT,Morgan S.,2026,1541,841,0,2035,0,0,0,0,0,1783,0,0,4,,
+RLT,Riley P.,2024,0,0,0,0,1555,0,0,0,5845,0,0,0,,,
+RLT,Riley P.,2025,166,189,126,0,0,0,1763,601,755,0,0,0,,,
+RLT,Riley P.,2026,0,0,3482,0,0,0,0,0,0,0,218,0,3,,
+RLT,Avery L.,2024,0,0,0,0,0,0,7200,0,0,0,0,0,,,
+RLT,Avery L.,2025,0,0,0,0,1500,0,0,0,0,0,0,0,,,
+RLT,Avery L.,2026,0,0,0,0,0,696,438,0,0,0,66,0,1,,
+RLT,Quinn B.,2024,0,0,0,0,0,0,0,700,0,0,0,0,,,
+RLT,Quinn B.,2025,0,0,5600,0,0,0,0,0,0,0,0,0,,,
+RLT,Quinn B.,2026,0,0,0,0,0,0,0,0,0,800,0,0,1,,
+RLT,Taylor M.,2024,0,0,0,4800,0,0,0,0,0,0,0,0,,,
+RLT,Taylor M.,2025,0,0,0,0,0,0,3182,818,0,0,0,0,,,
+RLT,Taylor M.,2026,0,0,0,0,0,300,0,0,0,0,0,0,0,,
+RLT,Jamie D.,2024,0,0,0,0,0,2342,0,0,0,389,0,969,,,
+RLT,Jamie D.,2025,0,0,0,0,0,1425,0,0,0,1575,0,0,,,
+RLT,Jamie D.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+`,build:(rows,isSample)=>buildGifts(rows,true,isSample)});
+const T = D.types.BIZ;
+const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $ = s => document.querySelector(s);
+const money = v => v == null ? '—' : '$' + Math.round(v).toLocaleString('en-US');
+const k = v => Math.abs(v) >= 1000 ? '$' + (v/1000).toFixed(Math.abs(v) >= 100000 ? 0 : 1) + 'K' : '$' + Math.round(v);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const Y = D.year, asof = new Date(D.asof + 'T12:00:00');
+const mi = asof.getMonth(), dim = new Date(Y, mi + 1, 0).getDate(), dayFrac = asof.getDate() / dim;
+
+// Seasonal pace: share of a year's business gifts usually done by this date (average of earlier years).
+const past = D.years.filter(y => y < Y);
+function shareBy(m, f){
+  const s = past.map(y => { const a = T.monthly[y], tot = a.reduce((x,z)=>x+z,0); if(!tot) return null;
+    let c = 0; for (let i=0;i<m;i++) c += a[i]; c += a[m]*f; return c/tot; }).filter(x => x != null);
+  return s.reduce((a,b)=>a+b,0)/s.length;
+}
+const FR = shareBy(mi, dayFrac);
+const monthsLeft = 12 - mi - dayFrac;
+
+const reps = T.reps.filter(r => r.goal != null);
+const noOrders = D.no_orders || [];
+const divGoal = reps.reduce((a,r)=>a+r.goal,0);
+const divProj = reps.reduce((a,r)=>a+(r.projection||r.goal),0);
+const divYtd = T.ytd, divPace = divGoal*FR, divFore = divYtd/FR;
+function status(ytd, goal){
+  const p = goal*FR, r = p ? ytd/p : 0;
+  if (r >= 1) return {c:'up', t:'Ahead of pace'};
+  if (r >= .9) return {c:'mid', t:'Close to pace'};
+  return {c:'down', t:'Behind pace'};
+}
+const gap = (ytd, goal) => ytd - goal*FR;
+const gapTxt = (ytd, goal) => { const g = gap(ytd,goal); return g >= 0 ? `${k(g)} ahead` : `${k(-g)} behind`; };
+const needMo = (ytd, goal) => Math.max(0, goal - ytd) / monthsLeft;
+
+$('#yr').textContent = Y;
+$('#asof').textContent = `Data through ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · ${reps.length} CSPs`;
+const lyYtd = T.ly_ytd, vsLy = (divYtd - lyYtd)/lyYtd;
+
+function kpis(){
+  const s = status(divYtd, divGoal);
+  return `<div class="kpis">
+    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(divYtd)}</div><div class="n"><span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs same date ${Y-1}</div></div>
+    <div class="card kpi"><div class="l">Division goal</div><div class="v">${money(divGoal)}</div><div class="n">Team projection ${money(divProj)}</div></div>
+    <div class="card kpi"><div class="l">Pace today</div><div class="v ${s.c}">${gapTxt(divYtd, divGoal)}</div><div class="n">Should be at ${money(divPace)} by now</div></div>
+    <div class="card kpi"><div class="l">On track to finish</div><div class="v">${money(divFore)}</div><div class="n">${Math.round(divFore/divGoal*100)}% of goal at this speed</div></div>
+  </div>`;
+}
+
+// cumulative series
+function cum(a, upto){ let c=0; return a.map((v,i)=> i>upto ? null : (c+=v)); }
+function paceLine(goal){ return M.map((_,i)=> Math.round(goal*shareBy(i,1))); }
+const charts = {};
+function trendChart(id, big){
+  const cur = cum(T.monthly[Y], mi), ly = cum(T.monthly[Y-1], 11);
+  charts[id] = new Chart(document.getElementById(id), {type:'line', data:{labels:M, datasets:[
+    {label:`${Y}`, data:cur, borderColor:css('--copper'), backgroundColor:css('--copper'), borderWidth:3, pointRadius:0, tension:.25},
+    {label:'Pace to goal', data:paceLine(divGoal), borderColor:css('--pace'), borderDash:[6,5], borderWidth:2, pointRadius:0, tension:.25},
+    {label:`${Y-1}`, data:ly, borderColor:css('--ly'), borderWidth:2, pointRadius:0, tension:.25},
+  ]}, options:{maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'bottom',labels:{color:css('--muted'),boxWidth:14,font:{family:'Manrope',weight:'600'}}},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${money(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:css('--muted')}}, y:{grid:{color:css('--grid')},ticks:{color:css('--muted'),callback:v=>k(v)}}}}});
+}
+
+// ---------- Option 1: Scoreboard ----------
+function o1(){
+  const list = [...reps].sort((a,b)=> b.ytd/b.goal - a.ytd/a.goal);
+  const scale = 1;
+  const rows = list.map((r,i)=>{ const s = status(r.ytd,r.goal), w = Math.min(100, r.ytd/r.goal/scale*100), t = FR/scale*100;
+    return `<div class="rrow"><div class="rank">${i+1}</div>
+      <div class="rname">${r.name}<small>${r.ytd >= r.goal ? '<b class="up">Goal reached</b> · ' : ''}${Math.round(r.ytd/r.goal*100)}% of ${k(r.goal)} goal</small></div>
+      <div class="track"><div class="fill" style="width:${w}%;background:var(--${s.c})"></div><div class="tick" style="left:${t}%" title="Where they should be today"></div></div>
+      <div class="rnum"><span class="b">${money(r.ytd)}</span><br><span class="${s.c} b">${gapTxt(r.ytd,r.goal)}</span></div></div>`; }).join('');
+  $('#o1').innerHTML = kpis() + `
+    <div class="card"><h2>Race to goal</h2><div class="h2n">Ranked by how much of their own goal each person has done. The dark line on each bar is where they should be today.</div>
+      <div class="race">${rows}</div>
+      <div class="legend"><span><i style="background:var(--up)"></i>Ahead of pace</span><span><i style="background:var(--mid)"></i>Close</span><span><i style="background:var(--down)"></i>Behind</span><span><i style="background:var(--pace);width:3px"></i>Pace today</span></div></div>
+    <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to goal and last year.</div><div class="chart"><canvas id="c1"></canvas></div></div>`;
+  trendChart('c1');
+}
+
+// ---------- Option 2: Trend line first ----------
+function spark(a){
+  const v = a.slice(0, mi+1), mx = Math.max(1, ...v), w = 96, h = 26, bw = w/12;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${a.map((x,i)=> i>mi ? `<rect x="${i*bw+1}" y="${h-2}" width="${bw-2}" height="2" fill="var(--track)"/>` :
+    `<rect x="${i*bw+1}" y="${h - Math.max(2, x/mx*h)}" width="${bw-2}" height="${Math.max(2, x/mx*h)}" rx="1" fill="var(--copper)"/>`).join('')}</svg>`;
+}
+function o2(){
+  const s = status(divYtd, divGoal);
+  const rows = reps.map(r=>{ const st = status(r.ytd,r.goal); return `<tr>
+    <td class="name">${r.name}</td><td>${money(r.ytd)}</td><td>${money(r.goal)}</td>
+    <td><span class="pill ${st.c}">${gapTxt(r.ytd,r.goal)}</span></td>
+    <td>${money(r.ytd/FR)}</td><td>${spark(r.months)}</td></tr>`; }).join('');
+  $('#o2').innerHTML = `
+    <div class="hero2">
+      <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to goal and last year.</div><div class="chart big"><canvas id="c2"></canvas></div></div>
+      <div class="card side">
+        <div class="eyebrow">So far</div><div class="big">${money(divYtd)}</div>
+        <p><span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs same date ${Y-1}</p><hr>
+        <div class="eyebrow">Goal</div><div class="big">${money(divGoal)}</div>
+        <p>Team projection ${money(divProj)}. <span class="${s.c} b">${gapTxt(divYtd,divGoal)}</span> of pace.</p><hr>
+        <div class="eyebrow">On track to finish</div><div class="big">${money(divFore)}</div>
+        <p>If the rest of the year goes like other years.</p>
+      </div>
+    </div>
+    <div class="card"><h2>Each CSP</h2><div class="h2n">Pace = where they should be today to hit their goal. Bars = each month this year.</div>
+      <div class="tablewrap"><table><thead><tr><th>Name</th><th>So far</th><th>Goal</th><th>Pace</th><th>On track for</th><th>${Y} by month</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  trendChart('c2', true);
+}
+
+// ---------- Option 3: Person cards ----------
+function ring(p, size, col){
+  const r = size/2 - 7, C = 2*Math.PI*r, f = Math.min(1,p);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${Math.round(p*100)}% of goal">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*f} ${C}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <line x1="${size/2}" y1="${size/2 - r - 8}" x2="${size/2}" y2="${size/2 - r + 8}" stroke="var(--pace)" stroke-width="2.5" transform="rotate(${FR*360} ${size/2} ${size/2})"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" class="ringtxt" style="font-size:${size>120?24:15}px">${Math.round(p*100)}%</text></svg>`;
+}
+function o3(){
+  const s = status(divYtd, divGoal);
+  const cards = [...reps].sort((a,b)=>b.ytd-a.ytd).map(r=>{ const st = status(r.ytd,r.goal), col = st.c; return `<div class="card pc">
+    <div class="top">${ring(r.ytd/r.goal, 74, col)}<div><div class="nm">${r.name}</div><span class="pill ${st.c}">${st.t}</span></div></div>
+    <div class="line"><span class="muted">So far</span><span class="b">${money(r.ytd)}</span></div>
+    <div class="line"><span class="muted">Goal</span><span>${money(r.goal)}</span></div>
+    <div class="line"><span class="muted">vs same date ${Y-1}</span><span>${money(r.ly_ytd)}</span></div>
+    <div class="need">${r.ytd >= r.goal ? '<b class="up">Goal reached.</b> Everything now is extra.' : `To hit goal: <b>${money(needMo(r.ytd,r.goal))}</b> a month from now on.`}</div>
+  </div>`; }).join('') + noOrders.map(n=>`<div class="card pc"><div class="nm">${n}</div><span class="pill none">No orders found yet</span></div>`).join('');
+  $('#o3').innerHTML = `
+    <div class="card divcard">${ring(divYtd/divGoal, 150, s.c)}
+      <div><div class="eyebrow">Whole division</div><h2 style="font-size:26px">${money(divYtd)} of ${money(divGoal)}</h2>
+      <div class="sub"><span class="${s.c} b">${gapTxt(divYtd,divGoal)}</span> of pace · on track to finish at <b>${money(divFore)}</b> · <span class="${vsLy>=0?'up':'down'} b">${vsLy>=0?'+':''}${(vsLy*100).toFixed(0)}%</span> vs ${Y-1}</div>
+      <div class="sub" style="margin-top:6px">The small dark mark on each circle is where the person should be today.</div></div></div>
+    <div class="cards">${cards}</div>
+    <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to goal and last year.</div><div class="chart"><canvas id="c3"></canvas></div></div>`;
+  trendChart('c3');
+}
+
+const DESC = {
+  1:'Like the Western Region scoreboard: 4 numbers on top, then everyone ranked in a race to their own goal. Easiest to compare people.',
+  2:'The division trend line is the star. Below it, one plain table, one row per person, with small monthly bars.',
+  3:'One card per person, with a circle showing how much of their goal is done and what they need each month. Friendliest, takes the most scrolling.'
+};
+const built = {};
+function show(o){
+  document.querySelectorAll('.picker button').forEach(b=>b.classList.toggle('on', b.dataset.o===o));
+  ['1','2','3'].forEach(x=> $('#o'+x).hidden = x!==o);
+  $('#desc').textContent = DESC[o];
+  if(!built[o]){ ({1:o1,2:o2,3:o3})[o](); built[o]=1; }
+}
+document.querySelectorAll('.picker button').forEach(b=> b.onclick = ()=>show(b.dataset.o));
+show('1');
+$('#foot').innerHTML = `Only orders tagged <b>Business gift</b> count. "Pace" uses how business gifts usually spread across the year (${past.join(' and ')}): by ${M[mi]} ${asof.getDate()} the division normally has ${Math.round(FR*100)}% of its year done.`;
+</script>
+
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body></html>

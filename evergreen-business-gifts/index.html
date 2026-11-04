@@ -1,0 +1,369 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evergreen Business Gifts</title>
+<style>
+.egd-banner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:center;padding:8px 12px;background:var(--cream,var(--panel,#efe9dc));border-bottom:1px solid var(--line,var(--rule,#dcd3bf));color:var(--ink,#1e2a24);font:600 12.5px/1.4 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:center}
+.egd-btn{border:1px solid var(--line,var(--rule,#dcd3bf));background:var(--card,#fff);color:var(--ink,#1e2a24);font:700 12px/1 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.egd-btn.pri{background:var(--forest,var(--ink,#1e3a2f));color:var(--bg,var(--ground,#fff));border-color:var(--forest,var(--ink,#1e3a2f))}
+.egd-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.egd-ov[hidden]{display:none!important}
+.egd-panel{background:var(--card,#fff);color:var(--ink,#1e2a24);border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;font:13.5px/1.5 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:left}
+.egd-panel h3{margin:0 0 6px;font-size:17px}
+.egd-panel p{margin:0 0 10px;color:var(--muted,#6b6f63)}
+.egd-panel code{display:block;background:var(--cream,var(--panel,#efe9dc));border-radius:8px;padding:8px 10px;font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-word;margin-bottom:10px;color:var(--ink,#1e2a24)}
+.egd-panel textarea{width:100%;min-height:110px;box-sizing:border-box;border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:8px;padding:8px;background:var(--bg,var(--ground,#fff));color:var(--ink,#1e2a24);font:12px/1.4 ui-monospace,Menlo,monospace;margin:6px 0 10px}
+.egd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.egd-err{color:var(--down,#b3412f);font-weight:700;margin-bottom:8px;white-space:pre-wrap}
+</style>
+<script>
+window.EGD=(function(){
+  var cfg,KEY;
+  function parseCSV(text){
+    text=String(text).replace(/^﻿/,'');
+    var rows=[],row=[],f='',q=false,i,c;
+    for(i=0;i<text.length;i++){c=text[i];
+      if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+      else if(c==='"')q=true;
+      else if(c===','){row.push(f);f='';}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[];}
+      else f+=c;
+    }
+    if(f!==''||row.length){row.push(f);rows.push(row);}
+    rows=rows.filter(function(r){return r.some(function(x){return String(x).trim()!=='';});});
+    if(rows.length<2)throw new Error('Need a header row and at least one data row.');
+    var head=rows[0].map(function(h){return String(h).trim().toLowerCase().replace(/\s+/g,'_');});
+    var miss=cfg.required.filter(function(c){return head.indexOf(c)<0;});
+    if(miss.length)throw new Error('Missing column(s): '+miss.join(', '));
+    return rows.slice(1).map(function(r){var o={};head.forEach(function(h,j){o[h]=(r[j]==null?'':String(r[j]).trim());});return o;});
+  }
+  function load(text,isSample){return cfg.build(parseCSV(text),isSample);}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e;}
+  function mount(isSample){
+    var banner=el('div',{'class':'egd-banner'});
+    banner.appendChild(el('span',{},isSample?'Sample data — load your own to see your team.':'Showing your data (kept only in this browser).'));
+    var open=el('button',{'class':'egd-btn pri',type:'button'},'Load your own data');
+    banner.appendChild(open);
+    var ov=el('div',{'class':'egd-ov',hidden:''});
+    var panel=el('div',{'class':'egd-panel',role:'dialog','aria-label':'Load your own data'});
+    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
+    panel.querySelector('code').textContent=cfg.columns.join(',');
+    var file=el('input',{type:'file',accept:'.csv,text/csv,text/plain'});
+    var ta=el('textarea',{placeholder:'Or paste CSV text here',spellcheck:'false'});
+    var err=el('div',{'class':'egd-err'});
+    var row=el('div',{'class':'egd-row'});
+    var go=el('button',{'class':'egd-btn pri',type:'button'},'Load data');
+    var tpl=el('a',{'class':'egd-btn',href:'#',download:cfg.filename},'Download CSV template');
+    var rst=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');
+    var cl=el('button',{'class':'egd-btn',type:'button'},'Close');
+    [go,tpl,rst,cl].forEach(function(b){row.appendChild(b);});
+    [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
+    ov.appendChild(panel);
+    try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}location.reload();}
+    open.onclick=function(){err.textContent='';ov.hidden=false;};
+    cl.onclick=function(){ov.hidden=true;};
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
+    rst.onclick=reset;
+    function apply(){
+      var text=ta.value;err.textContent='';
+      try{load(text,false);}catch(e){err.textContent='Could not read that data: '+e.message;return;}
+      try{localStorage.setItem(KEY,text);}catch(e){err.textContent='Your browser blocked local storage, so the data cannot be saved.';return;}
+      location.reload();
+    }
+    go.onclick=apply;
+    file.onchange=function(){var f=file.files&&file.files[0];if(!f)return;var r=new FileReader();r.onload=function(){ta.value=String(r.result);apply();};r.readAsText(f);};
+    if(!isSample){var b2=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');b2.onclick=reset;banner.appendChild(b2);}
+    document.body.insertBefore(banner,document.body.firstChild);
+    document.body.appendChild(ov);
+  }
+  return {init:function(c){
+    cfg=c;KEY=c.key;var saved=null,D=null,isSample=true;
+    try{saved=localStorage.getItem(KEY);}catch(e){}
+    if(saved){try{D=load(saved,false);isSample=false;}catch(e){D=null;}}
+    if(!D)D=load(c.sample,true);
+    mount(isSample);
+    return D;
+  }};
+})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f6f2e8; --card:#fffdf8; --ink:#1e2a24; --muted:#6b6f63; --line:#e3dccb;
+  --forest:#1e3a2f; --forest-2:#2f5644; --copper:#b0764a; --copper-2:#966139; --cream:#efe9dc;
+  --up:#2e7d4f; --down:#b3412f; --grid:rgba(30,42,36,.08);
+  --y2024:#c9bfa8; --y2025:#7f9c8a; --y2026:#b0764a;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+    --forest:#cfe0d4; --forest-2:#9dbfaa; --cream:#232d27; --grid:rgba(236,230,216,.08);
+    --up:#6fcf97; --down:#ef8a75; --y2024:#5b5a50; --y2025:#6f9a83; --y2026:#d39a6c;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+  --forest:#cfe0d4; --forest-2:#9dbfaa; --cream:#232d27; --grid:rgba(236,230,216,.08);
+  --up:#6fcf97; --down:#ef8a75; --y2024:#5b5a50; --y2025:#6f9a83; --y2026:#d39a6c;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:20px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);font-weight:700}
+h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(26px,4vw,36px);margin:4px 0 2px;color:var(--forest);line-height:1.1}
+.sub{color:var(--muted);font-size:14px}
+.toggle{display:inline-flex;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px}
+.toggle button{white-space:nowrap;border:0;background:transparent;color:var(--muted);font:600 14px Manrope,sans-serif;padding:8px 16px;border-radius:999px;cursor:pointer}
+.toggle button.on{background:var(--forest);color:var(--bg)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpi .l{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-size:clamp(22px,3vw,30px);font-weight:800;margin-top:6px;color:var(--forest)}
+.kpi .n{font-size:13px;color:var(--muted);margin-top:4px}
+.up{color:var(--up);font-weight:700}.down{color:var(--down);font-weight:700}
+.grid2{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:12px;margin-bottom:16px}
+h2{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 4px;color:var(--forest)}
+.h2n{font-size:13px;color:var(--muted);margin-bottom:12px}
+.chart{position:relative;height:280px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;font-weight:700;padding:8px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td.name{font-weight:700}
+.bar{height:6px;border-radius:3px;background:var(--copper);opacity:.85;margin-top:5px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.goalnote{background:var(--cream);border:1px dashed var(--copper);border-radius:14px;padding:14px 16px;font-size:14px;margin-bottom:16px}
+.goalnote b{color:var(--copper-2)}
+footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
+.muted{color:var(--muted)}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .card{padding:14px}
+  .kpi .v{font-size:22px}
+  .chart{height:240px}
+  .hide-sm{display:none}
+  td.name{position:sticky;left:0;background:var(--card)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Evergreen Division</div>
+      <h1 id="title">Business Gifts</h1>
+      <div class="sub" id="asof"></div>
+    </div>
+    <div class="toggle" role="tablist">
+      <button class="on" data-t="BIZ">Business gifts</button>
+      <button data-t="RLT">Realtor gifts</button>
+    </div>
+  </header>
+
+  <section class="kpis" id="kpis"></section>
+
+  <div class="goalnote" id="goalnote"></div>
+
+  <section class="grid2">
+    <div class="card">
+      <h2>Year to date, month by month</h2>
+      <div class="h2n">Running total for each year. Same month, same point in the year.</div>
+      <div class="chart"><canvas id="cum"></canvas></div>
+    </div>
+    <div class="card">
+      <h2>Each month</h2>
+      <div class="h2n" id="monthsNote"></div>
+      <div class="chart"><canvas id="mon"></canvas></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>By CSP</h2>
+    <div class="h2n" id="repNote"></div>
+    <div class="tablewrap"><table id="reps"></table></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+function buildGifts(rows, forDesign, isSample){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
+  const opt=v=>{if(v==null||String(v).trim()==='')return null;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isFinite(n)?n:null;};
+  const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:num(r.orders),goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
+  if(!recs.length)throw new Error('No usable rows (each row needs a name and a year).');
+  const Y=Math.max(...recs.map(x=>x.year)), years=[Y-2,Y-1,Y];
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  const asof=isSample?'2026-11-03':(now.getFullYear()===Y?`${Y}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`:`${Y}-12-31`);
+  const ad=new Date(asof+'T12:00:00'), cm=ad.getMonth(), frac=ad.getDate()/new Date(Y,cm+1,0).getDate();
+  const sum=a=>a.reduce((x,z)=>x+z,0);
+  const zero=()=>Array(12).fill(0);
+  const toDate=a=>Math.round(sum(a.slice(0,cm))+a[cm]*frac);
+  const labels={BIZ:'Business gifts',RLT:'Realtor gifts'};
+  const types={};
+  ['BIZ','RLT'].forEach(T=>{
+    const byName={};
+    recs.filter(x=>x.type===T).forEach(x=>{
+      const o=byName[x.name]||(byName[x.name]={name:x.name,y:{},orders:0,goal:null,proj:null});
+      const cur=o.y[x.year]||(o.y[x.year]=zero());
+      x.m.forEach((v,i)=>{cur[i]+=v;});
+      if(x.year===Y)o.orders+=x.orders;
+      if(x.goal!=null)o.goal=x.goal;
+      if(x.proj!=null)o.proj=x.proj;
+    });
+    const monthly={};years.forEach(y=>{monthly[y]=zero();});
+    const reps=Object.values(byName).map(o=>{
+      const yrs={};
+      years.forEach(y=>{const a=o.y[y]||zero();yrs[y]=sum(a);a.forEach((v,i)=>{monthly[y][i]+=v;});});
+      const cur=o.y[Y]||zero(), ly=o.y[Y-1]||zero(), ytd=sum(cur);
+      const r={name:o.name,years:yrs,ytd:ytd,ly_ytd:toDate(ly),orders:o.orders,avg:o.orders?Math.round(ytd/o.orders):null,months:cur,goal:o.goal};
+      if(forDesign)r.projection=o.proj;
+      return r;
+    });
+    reps.sort((a,b)=>b.ytd-a.ytd);
+    const totals={};years.forEach(y=>{totals[y]=sum(monthly[y]);});
+    types[T]={label:labels[T],monthly:monthly,totals:totals,ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),reps:reps};
+  });
+  const out={asof:asof,year:Y,years:years,types:types,no_orders:[]};
+  if(forDesign){
+    const B=types.BIZ;
+    if(!B.reps.length)throw new Error('Add at least one BIZ (business gift) row.');
+    if(!(B.totals[Y-1]>0||B.totals[Y-2]>0))throw new Error('The scoreboard needs at least one earlier year of BIZ data to work out pace.');
+    if(!B.reps.some(r=>r.goal!=null))B.reps.forEach(r=>{if(r.ytd>0||r.years[Y-1]>0)r.goal=Math.max(1000,Math.round(Math.max(r.years[Y-1],r.ytd)*1.1/1000)*1000);});
+    out.no_orders=B.reps.filter(r=>r.goal!=null&&!r.ytd&&!r.orders).map(r=>r.name);
+    B.reps=B.reps.filter(r=>!(r.goal!=null&&!r.ytd&&!r.orders));
+    if(!B.reps.some(r=>r.goal!=null))throw new Error('Add a goal for at least one person.');
+  }
+  return out;
+}
+const D = EGD.init({key:"egd-business-gifts-v1",columns:["type", "name", "year", "jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "orders", "goal", "projection"],required:["name", "year"],help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year (the latest year is treated as the current year, up to three years are shown). <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year\u2019s row, <b>orders</b> = number of orders and <b>goal</b> = next-year goal (optional).",filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
+BIZ,Jordan K.,2024,2750,2573,5961,9998,2876,1198,1755,6777,5364,2336,7709,2703,,,
+BIZ,Jordan K.,2025,4779,2981,17764,16083,14697,9286,6828,14075,4729,2247,0,4531,,,
+BIZ,Jordan K.,2026,8678,3623,2428,2688,4130,3641,30257,7449,7149,8511,446,0,33,,
+BIZ,Taylor M.,2024,145,72,98,110,90,207,126,128,728,624,72,0,,,
+BIZ,Taylor M.,2025,1386,0,2458,0,1227,1029,0,0,0,0,0,0,,,
+BIZ,Taylor M.,2026,0,1410,0,0,0,2397,17593,7210,1474,2771,145,0,12,,
+BIZ,Casey R.,2024,343,98,349,122,0,0,84,0,0,112,137,655,,,
+BIZ,Casey R.,2025,3927,0,1192,2784,572,1214,4179,2785,5406,2674,2066,1701,,,
+BIZ,Casey R.,2026,2603,0,1931,0,0,8321,5401,0,0,6789,955,0,12,,
+BIZ,Riley P.,2024,0,0,729,0,0,2780,937,1366,0,588,0,0,,,
+BIZ,Riley P.,2025,0,611,219,0,0,0,650,167,0,0,253,0,,,
+BIZ,Riley P.,2026,687,371,524,1342,649,1724,0,2980,0,862,61,0,5,,
+BIZ,Morgan S.,2024,451,0,702,348,983,0,0,0,460,413,743,0,,,
+BIZ,Morgan S.,2025,0,0,0,0,0,0,0,3819,0,4981,0,0,,,
+BIZ,Morgan S.,2026,5345,0,0,0,0,0,0,0,0,0,2255,0,3,,
+BIZ,Avery L.,2024,0,0,0,1282,0,0,0,0,0,4218,0,0,,,
+BIZ,Avery L.,2025,0,0,0,0,0,0,0,0,0,2321,1579,0,,,
+BIZ,Avery L.,2026,1317,0,0,0,0,0,0,0,0,5783,0,0,4,,
+BIZ,Quinn B.,2024,1605,0,1486,0,772,0,0,337,0,0,0,0,,,
+BIZ,Quinn B.,2025,1144,0,0,1156,0,0,0,0,0,0,0,0,,,
+BIZ,Quinn B.,2026,2565,0,0,0,1023,0,0,612,0,0,0,0,2,,
+BIZ,Jamie D.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Jamie D.,2025,0,1800,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Jamie D.,2026,0,420,0,0,0,0,0,0,0,0,0,0,0,,
+BIZ,Sam T.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Sam T.,2025,0,0,0,180,0,0,0,0,0,0,0,0,,,
+BIZ,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+RLT,Jordan K.,2024,0,0,25685,0,14251,14037,3735,6671,0,0,24395,1226,,,
+RLT,Jordan K.,2025,5216,0,0,15042,8809,2712,0,10110,10134,0,4252,5725,,,
+RLT,Jordan K.,2026,2471,0,1303,23328,4311,1206,0,3632,2465,8284,0,0,38,,
+RLT,Casey R.,2024,313,1149,399,0,0,0,213,0,0,0,0,326,,,
+RLT,Casey R.,2025,0,1774,0,0,0,520,0,0,2774,0,0,2332,,,
+RLT,Casey R.,2026,0,0,0,0,0,0,5633,0,3219,0,648,0,6,,
+RLT,Morgan S.,2024,672,0,0,0,0,689,0,513,5384,0,1942,0,,,
+RLT,Morgan S.,2025,628,1647,1245,672,0,321,2921,1339,0,2458,2511,1058,,,
+RLT,Morgan S.,2026,1541,841,0,2035,0,0,0,0,0,1783,0,0,4,,
+RLT,Riley P.,2024,0,0,0,0,1555,0,0,0,5845,0,0,0,,,
+RLT,Riley P.,2025,166,189,126,0,0,0,1763,601,755,0,0,0,,,
+RLT,Riley P.,2026,0,0,3482,0,0,0,0,0,0,0,218,0,3,,
+RLT,Avery L.,2024,0,0,0,0,0,0,7200,0,0,0,0,0,,,
+RLT,Avery L.,2025,0,0,0,0,1500,0,0,0,0,0,0,0,,,
+RLT,Avery L.,2026,0,0,0,0,0,696,438,0,0,0,66,0,1,,
+RLT,Quinn B.,2024,0,0,0,0,0,0,0,700,0,0,0,0,,,
+RLT,Quinn B.,2025,0,0,5600,0,0,0,0,0,0,0,0,0,,,
+RLT,Quinn B.,2026,0,0,0,0,0,0,0,0,0,800,0,0,1,,
+RLT,Taylor M.,2024,0,0,0,4800,0,0,0,0,0,0,0,0,,,
+RLT,Taylor M.,2025,0,0,0,0,0,0,3182,818,0,0,0,0,,,
+RLT,Taylor M.,2026,0,0,0,0,0,300,0,0,0,0,0,0,0,,
+RLT,Jamie D.,2024,0,0,0,0,0,2342,0,0,0,389,0,969,,,
+RLT,Jamie D.,2025,0,0,0,0,0,1425,0,0,0,1575,0,0,,,
+RLT,Jamie D.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+`,build:(rows,isSample)=>buildGifts(rows,false,isSample)});
+const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $ = s => document.querySelector(s);
+const money = v => v == null ? '—' : '$' + Math.round(v).toLocaleString('en-US');
+const short = v => v >= 1000 ? '$' + (v/1000).toFixed(v >= 100000 ? 0 : 1) + 'K' : '$' + Math.round(v);
+const pct = (a, b) => b > 0 ? (a - b) / b : null;
+const pctTxt = p => p == null ? '<span class="muted">new</span>' : `<span class="${p >= 0 ? 'up' : 'down'}">${p >= 0 ? '+' : ''}${(p*100).toFixed(0)}%</span>`;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const asof = new Date(D.asof + 'T12:00:00');
+const asofTxt = asof.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+const curMonth = asof.getMonth();
+const Y = D.year, LY = Y - 1;
+let T = 'BIZ', charts = [];
+
+function render(){
+  const t = D.types[T];
+  $('#title').textContent = t.label;
+  $('#asof').textContent = `Gift orders through ${asofTxt}`;
+  const p = pct(t.ytd, t.ly_ytd);
+  const avg = t.orders_ytd ? t.ytd / t.orders_ytd : null;
+  const toBeat = t.totals[LY] - t.ytd;
+  $('#kpis').innerHTML = `
+    <div class="card kpi"><div class="l">${Y} so far</div><div class="v">${money(t.ytd)}</div><div class="n">${t.orders_ytd} orders</div></div>
+    <div class="card kpi"><div class="l">vs same date ${LY}</div><div class="v">${pctTxt(p)}</div><div class="n">${money(t.ly_ytd)} by ${asof.toLocaleDateString('en-US',{month:'short',day:'numeric'})}, ${LY}</div></div>
+    <div class="card kpi"><div class="l">Average order</div><div class="v">${money(avg)}</div><div class="n">${t.label.toLowerCase()} orders in ${Y}</div></div>
+    <div class="card kpi"><div class="l">${LY} full year</div><div class="v">${money(t.totals[LY])}</div><div class="n">${toBeat > 0 ? money(toBeat) + ' to pass it' : '<span class="up">Already passed</span>'}</div></div>`;
+  const hasGoals = t.reps.some(r => r.goal);
+  $('#goalnote').innerHTML = hasGoals
+    ? `<b>2027 goals are in.</b> Each CSP's goal is in the table below.`
+    : `<b>2027 goals:</b> add a goal column to your CSV and each person's goal will show in the table below.`;
+
+  charts.forEach(c => c.destroy()); charts = [];
+  const grid = css('--grid'), muted = css('--muted');
+  const base = {responsive:true, maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+    plugins:{legend:{labels:{color:muted, boxWidth:12, font:{family:'Manrope'}}},
+      tooltip:{callbacks:{label:c => ` ${c.dataset.label}: ${money(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false}, ticks:{color:muted}}, y:{grid:{color:grid}, ticks:{color:muted, callback:v => short(v)}, beginAtZero:true}}};
+  const cumDs = D.years.map(y => {
+    let s = 0;
+    const arr = t.monthly[y].map((v, i) => (y == Y && i > curMonth) ? null : (s += v));
+    return {label: String(y), data: arr, borderColor: css('--y' + y) || muted, backgroundColor: css('--y' + y) || muted,
+      borderWidth: y == Y ? 3.5 : 2, pointRadius: y == Y ? 3 : 0, tension: .25, spanGaps:false};
+  });
+  charts.push(new Chart($('#cum'), {type:'line', data:{labels:M, datasets:cumDs}, options:base}));
+  $('#monthsNote').textContent = `${LY} vs ${Y}. ${M[curMonth]} ${Y} is only through ${asof.getDate()} ${M[curMonth]}.`;
+  charts.push(new Chart($('#mon'), {type:'bar', data:{labels:M, datasets:[
+    {label:String(LY), data:t.monthly[LY], backgroundColor:css('--y' + LY), borderRadius:4},
+    {label:String(Y), data:t.monthly[Y].map((v,i) => i > curMonth ? null : v), backgroundColor:css('--y' + Y), borderRadius:4}]}, options:base}));
+
+  const reps = t.reps.filter(r => r.ytd >= 1000 || r.years[LY] >= 1000 || r.goal);
+  const max = Math.max(1, ...reps.map(r => r.ytd));
+  $('#repNote').textContent = `${t.label} per person, ${Y} to date vs the same date in ${LY}. Sorted by ${Y} so far. "New" = under $1,000 at this point last year.`;
+  $('#reps').innerHTML = `<thead><tr><th>CSP</th><th>${Y} so far</th><th>Same date ${LY}</th><th>Change</th><th class="hide-sm">Orders</th><th class="hide-sm">Avg order</th><th>${LY} full</th><th class="hide-sm">${Y-2} full</th><th>2027 goal</th></tr></thead><tbody>` +
+    reps.map(r => `<tr><td class="name">${r.name}<div class="bar" style="width:${Math.max(2, r.ytd / max * 100)}%"></div></td>
+      <td><b>${money(r.ytd)}</b></td><td>${money(r.ly_ytd)}</td><td>${r.ly_ytd >= 1000 ? pctTxt(pct(r.ytd, r.ly_ytd)) : (r.ytd ? '<span class="muted">new</span>' : '—')}</td>
+      <td class="hide-sm">${r.orders || '—'}</td><td class="hide-sm">${money(r.avg)}</td><td>${money(r.years[LY])}</td><td class="hide-sm">${money(r.years[Y-2])}</td>
+      <td>${r.goal ? money(r.goal) : '<span class="muted">—</span>'}</td></tr>`).join('') + '</tbody>';
+  $('#foot').innerHTML = `Source: the data loaded on this page, ${D.years[0]} to ${asofTxt}. Only rows with type <b>${T}</b> (${t.label.toLowerCase()}) count here. "Same date" compares January 1 to ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric'})} of each year.`;
+}
+document.querySelectorAll('.toggle button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.toggle button').forEach(x => x.classList.toggle('on', x === b));
+  T = b.dataset.t; render();
+});
+render();
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
+</html>
+
+</body></html>

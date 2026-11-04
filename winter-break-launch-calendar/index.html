@@ -1,0 +1,609 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}.banner{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--copper);border-radius:10px;padding:10px 14px;font-size:13.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between}
+.banner b{color:var(--head)}
+.btn{background:var(--head);color:var(--bg);border:0;border-radius:10px;padding:8px 14px;font:600 13px var(--font);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--fg);border:1.5px solid var(--line)}
+details.edit{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 16px}
+details.edit summary{cursor:pointer;font-weight:700;color:var(--head);padding:4px 0}
+.ed-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+textarea#planbox{width:100%;min-height:220px;box-sizing:border-box;font:12px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--fg);border:1.5px solid var(--line);border-radius:8px;padding:10px}
+#edmsg{font-size:13px;color:var(--muted)} #edmsg.err{color:var(--red)}
+</style></head><body>
+<title>Winter Break Launch Calendar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+
+<style>
+/* Layout: masthead → full-width Gantt (scrolls inside its own frame) → launch cards → conflicts */
+:root{
+  --bg:#FAF8F3; --fg:#2E3A32; --muted:#5A6B60; --line:#DCD8CC; --panel:#F2EEE3;
+  --head:#14432A; --copper:#B08D57;
+  --bar:#4C7F62; --bar-long:#1E5A3A; --bar-short:#B08D57;
+  --band:#F3E8CC;
+  --train-bg:#E3CFA6; --train-fg:#3C2E14;
+  --launch-bg:#14432A; --launch-fg:#FAF8F3;
+  --red:#B3261E; --red-wash:rgba(179,38,30,.15);
+  --away:#7A8A80; --away-fg:#FAF8F3;
+  --font:"Helvetica Neue",Helvetica,Arial,sans-serif;
+  --label:200px; --cell:26px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111814; --fg:#E6E1D3; --muted:#A3AE9F; --line:#2C3830; --panel:#18211B;
+  --head:#CDE3D2; --copper:#C9A46A;
+  --bar:#4C8A66; --bar-long:#2F7350; --bar-short:#C9A46A;
+  --band:#2A2717;
+  --train-bg:#6B5A35; --train-fg:#F3E9D2;
+  --launch-bg:#CDE3D2; --launch-fg:#0F2A1B;
+  --red:#F2827A; --red-wash:rgba(242,130,122,.18);
+  --away:#5E6D63; --away-fg:#F3EFE4; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111814; --fg:#E6E1D3; --muted:#A3AE9F; --line:#2C3830; --panel:#18211B;
+  --head:#CDE3D2; --copper:#C9A46A;
+  --bar:#4C8A66; --bar-long:#2F7350; --bar-short:#C9A46A;
+  --band:#2A2717;
+  --train-bg:#6B5A35; --train-fg:#F3E9D2;
+  --launch-bg:#CDE3D2; --launch-fg:#0F2A1B;
+  --red:#F2827A; --red-wash:rgba(242,130,122,.18);
+  --away:#5E6D63; --away-fg:#F3EFE4; color-scheme:dark}
+
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;line-height:1.45}
+.wrap{max-width:1880px;margin:0 auto;padding-block:28px 48px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:28px}
+.mast{display:flex;flex-direction:column;gap:6px;border-bottom:3px solid var(--head);padding-bottom:14px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--copper)}
+h1{margin:0;font-size:clamp(24px,3vw,32px);color:var(--head);text-wrap:balance}
+h1 span{color:var(--copper);font-weight:400}
+.sub{margin:0;color:var(--muted);max-width:70ch}
+h2{margin:0;font-size:13px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--head);
+  border-bottom:1.6px solid var(--copper);padding-bottom:6px}
+section{display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:12px;border-radius:3px;display:inline-block}
+
+.frame{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--bg)}
+.chart{position:relative;width:calc(var(--label) + var(--n,91) * var(--cell));font-variant-numeric:tabular-nums}
+.overlay{position:absolute;top:0;bottom:0;pointer-events:none}
+.ov-band{background:var(--band);z-index:0}
+.ov-black{z-index:2;background:repeating-linear-gradient(135deg,var(--red-wash) 0 6px,transparent 6px 12px);
+  border-left:2px solid var(--red);border-right:2px solid var(--red)}
+.ov-event{z-index:2;background:repeating-linear-gradient(135deg,rgba(176,118,74,.22) 0 6px,transparent 6px 12px);
+  border-left:2px solid var(--copper);border-right:2px solid var(--copper)}
+.grid-lines{position:absolute;top:0;bottom:0;left:var(--label);right:0;z-index:0;
+  background-image:linear-gradient(to right,var(--line) 1px,transparent 1px);background-size:var(--cell) 100%;opacity:.7}
+.row{position:relative;display:grid;grid-template-columns:var(--label) repeat(var(--n,91),var(--cell));align-items:center;min-height:30px}
+.row.sep{border-top:1px solid var(--line)}
+.lab{position:sticky;left:0;z-index:3;background:var(--bg);padding:0 12px;font-size:13px;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;height:100%;display:flex;align-items:center;border-right:1px solid var(--line)}
+.lab.strong{font-weight:700;color:var(--head)}
+.cell{grid-row:1;text-align:center;font-size:11px}
+.month{font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--head);text-align:left;padding-left:6px;
+  border-left:2px solid var(--head)}
+.dnum{font-size:11.5px;color:var(--fg)}
+.dow{font-size:10px;color:var(--muted)}
+.sat{font-weight:700;color:var(--head)}
+.bar{grid-row:1;height:16px;border-radius:8px;margin:0 2px}
+.b-std{background:var(--bar)} .b-long{background:var(--bar-long)} .b-short{background:var(--bar-short)}
+.b-out{background:transparent;border:2px dashed var(--bar);height:12px}
+.p-li{background:var(--panel);color:var(--fg);border:1px dashed var(--copper)}
+.p-thx{background:var(--red-wash);color:var(--red);border:1px solid var(--red)}
+.count{font-weight:700;font-size:12px}
+.c0{color:var(--muted);font-weight:400}
+.tr{grid-row:1;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin:0 1px;border-radius:3px;
+  background:var(--train-bg);color:var(--train-fg);position:relative}
+.tr.launch{background:var(--launch-bg);color:var(--launch-fg);font-size:12px}
+.tr.flag::after{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;background:var(--red);
+  box-shadow:0 0 0 2px var(--bg)}
+.pill{grid-row:1;height:20px;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:11px;font-weight:700;
+  white-space:nowrap;overflow:hidden;margin:0 1px}
+.p-away{background:var(--away);color:var(--away-fg)}
+.p-black{background:var(--red);color:var(--bg)}
+.p-hol{grid-row:1;justify-self:center;width:8px;height:8px;border-radius:50%;background:var(--red)}
+.p-fire{background:var(--train-bg);color:var(--train-fg)}
+.p-push{background:var(--launch-bg);color:var(--launch-fg)}
+.p-sales{background:var(--panel);color:var(--fg);border:1px solid var(--copper)}
+.p-dl{grid-row:1;justify-self:center;width:10px;height:10px;transform:rotate(45deg);background:var(--copper)}
+.dl{grid-row:1;display:flex;align-items:center;gap:6px;padding-left:8px;font-size:11px;font-weight:700;color:var(--fg);white-space:nowrap;overflow:hidden}
+.dl i{flex:none;width:9px;height:9px;transform:rotate(45deg);background:var(--copper)}
+.ov-dl{z-index:1;width:0;border-left:1.5px dashed var(--copper);opacity:.85}
+.flag-row .k.date{color:var(--copper)}
+.note{font-size:12.5px;color:var(--muted);margin:0}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.card{border:1px solid var(--line);border-top:3px solid var(--head);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0;background:var(--bg)}
+.card.off{border-top-color:var(--red)}
+.card.pre{border-top-color:var(--copper)}
+.card .d{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--copper)}
+.card .g{font-size:30px;font-weight:700;color:var(--head);line-height:1;font-variant-numeric:tabular-nums}
+.card .g small{font-size:13px;font-weight:400;color:var(--muted);margin-left:6px}
+.card .m{font-size:13px;color:var(--muted)}
+.card .w{font-size:13px;color:var(--red);font-weight:700}
+.total{display:flex;gap:10px;align-items:baseline;font-size:15px;padding:12px 16px;background:var(--panel);border-left:3px solid var(--head)}
+.total b{font-size:22px;color:var(--head);font-variant-numeric:tabular-nums}
+
+.flags{display:grid;gap:0;border-top:1px solid var(--line)}
+.flag-row{display:grid;grid-template-columns:150px 1fr;gap:16px;padding:12px 0;border-bottom:1px solid var(--line);min-width:0}
+.flag-row .k{font-weight:700;color:var(--red);font-size:13px}
+.flag-row p{margin:0;font-size:14px;max-width:80ch}
+@media (max-width:560px){
+  :root{--label:132px}
+  .flag-row{grid-template-columns:1fr;gap:4px}
+}
+
+/* restyle 2026-10-23: Evergreen look (CSS only) */
+
+:root{
+  --bg:#e7e0cf; --fg:#1e3a2f; --muted:#6d6a5e; --line:#dcd3bf; --panel:#efe9dc;
+  --head:#1e3a2f; --copper:#b0764a;
+  --bar:#4f7d64; --bar-long:#1e3a2f; --bar-short:#b0764a;
+  --band:#f1e1c4; --train-bg:#e3cba0; --train-fg:#3c2e14; --launch-bg:#1e3a2f; --launch-fg:#f6f2e8;
+  --font:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif; --serif:"Fraunces",Georgia,serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14211b; --fg:#efe9dc; --muted:#b2b8a8; --line:#34493d; --panel:#1b2b23;
+  --head:#efe9dc; --copper:#c98f61; --bar:#4f8a68; --bar-long:#2f7350; --bar-short:#c98f61;
+  --band:#2e2a1a; --launch-bg:#efe9dc; --launch-fg:#14211b}}
+:root[data-theme="dark"]{
+  --bg:#14211b; --fg:#efe9dc; --muted:#b2b8a8; --line:#34493d; --panel:#1b2b23;
+  --head:#efe9dc; --copper:#c98f61; --bar:#4f8a68; --bar-long:#2f7350; --bar-short:#c98f61;
+  --band:#2e2a1a; --launch-bg:#efe9dc; --launch-fg:#14211b}
+body{font-family:var(--font)}
+.mast{position:relative;overflow:hidden;border-bottom:0;padding-bottom:18px;border-radius:0 0 4px 4px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23c98f61' stroke-width='1.2'%3E%3Ccircle cx='120' cy='120' r='18'/%3E%3Ccircle cx='120' cy='120' r='38'/%3E%3Ccircle cx='120' cy='120' r='60'/%3E%3Ccircle cx='120' cy='120' r='84'/%3E%3Ccircle cx='120' cy='120' r='110'/%3E%3C/g%3E%3C/svg%3E"),linear-gradient(var(--copper),var(--copper));background-repeat:no-repeat;
+  background-position:right -20px center,left bottom;background-size:auto 240%,100% 1.6px}
+h1,.card .g{font-family:var(--serif);font-weight:600}
+h1{font-size:clamp(26px,3.4vw,38px)}
+h2{font-family:var(--serif);font-weight:600;font-size:14px;letter-spacing:.14em}
+.card{border-radius:12px;background:var(--panel)}
+.frame{border-radius:12px}
+.total{border-radius:0 10px 10px 0}
+.pill,.tr{border-radius:6px}
+</style>
+
+<div class="wrap">
+  <div class="banner" id="banner"></div>
+
+  <header class="mast">
+    <div class="eyebrow" id="m-eyebrow"></div>
+    <h1 id="m-title"></h1>
+    <p class="sub" id="m-sub"></p>
+  </header>
+
+  <section>
+    <h2>Timeline</h2>
+    <div class="legend" id="legend"></div>
+    <div class="frame" role="region" aria-label="Winter break timeline, scrolls sideways" tabindex="0">
+      <div class="chart" id="chart"></div>
+    </div>
+    <p class="note" id="n-timeline"></p>
+  </section>
+
+  <section>
+    <h2>Launch goals</h2>
+    <div class="cards" id="cards"></div>
+    <div class="total" id="total"></div>
+  </section>
+
+  <section>
+    <h2>Recruiting timeline</h2>
+    <div class="flags" id="f-recruiting"></div>
+    <p class="note" id="n-recruiting"></p>
+  </section>
+
+  <section>
+    <h2>Region push dates</h2>
+    <div class="flags" id="f-push"></div>
+    <p class="note" id="n-push"></p>
+  </section>
+
+  <section>
+    <h2>Conflicts to resolve</h2>
+    <div class="flags" id="f-conflicts"></div>
+  </section>
+
+  <section>
+    <h2>Edit plan</h2>
+    <details class="edit" id="editor">
+      <summary>Load your own dates</summary>
+      <p class="note">Your plan is saved in this browser only. Download the CSV template, change the dates and labels in a spreadsheet, then upload it. Or edit the JSON below and press Apply. Dates are YYYY-MM-DD.</p>
+      <div class="ed-actions">
+        <button class="btn" type="button" id="b-apply">Apply JSON below</button>
+        <button class="btn ghost" type="button" id="b-json">Download plan (JSON)</button>
+        <button class="btn ghost" type="button" id="b-csv">Download plan (CSV)</button>
+        <button class="btn ghost" type="button" id="b-tpl">Download CSV template</button>
+        <button class="btn ghost" type="button" id="b-up">Upload JSON or CSV</button>
+        <button class="btn ghost" type="button" id="b-reset">Reset to sample</button>
+        <input type="file" id="upfile" accept=".json,.csv,application/json,text/csv" hidden>
+      </div>
+      <div id="edmsg" role="status"></div>
+      <textarea id="planbox" spellcheck="false" aria-label="Plan JSON"></textarea>
+    </details>
+  </section>
+</div>
+
+<script>
+(function(){
+var LS_KEY = "winter-break-launch-calendar-plan-v1";
+
+/* ---------- SAMPLE PLAN (all names, roles, amounts and dates are examples) ---------- */
+var SAMPLE = {
+  meta:{
+    eyebrow:"Your Division · Winter Break (sample plan)",
+    title:"Winter Break Launch Calendar (Nov – Jan)",
+    sub:"A template for the winter break program: sourcing, each school's outreach window and break, Thursday–Saturday training classes and Saturday launches, and the region push. Replace the sample dates with your own.",
+    timelineNote:"* Example: this school resumes for a short January term on Jan 4; students not taking it may be off longer. ** Example: break label is official but the full gap is unverified. Take break dates from each school's registrar calendar.",
+    recruitingNote:"Example: the first outreach dates fall while the Manager is away, so the Assistant Manager and Recruiter 1 send the first messages. Interviews set before the credit window opens will not count toward the credit.",
+    pushNote:"Sample push rules. Incentive levels and dollar amounts here are examples only; use your region's announced numbers.",
+    launchTarget:40, outreachDays:21
+  },
+  calendar:{start:"2026-11-02", days:91},
+  sourcing:{label:"Student list sourcing", start:"2026-11-03", end:"2026-11-17", text:"Nov 3 – 17 · build a student list per school"},
+  band:{label:"All schools on break", start:"2026-12-20", end:"2027-01-02"},
+  schools:[
+    {name:"School 1 (example)", start:"2026-12-12", end:"2027-01-04", kind:"std"},
+    {name:"School 2 (example)", start:"2026-12-12", end:"2027-01-04", kind:"std"},
+    {name:"School 3 (example)", start:"2026-12-13", end:"2027-01-04", kind:"std"},
+    {name:"School 4 (example)", start:"2026-12-19", end:"2027-01-03", kind:"std"},
+    {name:"School 5 (example)", start:"2026-12-19", end:"2027-01-03", kind:"std"},
+    {name:"School 6 (example)", start:"2026-12-19", end:"2027-01-03", kind:"std"},
+    {name:"School 7 (example)*", start:"2026-12-19", end:"2027-01-03", kind:"std"},
+    {name:"School 8 (example)", start:"2026-12-19", end:"2027-01-10", kind:"long"},
+    {name:"School 9 (example)", start:"2026-12-19", end:"2027-01-18", kind:"long"},
+    {name:"School 10 (example)**", start:"2026-12-20", end:"2027-01-02", kind:"short"}
+  ],
+  launches:[
+    {date:"2026-12-05", goal:5}, {date:"2026-12-12", goal:7},
+    {date:"2026-12-19", goal:12}, {date:"2027-01-09", goal:12}
+  ],
+  flagged:["2026-12-03","2026-12-04","2026-12-10","2026-12-11","2026-12-17","2026-12-18","2027-01-07","2027-01-08"],
+  windows:[
+    {label:"Credit window", start:"2026-11-29", end:"2027-01-03", cls:"fire", text:"11/29 – 1/3 · example: 25 appointments set = $1K trip credit · 50 = $2K"},
+    {label:"6-week sales window", start:"2026-12-08", end:"2027-01-18", cls:"sales", text:"12/8 – 1/18 · example: new reps at $15K or senior reps at $18K go at 50%"},
+    {label:"Region push", start:"2026-12-29", end:"2027-01-18", cls:"push", text:"12/29 – 1/18 · 3 weeks"}
+  ],
+  event:{label:"Year-end event", start:"2027-01-28", end:"2027-01-30"},
+  deadlinesRegion:[
+    {date:"2026-11-15", label:"Top-50 lists due"},
+    {date:"2026-11-23", label:"Assistant Manager call 1"},
+    {date:"2026-11-30", label:"Assistant Manager call 2"},
+    {date:"2026-12-07", label:"Assistant Manager call 3"},
+    {date:"2026-12-21", label:"Level deadline"},
+    {date:"2027-01-22", label:"Push tabs final"}
+  ],
+  deadlinesOurs:[
+    {date:"2026-11-17", label:"Student lists done"},
+    {date:"2026-11-29", label:"Interview booking opens"}
+  ],
+  holidays:[
+    {date:"2026-11-26", label:"Thanksgiving"}, {date:"2026-12-25", label:"Christmas"},
+    {date:"2026-12-31", label:"New Year's Eve"}, {date:"2027-01-01", label:"New Year's Day"}
+  ],
+  blackout:[
+    {label:"Nov 25–28", start:"2026-11-25", end:"2026-11-28"},
+    {label:"Dec 23–26", start:"2026-12-23", end:"2026-12-26"},
+    {label:"NYE", start:"2026-12-31", end:"2027-01-01"}
+  ],
+  away:[
+    {label:"Manager away (example)", start:"2026-12-03", end:"2026-12-12"},
+    {label:"Manager away (example)", start:"2026-12-28", end:"2027-01-04"}
+  ],
+  cards:[
+    {date:"Sat Dec 5", goal:5, note:"Trains Dec 3–5 · 0 schools on break", warn:"Manager away; Assistant Manager and Recruiter 1 train"},
+    {date:"Sat Dec 12", goal:7, note:"Trains Dec 10–12 · 2 schools on break", warn:"Manager away; Assistant Manager and Recruiter 1 train"},
+    {date:"Sat Dec 19", goal:12, note:"Trains Dec 17–19 · 3 → 9 schools on break", warn:"Thu–Fri fall in finals for several schools"},
+    {date:"Sat Dec 26", goal:null, note:"Blocked: no training or meetings Dec 23–26"},
+    {date:"Sat Jan 2", goal:null, note:"Moved: Manager away until Jan 4. This class is folded into Jan 9."},
+    {date:"Sat Jan 9", goal:12, note:"Trains Jan 7–9 · 2 schools still on break · includes the recruits moved from Jan 2", warn:"Most students back in class; 12 is a big ask"}
+  ],
+  recruiting:[
+    {k:"Nov 3 – 17", text:"Sourcing: build a list of current students at each school. Collect by hand through LinkedIn search. Automated scraping tools break LinkedIn's terms and can get accounts restricted."},
+    {k:"Nov 21", text:"Outreach starts for the earliest schools (break starts Dec 12)."},
+    {k:"Nov 22", text:"Outreach starts for School 3 (break starts Dec 13)."},
+    {k:"Nov 28", text:"Outreach starts for the Dec 19 schools. This falls inside the Thanksgiving blackout: messages can go out, but book interviews from Nov 29 on."},
+    {k:"Nov 29", text:"Outreach starts for School 10 (break starts Dec 20). Same day the credit window opens."}
+  ],
+  push:[
+    {k:"Nov 15", text:"Top-50 lists due to the region leader. Each list submitted earns a $1,000 trip credit (example)."},
+    {k:"Nov 23, 30, Dec 7", text:"Assistant Manager bootcamp calls on Zoom. Sign assistants up through the form in the region leader's email."},
+    {k:"Nov 29 – Jan 3", text:"Credit window (example): 25 appointments set = $1,000 trip credit, 50 = $2,000."},
+    {k:"Dec 8 – Jan 18", text:"6-week alternate qualifier (example levels): new reps at $15K or senior reps at $18K go at 50%."},
+    {k:"Dec 21", text:"Level deadline (example): new managers must have their license and startup in."},
+    {k:"Dec 29 – Jan 18", text:"Region push (example levels): new reps 10K / 12.5K / 15K; senior reps 12K / 16K / 20K. Manager levels are set by your region."},
+    {k:"Jan 22", text:"Push tabs final."},
+    {k:"Jan 28 – 30", text:"Year-end event. Push winners recognized here."}
+  ],
+  conflicts:[
+    {k:"Dec 3–12 · Manager away", text:"Example: the Manager is out of town. The Assistant Manager and Recruiter 1 run both the Dec 5 and Dec 12 classes; the Manager can join by Zoom. The first in-person class is Dec 17–19, the biggest one."},
+    {k:"Dec 17–18 · Finals", text:"Example: several schools are in finals week when the 12-person class starts training. Recruits must commit to Thu–Fri sessions, or the class moves to Sat Dec 19 – Mon Dec 21 with a Monday launch."},
+    {k:"Dec 28 – Jan 4 · Manager away", text:"Example: the Jan 2 class moves to Jan 7–9 so the Manager can run it. That week is also the last week of the credit window, so the team carries booking without the Manager."},
+    {k:"Jan 7–8 · Back in class", text:"Example: only a couple of schools are still on break, and this class now carries more recruits. Fill it from recruits interviewed during break, community colleges and non-students."}
+  ]
+};
+
+/* ---------- helpers ---------- */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];}); }
+function ms(iso){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso||"").trim()); if(!m) throw new Error("Bad date: "+iso); return Date.UTC(+m[1],+m[2]-1,+m[3]); }
+var MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+/* ---------- validation ---------- */
+var LISTS=["schools","launches","flagged","windows","deadlinesRegion","deadlinesOurs","holidays","blackout","away","cards","recruiting","push","conflicts"];
+function normalize(p){
+  if(!p||typeof p!=="object") throw new Error("Plan must be an object");
+  var out=clone(SAMPLE);
+  if(p.meta) Object.keys(p.meta).forEach(function(k){ out.meta[k]=p.meta[k]; });
+  ["calendar","sourcing","band","event"].forEach(function(k){ if(p[k]) out[k]=p[k]; });
+  LISTS.forEach(function(k){ if(p[k]!==undefined){ if(!Array.isArray(p[k])) throw new Error(k+" must be a list"); out[k]=p[k]; }});
+  // check dates
+  ms(out.calendar.start);
+  var days=+out.calendar.days; if(!(days>=14&&days<=400)) throw new Error("calendar.days must be 14–400");
+  out.calendar.days=days;
+  var chk=function(o,f){ f.forEach(function(x){ if(o[x]!==undefined&&o[x]!=="") ms(o[x]); }); };
+  chk(out.sourcing,["start","end"]); chk(out.band,["start","end"]); chk(out.event,["start","end"]);
+  out.schools.forEach(function(o){ chk(o,["start","end"]); if(["std","long","short"].indexOf(o.kind)<0) o.kind="std"; });
+  out.launches.forEach(function(o){ chk(o,["date"]); o.goal=+o.goal||0; });
+  out.flagged=out.flagged.map(function(d){ ms(d); return d; });
+  out.windows.forEach(function(o){ chk(o,["start","end"]); if(["fire","sales","push"].indexOf(o.cls)<0) o.cls="push"; });
+  ["deadlinesRegion","deadlinesOurs","holidays"].forEach(function(k){ out[k].forEach(function(o){ chk(o,["date"]); }); });
+  out.blackout.forEach(function(o){ chk(o,["start","end"]); });
+  out.away.forEach(function(o){ chk(o,["start","end"]); });
+  out.cards.forEach(function(o){ if(o.goal===""||o.goal===undefined||o.goal===null||isNaN(+o.goal)) o.goal=null; else o.goal=+o.goal; });
+  out.meta.launchTarget=+out.meta.launchTarget||0; out.meta.outreachDays=+out.meta.outreachDays||21;
+  return out;
+}
+
+/* ---------- CSV <-> plan ---------- */
+var CSV_COLS=["type","label","start","end","value","note","extra"];
+function csvCell(v){ v=v==null?"":String(v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function toRows(p){
+  var R=[];
+  function add(t,label,start,end,value,note,extra){ R.push([t,label,start,end,value,note,extra]); }
+  Object.keys(p.meta).forEach(function(k){ add("meta",k,"","","",p.meta[k],""); });
+  add("calendar","","" + p.calendar.start,"",p.calendar.days,"","");
+  add("sourcing",p.sourcing.label,p.sourcing.start,p.sourcing.end,"",p.sourcing.text,"");
+  add("band",p.band.label,p.band.start,p.band.end,"","","");
+  p.schools.forEach(function(o){ add("school",o.name,o.start,o.end,o.kind,"",""); });
+  p.launches.forEach(function(o){ add("launch","",o.date,"",o.goal,"",""); });
+  p.flagged.forEach(function(d){ add("flagged","",d,"","","",""); });
+  p.windows.forEach(function(o){ add("window",o.label,o.start,o.end,o.cls,o.text,""); });
+  add("event",p.event.label,p.event.start,p.event.end,"","","");
+  p.deadlinesRegion.forEach(function(o){ add("deadline_region",o.label,o.date,"","","",""); });
+  p.deadlinesOurs.forEach(function(o){ add("deadline_ours",o.label,o.date,"","","",""); });
+  p.holidays.forEach(function(o){ add("holiday",o.label,o.date,"","","",""); });
+  p.blackout.forEach(function(o){ add("blackout",o.label,o.start,o.end,"","",""); });
+  p.away.forEach(function(o){ add("away",o.label,o.start,o.end,"","",""); });
+  p.cards.forEach(function(o){ add("card",o.date,"","",o.goal==null?"":o.goal,o.note,o.warn||""); });
+  p.recruiting.forEach(function(o){ add("recruiting",o.k,"","","",o.text,""); });
+  p.push.forEach(function(o){ add("push",o.k,"","","",o.text,""); });
+  p.conflicts.forEach(function(o){ add("conflict",o.k,"","","",o.text,""); });
+  return R;
+}
+function toCSV(p){
+  return [CSV_COLS].concat(toRows(p)).map(function(r){ return r.map(csvCell).join(","); }).join("\r\n")+"\r\n";
+}
+function parseCSV(text){
+  var rows=[],row=[],cur="",q=false,i,c;
+  text=String(text).replace(/^﻿/,"");
+  for(i=0;i<text.length;i++){
+    c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===","){ row.push(cur); cur=""; }
+    else if(c==="\n"||c==="\r"){ if(c==="\r"&&text[i+1]==="\n") i++; row.push(cur); cur=""; if(row.some(function(x){return x!=="";})) rows.push(row); row=[]; }
+    else cur+=c;
+  }
+  row.push(cur); if(row.some(function(x){return x!=="";})) rows.push(row);
+  return rows;
+}
+function fromCSV(text){
+  var rows=parseCSV(text); if(!rows.length) throw new Error("Empty CSV");
+  var hdr=rows.shift().map(function(h){return h.trim().toLowerCase();});
+  if(hdr.indexOf("type")<0) throw new Error("CSV needs a header row starting with: "+CSV_COLS.join(","));
+  var g=function(r,k){ var j=hdr.indexOf(k); return j<0?"":(r[j]||"").trim(); };
+  var p={meta:{},schools:[],launches:[],flagged:[],windows:[],deadlinesRegion:[],deadlinesOurs:[],holidays:[],blackout:[],away:[],cards:[],recruiting:[],push:[],conflicts:[]};
+  rows.forEach(function(r){
+    var t=g(r,"type").toLowerCase(), label=g(r,"label"), st=g(r,"start"), en=g(r,"end"), val=g(r,"value"), note=g(r,"note"), ex=g(r,"extra");
+    switch(t){
+      case "meta": p.meta[label]=note; break;
+      case "calendar": p.calendar={start:st,days:val}; break;
+      case "sourcing": p.sourcing={label:label,start:st,end:en,text:note}; break;
+      case "band": p.band={label:label,start:st,end:en}; break;
+      case "school": p.schools.push({name:label,start:st,end:en,kind:val||"std"}); break;
+      case "launch": p.launches.push({date:st,goal:val}); break;
+      case "flagged": p.flagged.push(st); break;
+      case "window": p.windows.push({label:label,start:st,end:en,cls:val||"push",text:note}); break;
+      case "event": p.event={label:label,start:st,end:en}; break;
+      case "deadline_region": p.deadlinesRegion.push({date:st,label:label}); break;
+      case "deadline_ours": p.deadlinesOurs.push({date:st,label:label}); break;
+      case "holiday": p.holidays.push({date:st,label:label}); break;
+      case "blackout": p.blackout.push({label:label,start:st,end:en}); break;
+      case "away": p.away.push({label:label,start:st,end:en}); break;
+      case "card": p.cards.push({date:label,goal:val,note:note,warn:ex}); break;
+      case "recruiting": p.recruiting.push({k:label,text:note}); break;
+      case "push": p.push.push({k:label,text:note}); break;
+      case "conflict": p.conflicts.push({k:label,text:note}); break;
+      default: break;
+    }
+  });
+  return p;
+}
+
+/* ---------- render ---------- */
+var plan, isSample=true;
+function render(){
+  var P=plan, START=ms(P.calendar.start), N=P.calendar.days;
+  function ix(iso){ return Math.round((ms(iso)-START)/864e5); }
+  function fmt(i){ var d=new Date(START+i*864e5); return (d.getUTCMonth()+1)+'/'+d.getUTCDate(); }
+  function col(s,e){ return 'grid-column:'+(s+2)+' / '+(e+3); }
+  function pos(s,n){ return 'left:calc(var(--label) + '+s+' * var(--cell));width:calc('+n+' * var(--cell))'; }
+  function inr(i){ return i>=0&&i<N; }
+  var chart=document.getElementById('chart');
+  chart.style.setProperty('--n',N);
+
+  // banner + meta
+  document.getElementById('banner').innerHTML = isSample
+    ? '<span><b>Sample plan</b> — load your own dates to plan your office.</span><a href="#editor" class="btn ghost" style="text-decoration:none" id="a-edit">Edit plan</a>'
+    : '<span><b>Your plan</b> — saved in this browser.</span><a href="#editor" class="btn ghost" style="text-decoration:none" id="a-edit">Edit plan</a>';
+  document.getElementById('a-edit').onclick=function(){ document.getElementById('editor').open=true; };
+  document.getElementById('m-eyebrow').textContent=P.meta.eyebrow;
+  document.getElementById('m-title').textContent=P.meta.title;
+  document.getElementById('m-sub').textContent=P.meta.sub;
+  document.getElementById('n-timeline').textContent=P.meta.timelineNote||"";
+  document.getElementById('n-recruiting').textContent=P.meta.recruitingNote||"";
+  document.getElementById('n-push').textContent=P.meta.pushNote||"";
+  document.title=P.meta.title;
+
+  var ev=P.event, bandN=ix(P.band.end)-ix(P.band.start)+1;
+  document.getElementById('legend').innerHTML=
+    '<span><i class="sw" style="background:transparent;border:2px dashed var(--bar)"></i>Outreach window ('+esc(P.meta.outreachDays)+' days before break)</span>'+
+    '<span><i class="sw" style="background:var(--bar)"></i>On break</span>'+
+    '<span><i class="sw" style="background:var(--bar-long)"></i>Extended break</span>'+
+    '<span><i class="sw" style="background:var(--bar-short)"></i>Break end unverified</span>'+
+    '<span><i class="sw" style="background:var(--band)"></i>'+esc(P.band.label)+' ('+esc(fmt(ix(P.band.start)))+' – '+esc(fmt(ix(P.band.end)))+')</span>'+
+    '<span><i class="sw" style="background:var(--train-bg)"></i>Training day (Th–F)</span>'+
+    '<span><i class="sw" style="background:var(--launch-bg)"></i>Saturday launch · goal</span>'+
+    '<span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--red) 0 3px,transparent 3px 6px)"></i>Blackout: no training, interviews, meetings or events</span>'+
+    '<span><i class="sw" style="background:repeating-linear-gradient(135deg,var(--copper) 0 3px,transparent 3px 6px)"></i>'+esc(ev.label)+' ('+esc(fmt(ix(ev.start)))+' – '+esc(fmt(ix(ev.end)))+')</span>'+
+    '<span><i class="sw" style="background:var(--red);width:10px;height:10px;border-radius:50%"></i>Conflict to resolve</span>'+
+    '<span><i class="sw" style="background:var(--copper);width:10px;height:10px;transform:rotate(45deg);border-radius:0"></i>Deadline (dashed line runs through the calendar)</span>';
+
+  var html='';
+  html+='<div class="grid-lines"></div>';
+  html+='<div class="overlay ov-band" style="'+pos(ix(P.band.start),bandN)+'"></div>';
+  P.blackout.forEach(function(b){ html+='<div class="overlay ov-black" style="'+pos(ix(b.start),ix(b.end)-ix(b.start)+1)+'"></div>'; });
+  html+='<div class="overlay ov-event" style="'+pos(ix(ev.start),ix(ev.end)-ix(ev.start)+1)+'"></div>';
+
+  var DL_REGION=P.deadlinesRegion, DL_OURS=P.deadlinesOurs;
+  DL_REGION.concat(DL_OURS).forEach(function(d){
+    html+='<div class="overlay ov-dl" style="left:calc(var(--label) + '+ix(d.date)+' * var(--cell) + var(--cell) / 2)" title="'+esc(d.label)+'"></div>';
+  });
+  function dlRow(label,list){
+    var r='<div class="row"><div class="lab">'+esc(label)+'</div>';
+    list.forEach(function(d){ var i=ix(d.date); if(!inr(i)) return;
+      r+='<div class="dl" style="'+col(i,Math.min(i+6,N-1))+'"><i></i>'+esc(fmt(i))+' '+esc(d.label)+'</div>'; });
+    return r+'</div>';
+  }
+
+  // headers: month spans generated from the date range
+  var dows='SMTWTFS';
+  var r1='<div class="row"><div class="lab"></div>';
+  var d0=new Date(START), y=d0.getUTCFullYear(), mo=d0.getUTCMonth(), idx=0;
+  while(idx<N){
+    var next=Date.UTC(y,mo+1,1), nextIdx=Math.min(N,Math.round((next-START)/864e5));
+    r1+='<div class="cell month" style="'+col(idx,nextIdx-1)+'">'+MN[mo]+' '+y+'</div>';
+    idx=nextIdx; mo++; if(mo>11){mo=0;y++;}
+  }
+  r1+='</div>';
+  var r2='<div class="row"><div class="lab strong">Date</div>', r3='<div class="row"><div class="lab"></div>';
+  for(var i=0;i<N;i++){
+    var dt=new Date(START+i*864e5), dw=dt.getUTCDay(), sat=dw===6?' sat':'';
+    r2+='<div class="cell dnum'+sat+'" style="'+col(i,i)+'">'+dt.getUTCDate()+'</div>';
+    r3+='<div class="cell dow'+sat+'" style="'+col(i,i)+'">'+dows[dw]+'</div>';
+  }
+  html+=r1+r2+'</div>'+r3+'</div>';
+
+  var S=P.sourcing;
+  html+='<div class="row sep"><div class="lab strong">'+esc(S.label)+'</div><div class="pill p-li" style="'+col(ix(S.start),ix(S.end))+'">'+esc(S.text)+'</div></div>';
+
+  var counts=new Array(N).fill(0), od=P.meta.outreachDays;
+  P.schools.forEach(function(c,k){
+    var s=ix(c.start), e=ix(c.end);
+    for(var d=s;d<=e;d++) if(d>=0&&d<N) counts[d]++;
+    html+='<div class="row'+(k===0?' sep':'')+'"><div class="lab" title="'+esc(c.name)+'">'+esc(c.name)+'</div>'+
+      '<div class="bar b-out" style="'+col(Math.max(s-od,0),Math.max(s-1,0))+'" title="Outreach starts '+esc(fmt(s-od))+'"></div>'+
+      '<div class="bar b-'+c.kind+'" style="'+col(Math.max(s,0),Math.min(e,N-1))+'"></div></div>';
+  });
+  html+='<div class="row sep"><div class="lab strong">Schools on break</div>';
+  counts.forEach(function(n,i){ html+='<div class="cell count'+(n?'':' c0')+'" style="'+col(i,i)+'">'+n+'</div>'; });
+  html+='</div>';
+
+  var flagged={}; P.flagged.forEach(function(d){ flagged[ix(d)]=1; });
+  html+='<div class="row sep"><div class="lab strong">Training · launch goal</div>';
+  P.launches.forEach(function(l){
+    var s=ix(l.date);
+    [s-2,s-1].forEach(function(t){ if(inr(t)) html+='<div class="tr'+(flagged[t]?' flag':'')+'" style="'+col(t,t)+'" title="Training">T</div>'; });
+    if(inr(s)) html+='<div class="tr launch" style="'+col(s,s)+'" title="Launch goal '+esc(l.goal)+'">'+esc(l.goal)+'</div>';
+  });
+  html+='</div>';
+
+  html+='<div class="row sep"><div class="lab strong">Region push</div></div>';
+  P.windows.forEach(function(w){
+    html+='<div class="row"><div class="lab">'+esc(w.label)+'</div><div class="pill p-'+w.cls+'" style="'+col(ix(w.start),ix(w.end))+'">'+esc(w.text)+'</div></div>';
+  });
+  html+='<div class="row"><div class="lab">'+esc(ev.label)+'</div><div class="pill p-push" style="'+col(ix(ev.start),ix(ev.end))+'">'+esc(ev.label)+'</div></div>';
+  html+=dlRow('Region deadlines',DL_REGION);
+  html+=dlRow('Our deadlines',DL_OURS);
+
+  html+='<div class="row"><div class="lab">Holidays</div>';
+  P.holidays.forEach(function(h){ var i=ix(h.date); if(inr(i)) html+='<div class="p-hol" style="'+col(i,i)+'" title="'+esc(h.label)+'"></div>'; });
+  html+='</div>';
+  html+='<div class="row"><div class="lab">Blackout days</div>';
+  P.blackout.forEach(function(b){ html+='<div class="pill p-black" style="'+col(ix(b.start),ix(b.end))+'">'+esc(b.label)+'</div>'; });
+  html+='</div>';
+  html+='<div class="row"><div class="lab">Manager away (example)</div>';
+  P.away.forEach(function(a){ html+='<div class="pill p-away" style="'+col(ix(a.start),ix(a.end))+'">'+esc(a.label)+'</div>'; });
+  html+='</div>';
+  chart.innerHTML=html;
+
+  document.getElementById('cards').innerHTML=P.cards.map(function(c){
+    var num=typeof c.goal==='number';
+    return '<div class="card '+(num?'':'off')+'"><div class="d">'+esc(c.date)+'</div>'+
+      '<div class="g">'+(num?esc(c.goal):'—')+(num?'<small>launch goal</small>':'<small>no launch</small>')+'</div>'+
+      '<div class="m">'+esc(c.note)+'</div>'+(c.warn?'<div class="w">'+esc(c.warn)+'</div>':'')+'</div>';
+  }).join('');
+  var tot=P.cards.reduce(function(a,c){ return a+(typeof c.goal==='number'?c.goal:0); },0);
+  var nSat=P.cards.filter(function(c){ return typeof c.goal==='number'; }).length;
+  var tgt=P.meta.launchTarget, gap=tgt-tot;
+  document.getElementById('total').innerHTML='Total <b>'+tot+'</b> launches across '+nSat+' Saturdays'+(tgt?' · '+(gap>0?gap+' short of':gap<0?(-gap)+' over':'at')+' the '+esc(tgt)+' goal':'');
+
+  function flags(id,list,dateCls){
+    document.getElementById(id).innerHTML=list.map(function(f){
+      return '<div class="flag-row"><div class="k'+(dateCls?' date':'')+'">'+esc(f.k)+'</div><p>'+esc(f.text)+'</p></div>';
+    }).join('');
+  }
+  flags('f-recruiting',P.recruiting,true); flags('f-push',P.push,true); flags('f-conflicts',P.conflicts,false);
+  document.getElementById('planbox').value=JSON.stringify(P,null,2);
+}
+
+/* ---------- storage ---------- */
+function save(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(plan)); }catch(e){ msg("Could not save in this browser (storage blocked). Download the JSON to keep a copy.",true); } }
+function load(){ try{ var raw=localStorage.getItem(LS_KEY); if(raw){ plan=normalize(JSON.parse(raw)); isSample=false; return; } }catch(e){} plan=clone(SAMPLE); isSample=true; }
+function msg(t,err){ var m=document.getElementById('edmsg'); m.textContent=t; m.className=err?'err':''; }
+function setPlan(p,label){
+  try{ plan=normalize(p); isSample=false; save(); render(); msg(label+" loaded and saved in this browser."); }
+  catch(e){ msg("Could not load: "+e.message,true); }
+}
+function download(name,text,type){
+  try{ var a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:type})); a.download=name;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(function(){URL.revokeObjectURL(a.href);},1000); }catch(e){ msg("Download failed.",true); }
+}
+
+document.getElementById('b-apply').onclick=function(){ try{ setPlan(JSON.parse(document.getElementById('planbox').value),"Plan"); }catch(e){ msg("That is not valid JSON: "+e.message,true); } };
+document.getElementById('b-json').onclick=function(){ download('winter-break-plan.json',JSON.stringify(plan,null,2),'application/json'); };
+document.getElementById('b-csv').onclick=function(){ download('winter-break-plan.csv',toCSV(plan),'text/csv'); };
+document.getElementById('b-tpl').onclick=function(){ download('winter-break-plan-template.csv',toCSV(SAMPLE),'text/csv'); };
+document.getElementById('b-up').onclick=function(){ document.getElementById('upfile').click(); };
+document.getElementById('upfile').onchange=function(e){
+  var f=e.target.files&&e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(){
+    var t=String(r.result);
+    try{ var p=/^\s*[{[]/.test(t)?JSON.parse(t):fromCSV(t); setPlan(p,"File"); }
+    catch(err){ msg("Could not read file: "+err.message,true); }
+    e.target.value="";
+  };
+  r.readAsText(f);
+};
+document.getElementById('b-reset').onclick=function(){
+  try{ localStorage.removeItem(LS_KEY); }catch(e){}
+  plan=clone(SAMPLE); isSample=true; render(); msg("Reset to the sample plan.");
+};
+
+load(); render();
+})();
+</script>
+
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body></html>

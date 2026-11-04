@@ -1,0 +1,558 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1"><style>:root{color-scheme:light}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fall campaign planner · Your Division</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e7e0cf;--panel:#f6f2e8;--ink:#2c3a32;--ink2:#6d6a5e;--head:#1e3a2f;
+  --copper:#966139;--rule:#d3c9b1;--good:#2f6b45;--bad:#a4462e;
+  --planbar:#d3c9b1;--actbar:#1e3a2f;--future:#ece5d3;--field:#f6f2e8;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14211b;--panel:#1b2b23;--ink:#dcd6c6;--ink2:#a8b0a2;--head:#efe9dc;
+    --copper:#c98f61;--rule:#2f4538;--good:#86c39a;--bad:#e3927a;
+    --planbar:#2d473a;--actbar:#c98f61;--future:#1b2b23;--field:#21342a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14211b;--panel:#1b2b23;--ink:#dcd6c6;--ink2:#a8b0a2;--head:#efe9dc;
+  --copper:#c98f61;--rule:#2f4538;--good:#86c39a;--bad:#e3927a;
+  --planbar:#2d473a;--actbar:#c98f61;--future:#1b2b23;--field:#21342a;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Archivo","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.45;font-variant-numeric:tabular-nums}
+.wrap{max-width:980px;margin:0 auto;padding:20px 16px 56px}
+h1,h2,h3{color:var(--head);margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+
+/* Masthead */
+.mast{border-bottom:3px solid var(--head);padding-bottom:12px;margin-bottom:22px}
+.mast h1{font-weight:800;font-stretch:72%;font-size:clamp(2.1rem,8vw,3.4rem);line-height:.95;letter-spacing:-.01em}
+.mast h1 span{color:var(--copper);font-weight:500;font-stretch:90%;font-size:.42em;letter-spacing:0;white-space:nowrap}
+.mast p{margin:8px 0 0;color:var(--ink2);font-size:.95rem}
+.banner{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--copper);border-radius:10px;padding:8px 12px;font-size:.85rem;color:var(--ink2);margin:10px 0 0}
+.sync{float:right;font-size:.8rem;color:var(--ink2);margin-top:4px}
+
+/* Section heads */
+.sec{margin-top:34px}
+.sec>h2{font-size:1.05rem;font-weight:700;padding-bottom:6px;border-bottom:1.6px solid var(--copper);margin-bottom:4px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.sec>h2 small{font-weight:400;color:var(--ink2);font-size:.85rem}
+
+/* Hero ledger */
+.tabs{display:flex;gap:6px;margin:0 0 14px;flex-wrap:wrap}
+.tabs button{border:1.5px solid var(--rule);background:transparent;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:.9rem}
+.tabs button[aria-pressed="true"]{background:var(--head);border-color:var(--head);color:var(--bg)}
+.lede{font-size:clamp(1.15rem,3.6vw,1.5rem);font-weight:600;font-stretch:88%;line-height:1.25;margin:0 0 18px;color:var(--head);max-width:34ch}
+.ledger{display:flex;gap:6px;align-items:stretch}
+.month{display:flex;flex-direction:column;min-width:0}
+.cols{display:flex;gap:3px;height:150px;align-items:flex-end;border-bottom:1.6px solid var(--head)}
+.col{flex:1;min-width:0;height:100%;position:relative;display:flex;align-items:flex-end;justify-content:center;background:none;border:0;padding:0;cursor:pointer}
+.col .plan{position:absolute;bottom:0;left:0;right:0;background:var(--planbar);border-radius:3px 3px 0 0}
+.col.future .plan{background:var(--future);outline:1px dashed var(--rule);outline-offset:-1px}
+.col .act{position:relative;width:62%;background:var(--actbar);border-radius:2px 2px 0 0}
+.col.behind .act{background:var(--bad)}
+.col.sel::after{content:"";position:absolute;left:-1px;right:-1px;top:-6px;bottom:-1px;border:1.5px solid var(--copper);border-radius:4px;pointer-events:none}
+.wk{display:flex;gap:3px;margin-top:4px}
+.wk span{flex:1;text-align:center;font-size:.68rem;color:var(--ink2)}
+.wk span.now{color:var(--copper);font-weight:700}
+.mname{font-size:.78rem;color:var(--ink2);margin-top:2px;text-align:left;border-top:1px solid var(--rule);padding-top:3px}
+.detail{margin-top:12px;font-size:.92rem;color:var(--ink2);min-height:1.4em}
+.detail b{color:var(--ink)}
+.detail button{background:none;border:0;color:var(--copper);text-decoration:underline;cursor:pointer;padding:0;margin-left:6px}
+.legend{display:flex;gap:16px;font-size:.78rem;color:var(--ink2);margin-top:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;margin-right:5px;vertical-align:-1px;border-radius:2px}
+
+/* Rail rows */
+.row{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 0;border-bottom:1px solid var(--rule)}
+@media (min-width:700px){.row{grid-template-columns:220px minmax(0,1fr)}}
+.rail .lbl{color:var(--copper);font-size:.82rem;font-weight:600}
+.rail .val{color:var(--head);font-weight:800;font-stretch:80%;font-size:1.55rem;line-height:1.1}
+.rail .sub{color:var(--ink2);font-size:.82rem}
+.bar{position:relative;height:10px;background:var(--planbar);border-radius:5px;overflow:visible;margin:4px 0 10px}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;background:var(--actbar);border-radius:5px;max-width:100%}
+.bar .tick{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--copper)}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.facts div{font-size:.8rem;color:var(--ink2)}
+.facts b{display:block;color:var(--ink);font-size:1rem;font-weight:700}
+.st{font-weight:700}
+.st.good{color:var(--good)} .st.bad{color:var(--bad)} .st.mid{color:var(--copper)}
+
+/* Gates */
+.gates{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+@media (min-width:700px){.gates{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}}
+.gate{padding:14px 0 14px 14px;border-bottom:1px solid var(--rule);border-left:3px solid var(--rule);margin-top:10px}
+.gate.open{border-left-color:var(--good)}
+.gate.pending{border-left-color:var(--copper)}
+.gate h3{font-size:.98rem;display:flex;justify-content:space-between;gap:10px}
+.gate h3 span{color:var(--copper);white-space:nowrap}
+.gate p{margin:4px 0 0;font-size:.88rem;color:var(--ink2)}
+.cond{display:flex;justify-content:space-between;font-size:.88rem;margin-top:6px;gap:10px}
+.cond .ok{color:var(--good);font-weight:700}
+.cond .no{color:var(--ink2)}
+
+/* Income */
+.income-top{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0 6px}
+@media (min-width:700px){.income-top{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.income-top div{background:var(--panel);padding:12px;border-left:3px solid var(--copper)}
+.income-top div:first-child{border-left-color:var(--head)}
+.income-top small{display:block;color:var(--ink2);font-size:.8rem}
+.income-top b{font-size:1.35rem;font-weight:800;font-stretch:80%;color:var(--head)}
+details.mon{border-bottom:1px solid var(--rule)}
+details.mon summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:1fr auto auto;gap:14px;padding:12px 0;align-items:baseline}
+details.mon summary::-webkit-details-marker{display:none}
+details.mon summary .m{font-weight:700;color:var(--head)}
+details.mon summary .n{font-weight:800;color:var(--head);min-width:88px;text-align:right}
+details.mon summary .g{color:var(--ink2);font-size:.88rem}
+details.mon summary .m::before{content:"+";display:inline-block;width:1em;color:var(--copper)}
+details.mon[open] summary .m::before{content:"−"}
+.lines{padding:0 0 12px 1em}
+.lines div{display:flex;justify-content:space-between;font-size:.9rem;padding:3px 0;border-top:1px dotted var(--rule)}
+.lines div.neg span:last-child{color:var(--bad)}
+.lines div.tot{font-weight:700;border-top:1px solid var(--rule)}
+.note{font-size:.82rem;color:var(--ink2);margin-top:10px}
+
+/* Form */
+form{background:var(--panel);padding:16px;border-left:3px solid var(--head);margin-top:14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (min-width:700px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+label{display:block;font-size:.82rem;color:var(--ink2);font-weight:600}
+input,select{display:block;width:100%;margin-top:4px;padding:10px;border:1.5px solid var(--rule);border-radius:6px;background:var(--field);font-size:16px}
+.full{grid-column:1/-1}
+.actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center}
+.btn{background:var(--head);color:var(--bg);border:0;border-radius:6px;padding:11px 18px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--rule)}
+.msg{font-size:.88rem;color:var(--ink2)}
+.msg.err{color:var(--bad)}
+details.set{margin-top:14px}
+details.set summary{cursor:pointer;color:var(--head);font-weight:700;padding:8px 0}
+.pbm{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.pbm div{background:var(--panel);padding:8px 10px;font-size:.8rem;color:var(--ink2)}
+.pbm b{display:block;color:var(--ink);font-size:.98rem}
+.foot{margin-top:40px;border-top:1px solid var(--rule);padding-top:8px;display:flex;justify-content:space-between;font-size:.78rem;color:var(--ink2);gap:10px;flex-wrap:wrap}
+@media (prefers-reduced-motion:no-preference){.col .act,.bar .fill{transition:height .35s ease,width .35s ease}}
+
+/* Evergreen restyle (style only) */
+body{font-family:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif}
+h1,h2,.lede,.rail .val,.income-top b,.gate h3,details.mon summary .m,details.mon summary .n{font-family:"Fraunces",Georgia,serif;font-stretch:normal}
+.mast{position:relative;border-bottom:2px solid var(--head);overflow:hidden}
+.mast::after{content:"";position:absolute;top:-70px;right:-60px;width:260px;height:260px;opacity:.1;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120' fill='none' stroke='%23966139' stroke-width='2.5'%3E%3Ccircle cx='60' cy='60' r='56'/%3E%3Ccircle cx='60' cy='60' r='42'/%3E%3Ccircle cx='60' cy='60' r='28'/%3E%3Ccircle cx='60' cy='60' r='14'/%3E%3C/svg%3E") no-repeat center/contain}
+.mast h1{font-weight:700;font-stretch:normal;line-height:1;letter-spacing:-.02em;position:relative}
+.mast h1 span{font-family:"Inter",sans-serif;font-stretch:normal;font-weight:500}
+.mast p,.sync{position:relative}
+.sec>h2{font-weight:700;font-size:1.2rem}
+.lede{font-weight:600;line-height:1.25;max-width:36ch}
+.rail .val{font-weight:700;font-stretch:normal}
+.income-top b{font-weight:700;font-stretch:normal}
+.tabs button{font-weight:500}
+.income-top div,form,.pbm div{border-radius:12px;border:1px solid var(--rule);border-left-width:3px}
+.gate{background:var(--panel);border:1px solid var(--rule);border-left-width:3px;border-radius:12px;padding:14px 16px;margin-top:12px}
+.gate.open{border-left-color:var(--good)}
+.gate.pending{border-left-color:var(--copper)}
+.row{border-bottom-color:var(--rule)}
+.bar{height:10px}
+.col .plan{border-radius:4px 4px 0 0}
+.col .act{border-radius:3px 3px 0 0}
+.btn{border-radius:10px}
+input,select{border-radius:10px}
+.foot{border-top-color:var(--rule)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <span class="sync" id="sync">Saved in this browser</span>
+    <h1>Fall campaign planner <span>(Your Division)</span></h1>
+    <p class="banner" id="banner">Example numbers. Every dollar figure here is a round sample. Enter your own weeks below and use Assumptions to match your office. Export your plan to move it between devices.</p>
+    <p id="asof"></p>
+  </header>
+
+  <section aria-label="Weekly pacing">
+    <div class="tabs" role="group" aria-label="Metric">
+      <button type="button" data-m="nb" aria-pressed="true">New business</button>
+      <button type="button" data-m="total" aria-pressed="false">Total business</button>
+      <button type="button" data-m="recruits" aria-pressed="false">Recruits</button>
+    </div>
+    <p class="lede" id="lede"></p>
+    <div class="ledger" id="ledger"></div>
+    <div class="legend">
+      <span><i style="background:var(--planbar)"></i>Plan</span>
+      <span><i style="background:var(--actbar)"></i>Actual, at or above plan</span>
+      <span><i style="background:var(--bad)"></i>Actual, below plan</span>
+    </div>
+    <div class="detail" id="detail"></div>
+  </section>
+
+  <section class="sec">
+    <h2>Goals <small id="goalsub"></small></h2>
+    <div id="goals"></div>
+  </section>
+
+  <section class="sec">
+    <h2>Bonuses/incentives <small>example amounts</small></h2>
+    <div class="gates" id="gates"></div>
+  </section>
+
+  <section class="sec">
+    <h2>Banquet qualification (example) <small>new business, September–November</small></h2>
+    <div id="banquet"></div>
+  </section>
+
+  <section class="sec">
+    <h2>Income <small>actuals entered + plan for remaining weeks</small></h2>
+    <div class="income-top" id="inctop"></div>
+    <div id="months"></div>
+    <p class="note" id="incnote"></p>
+  </section>
+
+  <section class="sec" id="update">
+    <h2>Update a week <small>weekly tab amounts, not month-to-date</small></h2>
+    <form id="form" autocomplete="off">
+      <div class="grid">
+        <label class="full">Tab week
+          <select id="f-week"></select>
+        </label>
+        <label>New business ($)<input id="f-nb" inputmode="decimal" placeholder="—"></label>
+        <label>Total business ($)<input id="f-total" inputmode="decimal" placeholder="—"></label>
+        <label>Recruits launched<input id="f-rec" inputmode="numeric" placeholder="—"></label>
+        <label>3-Way Fire booked<input id="f-fire" inputmode="numeric" placeholder="—"></label>
+        <label>Commission statement ($)<input id="f-comm" inputmode="decimal" placeholder="Optional"></label>
+      </div>
+      <div class="actions">
+        <button class="btn" type="submit">Save week</button>
+        <button class="btn ghost" type="button" id="clear">Clear week</button>
+        <span class="msg" id="msg" role="status"></span>
+      </div>
+      <details class="set">
+        <summary>Export / import my plan</summary>
+        <p class="note">Your numbers live only in this browser. Download a JSON file to back up or move your plan to another device, then import it there.</p>
+        <div class="actions">
+          <button class="btn ghost" type="button" id="exp">Export plan (JSON)</button>
+          <button class="btn ghost" type="button" id="imp">Import plan (JSON)</button>
+          <button class="btn ghost" type="button" id="rst">Reset to example</button>
+          <input type="file" id="impfile" accept="application/json,.json" hidden>
+        </div>
+      </details>
+      <details class="set">
+        <summary>Assumptions</summary>
+        <div class="grid">
+          <label>August 2026 new business ($)<input id="s-aug" inputmode="decimal"></label>
+          <label>Monthly expenses ($)<input id="s-exp" inputmode="decimal"></label>
+        </div>
+        <p class="note">EXAMPLE assumptions, replace with your own program rules. Profit: 15% of new business, 7% of other business. Monthly bonus: $250 at base ($5,000 each month), +$25 per $500 above. Next-month bonus: $1,000 when the prior month's new business is $5,000+. Car bonus $400/month. Recruiting bonus: $25 per recruit. Campaign bonus: $5,000 at $200K total + $50K new business. Year-end performance and growth bonuses are not in campaign net. To change these amounts, edit the constants at the top of the script in this page.</p>
+        <div class="actions"><button class="btn ghost" type="button" id="saveset">Save assumptions</button></div>
+      </details>
+    </form>
+  </section>
+
+  <div class="foot"><span>Evergreen Division · Fall campaign dashboard</span><span>Example numbers · edit to match your office</span></div>
+</div>
+
+<script>
+(function(){
+const MONTHS=[
+  {name:"September",short:"Sep",base:5000,nbPlan:4000,fsmPlan:100000},
+  {name:"October",short:"Oct",base:5000,nbPlan:5000,fsmPlan:50000},
+  {name:"November",short:"Nov",base:5000,nbPlan:6000,fsmPlan:50000},
+  {name:"December",short:"Dec",base:5000,nbPlan:5000,fsmPlan:40000}
+];
+const ENDS=["2026-09-08","2026-09-15","2026-09-22","2026-09-29","2026-10-06","2026-10-13","2026-10-20","2026-10-27","2026-11-03","2026-11-10","2026-11-17","2026-11-24","2026-12-01","2026-12-08","2026-12-15","2026-12-22","2026-12-29"];
+const WMONTH=[0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,3];
+const REC_PLAN=[0,2,3,5,3,3,3,3,3,4,4,0,0,0,10,0,0];
+const WEEKS=ENDS.map((end,i)=>{
+  const m=WMONTH[i];const n=WMONTH.slice(0,i+1).filter(x=>x===m).length;
+  return {i,m,n,end,nbPlan:MONTHS[m].nbPlan,totalPlan:MONTHS[m].nbPlan+MONTHS[m].fsmPlan,recPlan:REC_PLAN[i]};
+});
+const FIRE_GOAL=150;
+const GOALS={fire:FIRE_GOAL,nb:100000,fsm:1000000,total:1100000,recruits:REC_PLAN.reduce((a,b)=>a+b,0)};
+/* EXAMPLE numbers: replace with your own */
+const PRIOR_YTD=1500000, CII=800000, GROWTH_BASE=2000000;
+const PERF=[[2000000,10000],[1750000,7500],[1500000,5000],[1250000,2500]];
+const CAMP_NB=50000, CAMP_TOT=200000, CAMP_BONUS=5000;
+const TRIP_NB=50000;
+const BIZ_MIN=5000, BIZ_BONUS=1000;
+const MB_FIRST=250, MB_STEP=500, MB_INC=25;
+const CAR_BONUS=400, REC_BONUS=25, PB_GOAL=100000, DEF_EXP=5000;
+const LS_KEY="fall-campaign-planner-v1";
+
+const blankWeeks=()=>WEEKS.map(()=>({nb:null,total:null,recruits:null,fire:null,comm:null}));
+function defaults(){
+  const w=blankWeeks();
+  w[0]={nb:3000,total:100000,recruits:0,fire:null,comm:null};
+  w[1]={nb:null,total:null,recruits:1,fire:null,comm:null};
+  return {weeks:w,settings:{augNB:0,expenses:DEF_EXP}};
+}
+let state=defaults();
+let metric="nb", selected=currentWeek();
+
+const $=id=>document.getElementById(id);
+const money=n=>(n<0?"−$":"$")+Math.round(Math.abs(n)).toLocaleString("en-US");
+const num=n=>Math.round(n).toLocaleString("en-US");
+const dLabel=s=>new Date(s+"T12:00:00").toLocaleDateString("en-US",{month:"short",day:"numeric"});
+const wkName=i=>MONTHS[WEEKS[i].m].short+" wk "+WEEKS[i].n;
+function currentWeek(){
+  const t=new Date();t.setHours(0,0,0,0);
+  for(let i=0;i<ENDS.length;i++){if(t<=new Date(ENDS[i]+"T23:59:59"))return i;}
+  return ENDS.length-1;
+}
+const has=v=>v!==null&&v!==undefined&&!isNaN(v);
+function lastIdx(key){let l=-1;state.weeks.forEach((w,i)=>{if(has(w[key]))l=i;});return l;}
+const planOf=(key,i)=>key==="fire"?FIRE_GOAL/17:key==="nb"?WEEKS[i].nbPlan:key==="total"?WEEKS[i].totalPlan:WEEKS[i].recPlan;
+function proj(key,i){const l=lastIdx(key);if(i<=l)return has(state.weeks[i][key])?state.weeks[i][key]:0;return planOf(key,i);}
+
+function goal(key){
+  if(key==="fsm"){
+    const l=Math.min(lastIdx("nb"),lastIdx("total"));let a=0,p=0;
+    for(let i=0;i<=l;i++){a+=(state.weeks[i].total||0)-(state.weeks[i].nb||0);p+=WEEKS[i].totalPlan-WEEKS[i].nbPlan;}
+    return pack(a,p,l,GOALS.fsm);
+  }
+  const l=lastIdx(key);let a=0,p=0;
+  for(let i=0;i<=l;i++){a+=state.weeks[i][key]||0;p+=planOf(key,i);}
+  return pack(a,p,l,GOALS[key]);
+}
+function pack(a,p,l,g){
+  const left=WEEKS.length-(l+1);const rem=Math.max(0,g-a);
+  let cls="mid",txt="No weeks entered";
+  if(l>=0){const r=p>0?a/p:(a>0?2:1);
+    if(r>=1.02){cls="good";txt="Ahead of plan";}else if(r>=0.98){cls="good";txt="On plan";}
+    else if(r>=0.9){cls="mid";txt="Slightly behind";}else{cls="bad";txt="Behind plan";}}
+  return {a,p,l,g,rem,left,need:left>0?rem/left:0,cls,txt};
+}
+
+function monthBonus(nb,base){return nb<base?0:MB_FIRST+MB_INC*Math.floor((nb-base)/MB_STEP);}
+function income(src){
+  const nbM=[0,0,0,0],totM=[0,0,0,0],recM=[0,0,0,0];
+  WEEKS.forEach((w,i)=>{nbM[w.m]+=src("nb",i);totM[w.m]+=src("total",i);recM[w.m]+=src("recruits",i);});
+  const campNB=nbM.reduce((a,b)=>a+b,0),campTot=totM.reduce((a,b)=>a+b,0);
+  const exp=+state.settings.expenses||0;
+  const months=MONTHS.map((M,k)=>{
+    const fsm=totM[k]-nbM[k];
+    const prior=k===0?(+state.settings.augNB||0):nbM[k-1];
+    const lines=[
+      ["New business profit (15%)",nbM[k]*0.15],
+      ["Other-business profit (7%)",fsm*0.07],
+      ["Monthly bonus",monthBonus(nbM[k],M.base)],
+      ["Next-month bonus",prior>=BIZ_MIN?BIZ_BONUS:0],
+      ["Car bonus",CAR_BONUS],
+      ["Recruiting bonus",recM[k]*REC_BONUS],
+    ];
+    if(k===3)lines.push(["Campaign bonus",campTot>=CAMP_TOT&&campNB>=CAMP_NB?CAMP_BONUS:0]);
+    const gross=lines.reduce((a,b)=>a+b[1],0);
+    return {M,nb:nbM[k],total:totM[k],rec:recM[k],lines,gross,exp,net:gross-exp};
+  });
+  const gross=months.reduce((a,b)=>a+b.gross,0),expT=exp*4;
+  return {months,campNB,campTot,gross,exp:expT,net:gross-expT};
+}
+
+function render(){
+  const cw=currentWeek();
+  $("asof").textContent="Tab week "+(cw+1)+" of 17 · "+wkName(cw)+" closes Tue, "+dLabel(ENDS[cw]);
+
+  /* Hero */
+  document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.m===metric)));
+  const G=goal(metric);const isRec=metric==="recruits";const f=isRec?num:money;
+  const name={nb:"New business",total:"Total business",recruits:"Recruiting"}[metric];
+  if(G.l<0)$("lede").textContent=name+": no weeks entered yet. Plan is "+f(G.g)+" for the campaign.";
+  else{const d=G.a-G.p;
+    $("lede").textContent=name+" is "+(Math.abs(d)<0.5?"on plan":f(Math.abs(d))+(isRec?(Math.abs(d)===1?" recruit ":" recruits "):" ")+(d>=0?"ahead of":"behind")+" plan")+" through "+wkName(G.l)+". "+(G.left>0?f(isRec?Math.ceil(G.need*10)/10:G.need)+" a week reaches "+f(G.g)+".":"Campaign complete.");}
+  const l=lastIdx(metric);let mx=1;
+  WEEKS.forEach((w,i)=>{mx=Math.max(mx,planOf(metric,i),has(state.weeks[i][metric])?state.weeks[i][metric]:0);});
+  let html="";
+  MONTHS.forEach((M,k)=>{
+    const idx=WEEKS.filter(w=>w.m===k).map(w=>w.i);
+    html+='<div class="month" style="flex:'+idx.length+'"><div class="cols">';
+    idx.forEach(i=>{
+      const p=planOf(metric,i),v=state.weeks[i][metric],entered=has(v);
+      const cls=["col",entered?"":"future",entered&&v<p?"behind":"",i===selected?"sel":""].join(" ");
+      const lab=wkName(i)+": plan "+f(p)+(entered?", actual "+f(v):", not entered");
+      html+='<button type="button" class="'+cls+'" data-w="'+i+'" aria-label="'+lab+'"><span class="plan" style="height:'+(p/mx*100)+'%"></span>'+(entered?'<span class="act" style="height:'+(Math.max(v,0)/mx*100)+'%"></span>':"")+'</button>';
+    });
+    html+='</div><div class="wk">'+idx.map(i=>'<span class="'+(i===cw?"now":"")+'">'+WEEKS[i].n+'</span>').join("")+'</div><div class="mname">'+M.short+'</div></div>';
+  });
+  $("ledger").innerHTML=html;
+  const sv=state.weeks[selected][metric];
+  $("detail").innerHTML='<b>'+wkName(selected)+'</b> · closes '+dLabel(ENDS[selected])+' · plan '+f(planOf(metric,selected))+' · actual '+(has(sv)?f(sv):"not entered")+'<button type="button" id="edit">Update this week</button>';
+
+  /* Goals */
+  const rows=[["nb","New business",money],["total","Total business",money],["fsm","Other business",money],["recruits","Recruits launched",num],["fire","3-Way Fire booked",num]];
+  $("goalsub").textContent="plan pace through last entered week";
+  $("goals").innerHTML=rows.map(([k,label,fm])=>{
+    const g=goal(k);const pct=Math.min(100,g.a/g.g*100),tick=Math.min(100,g.p/g.g*100);
+    const needTxt=g.left>0?(k==="recruits"||k==="fire"?(Math.ceil(g.need*10)/10).toString():money(g.need)):"—";
+    return '<div class="row"><div class="rail"><div class="lbl">'+label+'</div><div class="val">'+fm(g.a)+'</div><div class="sub">of '+fm(g.g)+' · '+Math.round(g.a/g.g*100)+'%</div></div>'+
+      '<div><div class="bar" aria-hidden="true"><span class="fill" style="width:'+pct+'%"></span>'+(g.l>=0?'<span class="tick" style="left:'+tick+'%"></span>':"")+'</div>'+
+      '<div class="facts"><div>Remaining<b>'+fm(g.rem)+'</b></div><div>Needed / week<b>'+needTxt+'</b></div><div>Status<b class="st '+g.cls+'">'+g.txt+'</b></div></div></div></div>';
+  }).join("");
+
+  /* Bonuses */
+  const nbA=goal("nb").a,totA=goal("total").a;
+  const cm=WEEKS[cw].m;
+  let mNB=0;WEEKS.forEach((w,i)=>{if(w.m===cm&&has(state.weeks[i].nb))mNB+=state.weeks[i].nb;});
+  const base=MONTHS[cm].base,mb=monthBonus(mNB,base);
+  const P=income(proj);
+  const yearA=PRIOR_YTD+totA,yearP=PRIOR_YTD+P.campTot;
+  const tier=v=>{for(const [t,b] of PERF)if(v>=t)return [t,b];return [0,0];};
+  const [tA,bA]=tier(yearA),[tP,bP]=tier(yearP);
+  const nextT=PERF.slice().reverse().find(([t])=>t>yearA);
+  const growthA=CII+totA,growthP=CII+P.campTot;
+  const cond=(ok,label,val)=>'<div class="cond"><span>'+label+'</span><span class="'+(ok?"ok":"no")+'">'+(ok?"Met · ":"")+val+'</span></div>';
+  const gate=(state_,title,amt,body)=>'<div class="gate '+state_+'"><h3>'+title+'<span>'+amt+'</span></h3>'+body+'</div>';
+  let g="";
+  const campOK=nbA>=CAMP_NB&&totA>=CAMP_TOT;
+  g+=gate(campOK?"open":"pending","Campaign bonus (example)",money(CAMP_BONUS),
+    cond(nbA>=CAMP_NB,"New business",money(nbA)+" / "+money(CAMP_NB))+cond(totA>=CAMP_TOT,"Total business",money(totA)+" / "+money(CAMP_TOT))+
+    '<p>'+(campOK?"Qualified.":"Projected: "+(P.campNB>=CAMP_NB&&P.campTot>=CAMP_TOT?"qualifies":"does not qualify")+".")+'</p>');
+  const romeOK=nbA>=TRIP_NB,romeLeft=WEEKS.length-(goal("nb").l+1);
+  g+=gate(romeOK?"open":"pending","Trip qualification (example)","Qualification",
+    cond(romeOK,"Fall new business",money(nbA)+" / "+money(TRIP_NB))+
+    '<p>'+(romeOK?"Qualified for the trip.":money(TRIP_NB-nbA)+" to go"+(romeLeft>0?" · "+money((TRIP_NB-nbA)/romeLeft)+" a week over "+romeLeft+" weeks":"")+". Projected: "+(P.campNB>=TRIP_NB?"qualifies":"short by "+money(TRIP_NB-P.campNB))+".")+'</p>');
+  g+=gate(mNB>=base?"open":"pending",MONTHS[cm].name+" monthly bonus (example)",money(mb),
+    cond(mNB>=base,"New business this month",money(mNB)+" / "+money(base))+
+    '<p>'+(mNB>=base?"Next +"+money(MB_INC)+" at "+money(base+MB_STEP*(Math.floor((mNB-base)/MB_STEP)+1))+".":money(base-mNB)+" more by closeout "+dLabel(ENDS[WEEKS.filter(w=>w.m===cm).slice(-1)[0].i])+". Resets next month.")+'</p>');
+  g+=gate(mNB>=BIZ_MIN?"open":"pending",(MONTHS[cm+1]?MONTHS[cm+1].name:"January")+" next-month bonus (example)",money(BIZ_BONUS),
+    cond(mNB>=BIZ_MIN,MONTHS[cm].name+" new business",money(mNB)+" / "+money(BIZ_MIN))+'<p>'+(mNB>=BIZ_MIN?"Earned for next month.":money(BIZ_MIN-mNB)+" more this month.")+'</p>');
+  g+=gate(bA?"open":"pending","Performance bonus (year, example)",money(bA),
+    cond(!!bA,"2026 total to date",money(yearA))+
+    '<p>'+(nextT?money(nextT[0]-yearA)+" to the "+money(nextT[0])+" tier ("+money(nextT[1])+"). ":"Top tier reached. ")+"Projected year "+money(yearP)+" → "+money(bP)+'.</p>');
+  g+=gate(growthA>GROWTH_BASE?"open":"pending","Growth bonus (example, 1.5%)",money(Math.max(0,growthA-GROWTH_BASE)*0.015),
+    cond(growthA>GROWTH_BASE,"Prior campaigns + this one",money(growthA)+" / "+money(GROWTH_BASE))+
+    '<p>'+(growthP>GROWTH_BASE?"Projected: "+money((growthP-GROWTH_BASE)*0.015)+".":"Projected short by "+money(GROWTH_BASE-growthP)+".")+'</p>');
+  $("gates").innerHTML=g;
+
+  /* President's Banquet */
+  {
+    const PB=PB_GOAL,END=11;const lNB=Math.min(lastIdx("nb"),END);
+    let a=0,p=0,pr=0;const mA=[0,0,0],mP=[0,0,0];
+    for(let i=0;i<=END;i++){const v=proj("nb",i);pr+=v;mP[WEEKS[i].m]+=v;}
+    for(let i=0;i<=lNB;i++){a+=state.weeks[i].nb||0;mA[WEEKS[i].m]+=state.weeks[i].nb||0;p+=WEEKS[i].nbPlan;}
+    const left=Math.max(0,END-lNB),rem=Math.max(0,PB-a),need=left>0?rem/left:0;
+    const planPB=WEEKS.slice(0,END+1).reduce((s,w)=>s+w.nbPlan,0);
+    const tick=Math.min(100,a>=0?(lNB>=0?(PB*(lNB+1)/(END+1))/PB*100:0):0);
+    const ok=a>=PB,projOK=pr>=PB;
+    const cls=ok?"good":projOK?"mid":"bad",txt=ok?"Qualified":projOK?"On track":"Projected short";
+    $("banquet").innerHTML='<div class="row"><div class="rail"><div class="lbl">Qualification</div><div class="val">'+money(a)+'</div><div class="sub">of '+money(PB)+' · '+Math.round(a/PB*100)+'%</div></div>'+
+      '<div><div class="bar" aria-hidden="true"><span class="fill" style="width:'+Math.min(100,a/PB*100)+'%"></span>'+(lNB>=0?'<span class="tick" style="left:'+tick+'%"></span>':'')+'</div>'+
+      '<div class="facts"><div>Remaining<b>'+money(rem)+'</b></div><div>Needed / week<b>'+(left>0?money(need):"—")+'</b></div><div>Status<b class="st '+cls+'">'+txt+'</b></div></div>'+
+      '<div class="pbm">'+["September","October","November"].map((n,k)=>'<div>'+n+'<b>'+money(mA[k])+'</b>projected '+money(mP[k])+'</div>').join("")+'</div>'+
+      '<p class="note">Weeks left through November closeout: '+left+'. Projected at current plan: '+money(pr)+(projOK?".":", short by "+money(PB-pr)+". The monthly plan totals "+money(planPB)+" for these three months.")+' Pace marker assumes an even split across 12 weeks.</p></div></div>';
+  }
+
+  /* Income */
+  const PL=income((k,i)=>planOf(k,i));
+  let commT=0,commN=0;state.weeks.forEach(w=>{if(has(w.comm)){commT+=w.comm;commN++;}});
+  $("inctop").innerHTML=
+    '<div><small>Projected campaign net</small><b>'+money(P.net)+'</b></div>'+
+    '<div><small>Plan net</small><b>'+money(PL.net)+'</b></div>'+
+    '<div><small>Projected gross</small><b>'+money(P.gross)+'</b></div>'+
+    '<div><small>Statements logged ('+commN+' wk)</small><b>'+money(commT)+'</b></div>';
+  $("months").innerHTML=P.months.map((m,k)=>
+    '<details class="mon"><summary><span class="m">'+m.M.name+'</span><span class="g">gross '+money(m.gross)+'</span><span class="n">'+money(m.net)+'</span></summary><div class="lines">'+
+    '<div><span>New business</span><span>'+money(m.nb)+'</span></div><div><span>Total business</span><span>'+money(m.total)+'</span></div><div><span>Recruits</span><span>'+num(m.rec)+'</span></div>'+
+    m.lines.map(x=>'<div><span>'+x[0]+'</span><span>'+money(x[1])+'</span></div>').join("")+
+    '<div class="neg"><span>Expenses</span><span>'+money(-m.exp)+'</span></div><div class="tot"><span>Net</span><span>'+money(m.net)+'</span></div></div></details>').join("");
+  $("incnote").textContent="Difference vs plan: "+(P.net-PL.net>=0?"+":"")+money(P.net-PL.net)+". Year-end performance bonus projected at "+money(bP)+", not included above.";
+}
+
+function fillForm(){
+  const w=state.weeks[selected];
+  $("f-week").value=String(selected);
+  $("f-nb").value=has(w.nb)?w.nb:"";$("f-total").value=has(w.total)?w.total:"";
+  $("f-rec").value=has(w.recruits)?w.recruits:"";$("f-fire").value=has(w.fire)?w.fire:"";$("f-comm").value=has(w.comm)?w.comm:"";
+  $("s-aug").value=state.settings.augNB;$("s-exp").value=state.settings.expenses;
+}
+const parse=s=>{s=String(s).replace(/[$,\s]/g,"");if(s==="")return null;const n=Number(s);return isNaN(n)?NaN:n;};
+
+function serialize(){
+  const weeks={};state.weeks.forEach((w,i)=>{weeks["w"+String(i+1).padStart(2,"0")]=w;});
+  return {weeks,settings:state.settings,updatedAt:new Date().toISOString()};
+}
+function hydrate(d){
+  const s=defaults();
+  if(d&&d.weeks){s.weeks=blankWeeks().map((b,i)=>Object.assign(b,d.weeks["w"+String(i+1).padStart(2,"0")]||{}));}
+  if(d&&d.settings)s.settings=Object.assign(s.settings,d.settings);
+  return s;
+}
+function persist(){
+  const body=serialize();
+  try{localStorage.setItem(LS_KEY,JSON.stringify(body));return true;}
+  catch(e){$("msg").textContent="Not saved: this browser blocked storage. Use Export to keep a copy.";$("msg").className="msg err";return false;}
+}
+
+/* Events */
+document.querySelector(".tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;metric=b.dataset.m;render();});
+$("ledger").addEventListener("click",e=>{const b=e.target.closest(".col");if(!b)return;selected=+b.dataset.w;fillForm();render();});
+$("detail").addEventListener("click",e=>{if(e.target.id==="edit"){$("update").scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"});$("f-nb").focus({preventScroll:true});}});
+$("f-week").addEventListener("change",e=>{selected=+e.target.value;fillForm();render();});
+$("form").addEventListener("submit",e=>{
+  e.preventDefault();
+  const vals={nb:parse($("f-nb").value),total:parse($("f-total").value),recruits:parse($("f-rec").value),fire:parse($("f-fire").value),comm:parse($("f-comm").value)};
+  if(Object.values(vals).some(v=>Number.isNaN(v))){$("msg").textContent="Use numbers only in each field.";$("msg").className="msg err";return;}
+  if(has(vals.nb)&&has(vals.total)&&vals.total<vals.nb){$("msg").textContent="Total business can't be lower than new business.";$("msg").className="msg err";return;}
+  state.weeks[selected]=vals;render();
+  $("msg").className="msg";$("msg").textContent="Saving…";
+  if(persist()){$("msg").textContent=wkName(selected)+" saved.";}
+});
+$("clear").addEventListener("click",()=>{
+  state.weeks[selected]={nb:null,total:null,recruits:null,fire:null,comm:null};fillForm();render();
+  $("msg").className="msg";if(persist())$("msg").textContent=wkName(selected)+" cleared.";
+});
+$("saveset").addEventListener("click",()=>{
+  const a=parse($("s-aug").value),x=parse($("s-exp").value);
+  if(Number.isNaN(a)||Number.isNaN(x)){$("msg").textContent="Use numbers only in assumptions.";$("msg").className="msg err";return;}
+  state.settings={augNB:a||0,expenses:x===null?DEF_EXP:x};render();
+  $("msg").className="msg";if(persist())$("msg").textContent="Assumptions saved.";
+});
+
+$("exp").addEventListener("click",()=>{
+  try{
+    const b=serialize();b.format="fall-campaign-planner";b.version=1;
+    const blob=new Blob([JSON.stringify(b,null,2)],{type:"application/json"});
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="fall-campaign-plan.json";
+    document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    $("msg").className="msg";$("msg").textContent="Plan exported.";
+  }catch(e){$("msg").textContent="Could not export.";$("msg").className="msg err";}
+});
+$("imp").addEventListener("click",()=>$("impfile").click());
+$("impfile").addEventListener("change",e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||typeof d!=="object"||!d.weeks)throw new Error("no weeks");
+      state=hydrate(d);fillForm();render();persist();
+      $("msg").className="msg";$("msg").textContent="Plan imported.";
+    }catch(err){$("msg").textContent="That file is not a plan exported from this page.";$("msg").className="msg err";}
+    $("impfile").value="";
+  };
+  r.readAsText(f);
+});
+$("rst").addEventListener("click",()=>{
+  state=defaults();fillForm();render();persist();
+  $("msg").className="msg";$("msg").textContent="Reset to example.";
+});
+
+/* Init */
+$("f-week").innerHTML=WEEKS.map(w=>'<option value="'+w.i+'">'+MONTHS[w.m].name+" week "+w.n+" · closes "+dLabel(w.end)+'</option>').join("");
+try{const raw=localStorage.getItem(LS_KEY);if(raw)state=hydrate(JSON.parse(raw));}catch(e){}
+fillForm();render();
+$("sync").textContent="Saved in this browser";
+
+})();
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
+</html>
+
+</body></html>

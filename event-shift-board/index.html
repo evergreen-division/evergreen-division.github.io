@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Event Shift Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;padding:0}
+img{max-width:100%}
+[hidden]:not([hidden=until-found i]){display:none!important}
+/* Layout: sticky masthead + pick-session band, filter rail, month sections of event cards, each card ends in a day-by-slot pick grid. Evergreen Division palette, all-sans. */
+:root{
+  --bg:#FAF8F3; --surface:#FFFFFF; --panel:#F3EFE4; --ink:#2E3A32; --muted:#5A6B60; --head:#14432A;
+  --copper:#B08D57; --copper-ink:#7E6236; --rule:#DCD8CC; --band:#14432A; --band-ink:#DDD6C4; --band-accent:#C9B48C;
+  --open-bg:#FBF3E4; --open-line:#C9A46A; --claim-bg:#E4EDE6; --claim-ink:#14432A; --mine-bg:#B08D57; --mine-ink:#FFFFFF;
+  --good:#2F7A4A; --warn:#A86A12; --info:#3A6A8C; --off:#8A8A84; --bad:#A3412F;
+  --sans:"Helvetica Neue",Helvetica,"TeX Gyre Heros",Arial,sans-serif;
+  --shadow:0 1px 2px rgba(20,67,42,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1A12; --surface:#13241A; --panel:#182E21; --ink:#E4DFD1; --muted:#A3AE9F; --head:#CFE3D3;
+  --copper:#C9B48C; --copper-ink:#D9C49A; --rule:#2A4031; --band:#0A140E; --band-ink:#DDD6C4; --band-accent:#C9B48C;
+  --open-bg:#2A2416; --open-line:#9C7F4E; --claim-bg:#1F3A29; --claim-ink:#CFE3D3; --mine-bg:#C9B48C; --mine-ink:#13241A;
+  --good:#7CC79A; --warn:#E0A54B; --info:#86B6D6; --off:#8E968C; --bad:#E08A78; --shadow:none; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1A12; --surface:#13241A; --panel:#182E21; --ink:#E4DFD1; --muted:#A3AE9F; --head:#CFE3D3;
+  --copper:#C9B48C; --copper-ink:#D9C49A; --rule:#2A4031; --band:#0A140E; --band-ink:#DDD6C4; --band-accent:#C9B48C;
+  --open-bg:#2A2416; --open-line:#9C7F4E; --claim-bg:#1F3A29; --claim-ink:#CFE3D3; --mine-bg:#C9B48C; --mine-ink:#13241A;
+  --good:#7CC79A; --warn:#E0A54B; --info:#86B6D6; --off:#8E968C; --bad:#E08A78; --shadow:none; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.4}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--band)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--copper-ink)}
+.num{font-variant-numeric:tabular-nums}
+
+/* masthead */
+.mast{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--band);color:var(--band-ink);border-bottom:3px solid var(--copper)}
+.mast .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding-block:12px}
+.mast h1{margin:0;font-size:19px;font-weight:700;color:#FFFFFF;letter-spacing:.01em;text-wrap:balance}
+.mast h1 span{color:var(--band-accent);font-weight:400}
+.mast .eyebrow{color:var(--band-accent)}
+.mast .who{margin-left:auto;display:flex;align-items:center;gap:8px}
+.mast label{font-size:12px;color:var(--band-ink)}
+.mast select{background:#0F2E1D;color:#FFFFFF;border:1px solid #3B5E48;border-radius:4px;padding:6px 8px;min-width:150px}
+.clock{display:flex;align-items:center;gap:10px;font-size:13px}
+.clock b{color:#FFFFFF;font-size:15px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--band-accent);box-shadow:0 0 0 0 rgba(201,180,140,.6);animation:pulse 2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(201,180,140,0)}100%{box-shadow:0 0 0 0 rgba(201,180,140,0)}}
+@media (prefers-reduced-motion:reduce){.dot{animation:none}}
+
+/* summary + filters */
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);margin-top:16px}
+.summary div{background:var(--surface);padding:10px 12px}
+.summary .k{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.summary .v{font-size:22px;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+.summary .v.open{color:var(--copper-ink)}
+@media (max-width:560px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-block:14px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;max-width:100%}
+.chip{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--head);border-color:var(--head);color:var(--bg)}
+.filters select,.filters input[type=search]{border:1px solid var(--rule);background:var(--surface);border-radius:4px;padding:6px 8px;font-size:13px}
+.filters input[type=search]{flex:1 1 180px;min-width:0}
+.toggle{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.admin-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;background:var(--panel);border-left:3px solid var(--copper);margin-bottom:6px}
+.admin-bar .eyebrow{margin-right:4px}
+.btn{border:1px solid var(--rule);background:var(--surface);border-radius:4px;padding:6px 11px;font-size:13px}
+.btn.primary{background:var(--head);border-color:var(--head);color:var(--bg);font-weight:700}
+.btn.danger{color:var(--bad);border-color:var(--bad);background:transparent}
+.btn:disabled{opacity:.5;cursor:default}
+
+/* months + cards */
+.month{margin-top:26px}
+.month-h{display:flex;align-items:baseline;gap:12px;border-bottom:1.6px solid var(--copper);padding-bottom:4px;margin-bottom:12px}
+.month-h h2{margin:0;font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--head)}
+.month-h span{font-size:12px;color:var(--muted)}
+.cards{display:grid;gap:12px}
+.card{background:var(--surface);border:1px solid var(--rule);box-shadow:var(--shadow);display:grid;grid-template-columns:76px minmax(0,1fr)}
+.card.is-off{opacity:.62}
+.stub{border-right:1px dashed var(--rule);padding:12px 8px;text-align:center;display:flex;flex-direction:column;gap:2px;align-items:center}
+.stub .mo{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--copper-ink)}
+.stub .d{font-size:24px;font-weight:700;color:var(--head);line-height:1}
+.stub .to{font-size:12px;color:var(--muted)}
+.stub .len{margin-top:6px;font-size:11px;color:var(--muted)}
+.body{padding:12px 14px;min-width:0;display:grid;gap:10px}
+.top{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.top h3{margin:0;font-size:16px;color:var(--head);text-wrap:balance}
+.where{font-size:12.5px;color:var(--muted);width:100%}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:3px;border:1px solid currentColor}
+.t-key{color:var(--copper-ink)} .t-crown{color:var(--bad)} .t-trad{color:var(--info)} .t-mkt{color:var(--muted)} .t-sse{color:var(--good)}
+.s-booked{color:var(--good)} .s-prospective{color:var(--warn)} .s-pending{color:var(--info)} .s-off{color:var(--off)}
+.facts{display:flex;flex-wrap:wrap;gap:4px 22px;font-size:12.5px}
+.facts div{display:flex;flex-direction:column}
+.facts .k{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.facts .v{font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums}
+.tier{font-size:11px;font-weight:700;margin-left:4px;color:var(--copper-ink)}
+.grid-wrap{overflow-x:auto;margin-inline:-2px;padding:2px}
+.daygrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(92px,1fr);gap:6px}
+.day{display:grid;gap:4px;align-content:start}
+.day-h{font-size:11px;color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.day-h b{display:block;color:var(--ink);font-size:12px;letter-spacing:.06em;text-transform:uppercase}
+.slot{border-radius:4px;padding:7px 6px;font-size:12.5px;text-align:center;border:1px solid transparent;min-height:34px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.slot.open{background:var(--open-bg);border:1.5px dashed var(--open-line);color:var(--copper-ink);font-weight:700}
+.slot.open:hover{border-style:solid}
+.slot.taken{background:var(--claim-bg);color:var(--claim-ink);font-weight:700}
+.slot.mine{background:var(--mine-bg);color:var(--mine-ink);font-weight:700}
+.slot.locked{background:transparent;border:1px solid var(--rule);color:var(--off);cursor:default}
+.slot.locked.taken{background:var(--claim-bg);color:var(--claim-ink)}
+details{font-size:12.5px;color:var(--muted)}
+summary{cursor:pointer;color:var(--head);font-weight:700;font-size:12px;letter-spacing:.06em}
+.detail{display:grid;gap:8px;margin-top:8px;padding:10px 12px;background:var(--panel);border-left:3px solid var(--head)}
+.detail p{margin:0;white-space:pre-line;max-width:72ch}
+.detail ul{margin:0;padding-left:18px;display:grid;gap:3px}
+.detail a{color:var(--info)}
+.card-admin{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:520px){.card{grid-template-columns:1fr}.stub{border-right:0;border-bottom:1px dashed var(--rule);flex-direction:row;gap:8px;justify-content:flex-start;padding:8px 14px}.stub .d{font-size:18px}.stub .len{margin:0 0 0 auto}}
+
+.empty{margin:40px 0;padding:24px;border:1px dashed var(--rule);text-align:center;color:var(--muted)}
+.empty b{display:block;color:var(--head);font-size:15px;margin-bottom:4px}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:4px}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:2px;vertical-align:-2px;margin-right:5px}
+footer{margin:40px 0 24px;border-top:1px solid var(--rule);padding-top:10px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11.5px;color:var(--muted)}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(10,20,14,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:min(560px,100%);max-height:88%;overflow:auto;border-top:3px solid var(--copper);padding:18px max(16px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));display:grid;gap:12px}
+@media (min-width:640px){.scrim{align-items:center}.sheet{border:1px solid var(--rule);border-top:3px solid var(--copper)}}
+.sheet h4{margin:0;font-size:17px;color:var(--head)}
+.sheet .row{display:grid;gap:4px}
+.sheet .row2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.sheet label{font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.sheet input,.sheet select,.sheet textarea{border:1px solid var(--rule);background:var(--bg);border-radius:4px;padding:8px;width:100%;min-width:0}
+.sheet .actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.note{font-size:12.5px;color:var(--muted)}
+.warnbox{font-size:12.5px;padding:8px 10px;border-left:3px solid var(--warn);background:var(--panel)}
+.roster-list{display:grid;gap:6px}
+.roster-list div{display:grid;grid-template-columns:minmax(0,1fr) 120px auto;gap:6px;align-items:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom,0px));background:var(--head);color:var(--bg);padding:10px 16px;border-radius:4px;font-size:13px;z-index:30;max-width:calc(100% - 32px)}
+
+/* restyle 2026-10-23: Evergreen look (CSS only) */
+
+:root{
+  --bg:#e7e0cf; --surface:#f6f2e8; --panel:#efe9dc; --ink:#1e3a2f; --muted:#6d6a5e; --head:#1e3a2f;
+  --copper:#b0764a; --copper-ink:#966139; --rule:#dcd3bf; --band:#1e3a2f; --band-ink:#e7e0cf; --band-accent:#d9a878;
+  --open-bg:#f3e6d3; --open-line:#c98f61; --claim-bg:#dde5d8; --claim-ink:#1e3a2f; --mine-bg:#966139; --mine-ink:#ffffff;
+  --sans:"Inter","Helvetica Neue",Helvetica,Arial,sans-serif; --serif:"Fraunces",Georgia,serif;
+  --shadow:0 1px 2px rgba(30,58,47,.08),0 6px 18px -10px rgba(30,58,47,.25);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#14211b; --surface:#21342a; --panel:#1b2b23; --ink:#efe9dc; --muted:#b2b8a8; --head:#efe9dc;
+  --copper:#c98f61; --copper-ink:#d9a878; --rule:#34493d; --band:#0f1914; --band-ink:#e7e0cf; --band-accent:#c98f61;
+  --open-bg:#33291c; --open-line:#a77849; --claim-bg:#2a4436; --claim-ink:#efe9dc; --mine-bg:#c98f61; --mine-ink:#14211b}}
+:root[data-theme="dark"]{
+  --bg:#14211b; --surface:#21342a; --panel:#1b2b23; --ink:#efe9dc; --muted:#b2b8a8; --head:#efe9dc;
+  --copper:#c98f61; --copper-ink:#d9a878; --rule:#34493d; --band:#0f1914; --band-ink:#e7e0cf; --band-accent:#c98f61;
+  --open-bg:#33291c; --open-line:#a77849; --claim-bg:#2a4436; --claim-ink:#efe9dc; --mine-bg:#c98f61; --mine-ink:#14211b}
+body{font-family:var(--sans)}
+.mast{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 240'%3E%3Cg fill='none' stroke='%23c98f61' stroke-width='1.2'%3E%3Ccircle cx='120' cy='120' r='18'/%3E%3Ccircle cx='120' cy='120' r='38'/%3E%3Ccircle cx='120' cy='120' r='60'/%3E%3Ccircle cx='120' cy='120' r='84'/%3E%3Ccircle cx='120' cy='120' r='110'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right -30px center;background-size:auto 260%;border-bottom-color:var(--copper)}
+.mast h1,.card .top h3,.stub .d,.summary .v,.sheet h4,.empty b{font-family:var(--serif);font-weight:600}
+.mast h1{font-size:22px;letter-spacing:0}
+.summary{border-radius:12px;overflow:hidden;box-shadow:var(--shadow)}
+.card{border-radius:12px;overflow:hidden}
+.month-h h2{font-family:var(--serif);font-weight:600;font-size:15px;letter-spacing:.14em}
+.slot{border-radius:8px}
+.chip,.btn,.tag{border-radius:999px}
+.btn{border-radius:8px}
+.admin-bar{border-radius:0 10px 10px 0}
+.detail{border-radius:0 8px 8px 0}
+.sheet{border-radius:14px 14px 0 0}
+@media (min-width:640px){.sheet{border-radius:14px}}
+
+.limit{margin-top:14px;padding:9px 12px;background:var(--panel);border-left:3px solid var(--copper);font-size:13px;color:var(--ink);border-radius:0 10px 10px 0}
+.limit button{margin-left:6px}
+.mast .who input{background:#0F2E1D;color:#fff;border:1px solid #3B5E48;border-radius:4px;padding:6px 8px;min-width:150px}
+.mast .who input::placeholder{color:#b9c4b9}
+.slot .sl{display:block;font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75;overflow:hidden;text-overflow:ellipsis}
+.slot{white-space:normal;line-height:1.2}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:12px}
+.sheet textarea.code{font:12px/1.35 ui-monospace,Menlo,monospace;min-height:110px;word-break:break-all}
+.sheet .sub{margin:0;font-size:12.5px;color:var(--muted)}
+.cfg-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px}
+footer .btn{font-size:12px;padding:4px 10px}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow" id="teamName">Your team</div>
+      <h1>Event Shift Board <span>(this device)</span></h1>
+    </div>
+    <div class="clock" id="clock" hidden></div>
+    <div class="who">
+      <label for="me">Your name</label>
+      <input id="me" list="rosterDl" placeholder="Choose or type" autocomplete="off" maxlength="40">
+      <datalist id="rosterDl"></datalist>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="limit" id="limit">This board saves on this device. To share it, export and send the file, or ask us to connect it to a Google Sheet.
+    <button class="btn" id="btnShare" type="button">Share &amp; backup</button></div>
+
+  <section class="summary" aria-label="Summary">
+    <div><div class="k">Open shifts</div><div class="v open num" id="sOpen">–</div></div>
+    <div><div class="k">Claimed</div><div class="v num" id="sTaken">–</div></div>
+    <div><div class="k">Events shown</div><div class="v num" id="sEvents">–</div></div>
+    <div><div class="k">My shifts</div><div class="v num" id="sMine">–</div></div>
+  </section>
+
+  <div class="filters">
+    <div class="chips" id="months" role="group" aria-label="Month"></div>
+  </div>
+  <div class="filters">
+    <input type="search" id="q" placeholder="Search event or place" aria-label="Search">
+    <select id="fType" aria-label="Event type">
+      <option value="">All types</option><option>Show</option><option>Fair</option><option>Mall</option><option>Other</option>
+    </select>
+    <select id="fStatus" aria-label="Status">
+      <option value="">All statuses</option><option>Booked</option><option>Prospective</option><option>Pending</option><option>Show Full</option><option>Declined</option><option>Cancelled</option>
+    </select>
+    <label class="toggle"><input type="checkbox" id="fOpen"> Open shifts only</label>
+    <label class="toggle"><input type="checkbox" id="fMine"> My shifts</label>
+    <label class="toggle"><input type="checkbox" id="coordMode"> Coordinator mode</label>
+  </div>
+
+  <div class="admin-bar" id="adminBar" hidden>
+    <span class="eyebrow">Coordinator</span>
+    <label class="toggle" for="onClock">On the clock</label>
+    <select id="onClock"><option value="">Open picking (anyone)</option></select>
+    <label class="toggle" for="round">Round</label>
+    <select id="round"></select>
+    <button class="btn" id="btnRoster" type="button">Roster</button>
+    <button class="btn primary" id="btnAdd" type="button">Add event</button>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:var(--open-bg);border:1.5px dashed var(--open-line)"></i>Open: tap to claim</span>
+    <span><i style="background:var(--claim-bg)"></i>Claimed</span>
+    <span><i style="background:var(--mine-bg)"></i>Yours: tap to release</span>
+  </div>
+
+  <div id="board"></div>
+
+  <footer>
+    <span>Evergreen Division · Event Shift Board · sample data is marked "(example)"</span>
+    <span id="rules"></span>
+    <span><button class="btn danger" id="btnReset" type="button">Reset board</button></span>
+  </footer>
+</main>
+
+<div id="layer"></div>
+
+<script src="../shared/setup-interview.js"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const MONTHS_LONG = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  const OFF_STATUS = new Set(["Show Full","Declined","Cancelled"]);
+  const TYPE_CLASS = {"Show":"t-key","Fair":"t-crown","Mall":"t-trad","Other":"t-mkt"};
+  const TYPES = ["Show","Fair","Mall","Other"];
+  const STATUSES = ["Booked","Prospective","Pending","Show Full","Declined","Cancelled"];
+  const SETUP_ID = "event-shift-board";
+  const KEY = "event-shift-board:v1", KEY_ME = "event-shift-board:me", KEY_ADMIN = "event-shift-board:coordinator-mode";
+  const money = n => n == null || n === "" || isNaN(n) ? "—" : "$" + Number(n).toLocaleString("en-US",{maximumFractionDigits:2});
+
+  /* ---------- storage (localStorage, always wrapped) ---------- */
+  const ls = {
+    get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+    set(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } },
+    del(k){ try{ localStorage.removeItem(k); }catch(e){} }
+  };
+
+  function sample(){
+    return {
+      v:1, team:"Your team (example)", coordinator:"Casey P.",
+      pay:{perShift:100, splitDiffers:true, splitPay:60}, maxPerWeek:null,
+      shiftTypes:[{label:"Morning",start:"10:00",end:"14:00"},{label:"Afternoon",start:"14:00",end:"18:00"}],
+      reps:["Alex R.","Bea M.","Casey P.","Dana L.","Eli K.","Fay S."].map(name=>({name})),
+      events:{
+        "home-show-example-2027":{name:"Home Show (example)",type:"Show",status:"Booked",start:"2027-01-15",end:"2027-01-17",slots:2,cost:1800,pay:null,split:false,booth:"10x10 corner",city:"Springfield",venue:"Expo Center (example)",logistics:"Doors 10:00 to 18:00. Set up 08:30. Parking behind Hall B.\nThis is sample text: replace it with your own.",website:""},
+        "mall-weekend-example-2027":{name:"Mall weekend (example)",type:"Mall",status:"Booked",start:"2027-03-05",end:"2027-03-07",slots:2,cost:900,pay:null,split:true,booth:"Kiosk",city:"Rivertown",venue:"Central Mall (example)",logistics:"Mall hours apply. Shifts are split in two parts at this event.",website:""},
+        "state-fair-example-2027":{name:"State Fair (example)",type:"Fair",status:"Prospective",start:"2027-09-02",end:"2027-09-05",slots:2,cost:4800,pay:120,split:false,booth:"Hall A, 10x20",city:"Fairgrounds City",venue:"State Fairgrounds (example)",logistics:"Gate opens 09:00. Wristbands at the staff gate.",website:""}
+      },
+      claims:{
+        "home-show-example-2027_2027-01-15_1":{eventId:"home-show-example-2027",date:"2027-01-15",slot:1,name:"Alex R.",note:"",at:"2026-11-01T12:00:00.000Z"},
+        "home-show-example-2027_2027-01-16_2":{eventId:"home-show-example-2027",date:"2027-01-16",slot:2,name:"Bea M.",note:"",at:"2026-11-01T12:05:00.000Z"}
+      },
+      session:{onClock:"",round:1}
+    };
+  }
+
+  let D = null;           // the board
+  let storageOk = true;
+  let month = "all";
+  let myName = ls.get(KEY_ME) || "";
+  let admin = ls.get(KEY_ADMIN) === "1";
+
+  function normalize(x){
+    if(!x || typeof x !== "object" || !x.events || typeof x.events !== "object" || !x.claims || typeof x.claims !== "object") return null;
+    const s = sample();
+    const out = {
+      v:1,
+      team:String(x.team||""), coordinator:String(x.coordinator||""),
+      pay:{perShift:numOrNull(x.pay&&x.pay.perShift), splitDiffers:!!(x.pay&&x.pay.splitDiffers), splitPay:numOrNull(x.pay&&x.pay.splitPay)},
+      maxPerWeek:numOrNull(x.maxPerWeek),
+      shiftTypes:(Array.isArray(x.shiftTypes)?x.shiftTypes:[]).map(t=>({label:String(t.label||""),start:String(t.start||""),end:String(t.end||"")})).filter(t=>t.label||t.start),
+      reps:(Array.isArray(x.reps)?x.reps:[]).map(r=>({name:String(typeof r==="string"?r:(r&&r.name)||"").trim()})).filter(r=>r.name),
+      events:{}, claims:{}, session:{onClock:String((x.session&&x.session.onClock)||""), round:Number(x.session&&x.session.round)||1}
+    };
+    for(const [id,e] of Object.entries(x.events)){
+      if(!e || typeof e !== "object") continue;
+      out.events[id] = {name:String(e.name||id), type:TYPES.includes(e.type)?e.type:"Other", status:STATUSES.includes(e.status)?e.status:"Prospective",
+        start:String(e.start||""), end:String(e.end||e.start||""), slots:Math.max(1,Math.min(6,Number(e.slots)||1)),
+        cost:numOrNull(e.cost), pay:numOrNull(e.pay), split:!!e.split, booth:String(e.booth||""), city:String(e.city||""), venue:String(e.venue||""),
+        logistics:String(e.logistics||""), website:String(e.website||"")};
+    }
+    for(const [id,c] of Object.entries(x.claims)){
+      if(!c || typeof c !== "object" || !c.name) continue;
+      out.claims[id] = {eventId:String(c.eventId||""), date:String(c.date||""), slot:Number(c.slot)||1, name:String(c.name), note:String(c.note||""), at:String(c.at||"")};
+    }
+    return out;
+  }
+  function numOrNull(v){ return v===null||v===undefined||v===""||isNaN(v) ? null : Number(v); }
+
+  function load(){
+    const raw = ls.get(KEY);
+    if(raw){ try{ const n = normalize(JSON.parse(raw)); if(n) return n; }catch(e){} }
+    return sample();
+  }
+  let warned = false;
+  function save(){
+    if(!ls.set(KEY, JSON.stringify(D)) && !warned){ warned = true; storageOk = false; toast("Couldn't save on this device. Export the board to keep your work."); }
+  }
+
+  /* ---------- helpers ---------- */
+  function parse(d){ const [y,m,dd] = d.split("-").map(Number); return new Date(Date.UTC(y,m-1,dd)); }
+  function iso(dt){ return dt.toISOString().slice(0,10); }
+  function daysOf(ev){
+    if(!ev.start) return [];
+    const out=[]; let d=parse(ev.start); const end=parse(ev.end||ev.start);
+    for(let i=0;i<14 && d<=end;i++){ out.push(iso(d)); d=new Date(d.getTime()+86400000); }
+    return out;
+  }
+  const claimId = (eid,date,slot) => `${eid}_${date}_${slot}`;
+  const claimOf = id => D.claims[id];
+  const eventList = () => Object.entries(D.events).map(([id,e])=>({id,...e}));
+  function costPerShift(ev){ const n = daysOf(ev).length * (ev.slots||1); return (ev.cost==null || !n) ? null : ev.cost / n; }
+  function payFor(ev){
+    if(ev.pay!=null) return ev.pay;
+    if(ev.split && D.pay.splitDiffers && D.pay.splitPay!=null) return D.pay.splitPay;
+    return D.pay.perShift;
+  }
+  function slotLabel(i){ const t=D.shiftTypes[i-1]; return t ? t.label + (t.start?` ${t.start}${t.end?"–"+t.end:""}`:"") : ""; }
+  function weekKey(date){ const d=parse(date); const dow=(d.getUTCDay()+6)%7; return iso(new Date(d.getTime()-dow*86400000)); }
+  function toast(msg){
+    const t=document.createElement("div"); t.className="toast"; t.textContent=msg; t.setAttribute("role","status");
+    document.body.appendChild(t); setTimeout(()=>t.remove(),3200);
+  }
+
+  /* ---------- rendering ---------- */
+  function filtered(){
+    const q=$("#q").value.trim().toLowerCase(), ft=$("#fType").value, fs=$("#fStatus").value, fo=$("#fOpen").checked, fm=$("#fMine").checked;
+    return eventList().filter(ev=>{
+      if(month!=="all" && ev.start && Number(ev.start.slice(5,7))-1!==Number(month)) return false;
+      if(ft && ev.type!==ft) return false;
+      if(fs && ev.status!==fs) return false;
+      if(q && !(`${ev.name} ${ev.city||""} ${ev.venue||""}`.toLowerCase().includes(q))) return false;
+      const days=daysOf(ev), slots=ev.slots||1;
+      if(fo){ if(OFF_STATUS.has(ev.status)) return false; let any=false; for(const d of days) for(let s=1;s<=slots;s++) if(!claimOf(claimId(ev.id,d,s))) any=true; if(!any) return false; }
+      if(fm){ if(!myName) return false; let any=false; for(const d of days) for(let s=1;s<=slots;s++){ const c=claimOf(claimId(ev.id,d,s)); if(c&&c.name===myName) any=true; } if(!any) return false; }
+      return true;
+    }).sort((a,b)=>(a.start||"9").localeCompare(b.start||"9") || a.name.localeCompare(b.name));
+  }
+
+  function renderMonths(){
+    const present=new Set(eventList().filter(e=>e.start).map(e=>Number(e.start.slice(5,7))-1));
+    const btn=(v,l)=>`<button type="button" class="chip" data-m="${v}" aria-pressed="${String(month)===String(v)}">${l}</button>`;
+    $("#months").innerHTML = btn("all","All months") + [...present].sort((a,b)=>a-b).map(m=>btn(m,MONTHS[m])).join("");
+  }
+
+  function renderWho(){
+    const names=D.reps.map(r=>r.name);
+    $("#rosterDl").innerHTML = names.map(n=>`<option value="${esc(n)}"></option>`).join("");
+    if(document.activeElement!==$("#me")) $("#me").value = myName;
+    $("#teamName").textContent = D.team || "Your team";
+    $("#onClock").innerHTML = `<option value="">Open picking (anyone)</option>` + D.reps.map(r=>`<option${r.name===D.session.onClock?" selected":""}>${esc(r.name)}</option>`).join("");
+    $("#round").innerHTML = [1,2,3,4,5,6,7,8].map(n=>`<option value="${n}"${n===(D.session.round||1)?" selected":""}>${n}</option>`).join("");
+    const c=$("#clock");
+    if(D.session.onClock){ c.hidden=false; c.innerHTML=`<span class="dot" aria-hidden="true"></span><span>Round ${esc(D.session.round||1)} · On the clock: <b>${esc(D.session.onClock)}</b></span>`; }
+    else c.hidden=true;
+    $("#coordMode").checked = admin; $("#adminBar").hidden = !admin;
+    const bits=[];
+    if(D.pay.perShift!=null) bits.push(`Pay per shift: ${money(D.pay.perShift)}`+(D.pay.splitDiffers?(D.pay.splitPay!=null?` (split shifts ${money(D.pay.splitPay)})`:" (split shifts differ)"):""));
+    if(D.maxPerWeek) bits.push(`Max ${D.maxPerWeek} shifts per person per week`);
+    $("#rules").textContent = bits.join(" · ");
+  }
+
+  function render(){
+    renderMonths(); renderWho();
+    const board=$("#board");
+    if(!eventList().length){
+      board.innerHTML=`<div class="empty"><b>No events on the board yet</b>${admin?"Use Add event above to post the first show.":"Turn on Coordinator mode to add events."}</div>`;
+      setSummary([]); return;
+    }
+    const list=filtered(); setSummary(list);
+    if(!list.length){ board.innerHTML=`<div class="empty"><b>Nothing matches these filters</b>Clear a filter or pick another month.</div>`; return; }
+    const groups=new Map();
+    for(const ev of list){ const k=ev.start?Number(ev.start.slice(5,7))-1:12; if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(ev); }
+    board.innerHTML=[...groups].map(([m,evs])=>{
+      let open=0; evs.forEach(e=>{ if(OFF_STATUS.has(e.status)) return; daysOf(e).forEach(d=>{for(let s=1;s<=(e.slots||1);s++) if(!claimOf(claimId(e.id,d,s))) open++;});});
+      return `<section class="month"><div class="month-h"><h2>${m===12?"Dates TBD":MONTHS_LONG[m]}</h2><span class="num">${evs.length} event${evs.length===1?"":"s"} · ${open} open shift${open===1?"":"s"}</span></div><div class="cards">${evs.map(card).join("")}</div></section>`;
+    }).join("");
+  }
+
+  function setSummary(list){
+    let open=0,taken=0,mine=0;
+    for(const ev of list){ const off=OFF_STATUS.has(ev.status); for(const d of daysOf(ev)) for(let s=1;s<=(ev.slots||1);s++){ const c=claimOf(claimId(ev.id,d,s)); if(c){taken++; if(myName&&c.name===myName) mine++;} else if(!off) open++; } }
+    $("#sOpen").textContent=open; $("#sTaken").textContent=taken; $("#sEvents").textContent=list.length; $("#sMine").textContent=myName?mine:"–";
+  }
+
+  function card(ev){
+    const days=daysOf(ev), slots=ev.slots||1, off=OFF_STATUS.has(ev.status);
+    const s=ev.start?parse(ev.start):null, e=ev.end?parse(ev.end):s;
+    const stub = s ? `<div class="mo">${MONTHS[s.getUTCMonth()].toUpperCase()}</div><div class="d num">${s.getUTCDate()}</div>${e&&iso(e)!==iso(s)?`<div class="to num">to ${e.getUTCMonth()!==s.getUTCMonth()?MONTHS[e.getUTCMonth()]+" ":""}${e.getUTCDate()}</div>`:""}<div class="len">${days.length}-day</div>` : `<div class="mo">TBD</div>`;
+    const cps=costPerShift(ev);
+    const statusCls = ev.status==="Booked"?"s-booked":ev.status==="Prospective"?"s-prospective":ev.status==="Pending"?"s-pending":"s-off";
+    const grid = days.map(d=>{
+      const dt=parse(d);
+      const cells=[]; for(let i=1;i<=slots;i++){
+        const c=claimOf(claimId(ev.id,d,i)), lab=slots>1?slotLabel(i):"", labHtml=lab?`<span class="sl">${esc(D.shiftTypes[i-1]?D.shiftTypes[i-1].label:lab)}</span>`:"";
+        const tip=slotLabel(i);
+        if(c){ const mine=myName&&c.name===myName; cells.push(`<button type="button" class="slot ${mine?"mine":"taken"}${off&&!admin?" locked":""}" data-act="slot" data-ev="${esc(ev.id)}" data-d="${d}" data-s="${i}" title="${esc(c.name)}${tip?" · "+esc(tip):""}${c.note?" · "+esc(c.note):""}">${labHtml}${esc(c.name)}</button>`); }
+        else if(off) cells.push(`<button type="button" class="slot locked" data-act="slot" data-ev="${esc(ev.id)}" data-d="${d}" data-s="${i}"${admin?"":" disabled"}>${labHtml}—</button>`);
+        else cells.push(`<button type="button" class="slot open" data-act="slot" data-ev="${esc(ev.id)}" data-d="${d}" data-s="${i}" title="${esc(tip)}" aria-label="Claim ${esc(ev.name)} ${DOW[dt.getUTCDay()]} ${dt.getUTCMonth()+1}/${dt.getUTCDate()}${tip?" "+esc(tip):""}">${labHtml}Open</button>`);
+      }
+      return `<div class="day"><div class="day-h"><b>${DOW[dt.getUTCDay()]}</b>${dt.getUTCMonth()+1}/${dt.getUTCDate()}</div>${cells.join("")}</div>`;
+    }).join("");
+    const hasDetail = ev.logistics || ev.website || ev.venue;
+    return `<article class="card${off?" is-off":""}">
+      <div class="stub">${stub}</div>
+      <div class="body">
+        <div class="top"><h3>${esc(ev.name)}</h3>
+          <div class="tags"><span class="tag ${TYPE_CLASS[ev.type]||"t-mkt"}">${esc(ev.type||"Event")}</span><span class="tag ${statusCls}">${esc(ev.status||"—")}</span>${ev.split?`<span class="tag t-sse">Split shifts</span>`:""}</div>
+          <div class="where">${esc([ev.venue,ev.city].filter(Boolean).join(" · "))}${ev.booth?" · "+esc(ev.booth):""}</div>
+        </div>
+        <div class="facts">
+          <div><span class="k">Pay / shift</span><span class="v">${money(payFor(ev))}</span></div>
+          <div><span class="k">Booth cost</span><span class="v">${money(ev.cost)}</span></div>
+          <div><span class="k">Cost / shift</span><span class="v">${money(cps)}</span></div>
+          <div><span class="k">Reps / day</span><span class="v num">${slots}</span></div>
+        </div>
+        <div class="grid-wrap"><div class="daygrid">${grid||`<span class="note">Dates not set yet.</span>`}</div></div>
+        ${hasDetail?`<details><summary>Logistics</summary><div class="detail">
+          ${ev.logistics?`<p>${esc(ev.logistics)}</p>`:""}
+          ${ev.website?`<p><a href="${esc(/^https?:/.test(ev.website)?ev.website:"https://"+ev.website)}" target="_blank" rel="noopener">${esc(ev.website)}</a></p>`:""}
+        </div></details>`:""}
+        ${admin?`<div class="card-admin"><button type="button" class="btn" data-act="edit" data-ev="${esc(ev.id)}">Edit event</button></div>`:""}
+      </div></article>`;
+  }
+
+  /* ---------- sheets ---------- */
+  function sheet(html, wire){
+    const L=$("#layer"); L.innerHTML=`<div class="scrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+    const scrim=L.firstElementChild; scrim.addEventListener("click",e=>{ if(e.target===scrim) close(); });
+    const f=L.querySelector("input,select,button"); f&&f.focus();
+    wire && wire(L.querySelector(".sheet"));
+  }
+  function close(){ $("#layer").innerHTML=""; }
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
+
+  function pickName(after){
+    sheet(`<h4>Who's picking?</h4><p class="note">Choose your name from the roster or type it. This device remembers it.</p>
+      <div class="row"><label for="pn">Your name</label><input id="pn" list="rosterDl" autocomplete="off" maxlength="40" placeholder="Choose or type"></div>
+      <div class="actions"><button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn primary" data-ok>Continue</button></div>`, sh=>{
+      sh.querySelector("[data-x]").onclick=close;
+      const go=()=>{ const v=sh.querySelector("#pn").value.trim(); if(!v) return; setMe(v); close(); after&&after(); };
+      sh.querySelector("[data-ok]").onclick=go;
+      sh.querySelector("#pn").addEventListener("keydown",e=>{ if(e.key==="Enter") go(); });
+    });
+  }
+  function setMe(n){
+    myName=n.trim(); ls.set(KEY_ME,myName);
+    if(myName && D.coordinator && myName.toLowerCase()===D.coordinator.toLowerCase() && !admin){ admin=true; ls.set(KEY_ADMIN,"1"); }
+    render();
+  }
+
+  /* ---------- claiming ---------- */
+  function onSlot(eid,date,slot){
+    const ev=D.events[eid]; if(!ev) return;
+    const id=claimId(eid,date,slot), c=claimOf(id);
+    if(admin) return adminSlot({id:eid,...ev},date,slot,c);
+    if(!myName){ pickName(()=>onSlot(eid,date,slot)); return; }
+    if(c){
+      if(c.name!==myName){ toast(`${c.name} has this shift.`); return; }
+      return release(id, "Shift released.");
+    }
+    if(OFF_STATUS.has(ev.status)){ toast(`${ev.status}: no picks on this event.`); return; }
+    if(D.session.onClock && D.session.onClock!==myName){ toast(`${D.session.onClock} is on the clock. Wait for your turn.`); return; }
+    if(D.maxPerWeek){
+      const wk=weekKey(date);
+      const n=Object.values(D.claims).filter(x=>x.name===myName && x.date && weekKey(x.date)===wk).length;
+      if(n>=D.maxPerWeek){ toast(`Limit reached: ${D.maxPerWeek} shifts per person in the week of ${wk.slice(5).replace("-","/")}.`); return; }
+    }
+    claim(id,{eventId:eid,date,slot,name:myName});
+  }
+  function claim(id,body){
+    const ex=D.claims[id];
+    if(ex && ex.name && !admin){ toast(`${ex.name} already has it.`); return false; }
+    D.claims[id]={...body,note:body.note||"",at:new Date().toISOString()}; save(); render();
+    toast(`${body.name} · ${body.date.slice(5).replace("-","/")} claimed.`); return true;
+  }
+  function release(id,msg){ delete D.claims[id]; save(); render(); toast(msg); }
+
+  function adminSlot(ev,date,slot,c){
+    const dt=parse(date), lab=slotLabel(slot);
+    sheet(`<div class="eyebrow">${esc(ev.name)}</div><h4>${DOW[dt.getUTCDay()]} ${dt.getUTCMonth()+1}/${dt.getUTCDate()} · ${lab?esc(lab):"Rep "+slot}</h4>
+      <div class="row"><label for="as">Assign rep</label><select id="as"><option value="">—</option>${D.reps.map(r=>`<option${c&&c.name===r.name?" selected":""}>${esc(r.name)}</option>`).join("")}</select></div>
+      <div class="row"><label for="an">Note (optional)</label><input id="an" maxlength="60" placeholder="e.g. field training, front only" value="${esc(c&&c.note||"")}"></div>
+      <div class="actions">${c?`<button type="button" class="btn danger" data-clear>Clear slot</button>`:""}<button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn primary" data-ok>Save</button></div>`, sh=>{
+      sh.querySelector("[data-x]").onclick=close;
+      const cl=sh.querySelector("[data-clear]"); cl&&(cl.onclick=()=>{ close(); release(claimId(ev.id,date,slot),"Slot cleared."); });
+      sh.querySelector("[data-ok]").onclick=()=>{
+        const n=sh.querySelector("#as").value, note=sh.querySelector("#an").value.trim(); close();
+        if(!n){ if(c) release(claimId(ev.id,date,slot),"Slot cleared."); return; }
+        claim(claimId(ev.id,date,slot),{eventId:ev.id,date,slot,name:n,note});
+      };
+    });
+  }
+
+  /* ---------- coordinator tools ---------- */
+  function slug(s){ return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60) || "event"; }
+  function editEvent(ev){
+    const isNew=!ev; ev=ev||{type:"Show",status:"Prospective",slots:Math.max(1,D.shiftTypes.length||1)};
+    const opt=(arr,v)=>arr.map(x=>`<option${x===v?" selected":""}>${esc(x)}</option>`).join("");
+    sheet(`<h4>${isNew?"Add event":"Edit event"}</h4>
+      <div class="row"><label for="e-name">Event name</label><input id="e-name" value="${esc(ev.name||"")}" required></div>
+      <div class="row2"><div class="row"><label for="e-type">Type</label><select id="e-type">${opt(TYPES,ev.type)}</select></div>
+        <div class="row"><label for="e-status">Status</label><select id="e-status">${opt(STATUSES,ev.status)}</select></div></div>
+      <div class="row2"><div class="row"><label for="e-start">Start</label><input type="date" id="e-start" value="${esc(ev.start||"")}"></div>
+        <div class="row"><label for="e-end">End</label><input type="date" id="e-end" value="${esc(ev.end||"")}"></div></div>
+      <div class="row2"><div class="row"><label for="e-slots">Reps per day</label><input type="number" min="1" max="6" id="e-slots" value="${esc(ev.slots||1)}"></div>
+        <div class="row"><label for="e-cost">Booth cost ($)</label><input type="number" min="0" step="0.01" id="e-cost" value="${ev.cost??""}"></div></div>
+      <div class="row2"><div class="row"><label for="e-pay">Pay per shift ($, blank = default)</label><input type="number" min="0" step="0.01" id="e-pay" value="${ev.pay??""}"></div>
+        <div class="row"><label for="e-split">Split shifts</label><select id="e-split"><option value="0">No</option><option value="1"${ev.split?" selected":""}>Yes</option></select></div></div>
+      <div class="row2"><div class="row"><label for="e-booth">Booth</label><input id="e-booth" value="${esc(ev.booth||"")}" placeholder="10x10 corner"></div>
+        <div class="row"><label for="e-city">City</label><input id="e-city" value="${esc(ev.city||"")}"></div></div>
+      <div class="row"><label for="e-venue">Venue</label><input id="e-venue" value="${esc(ev.venue||"")}"></div>
+      <div class="row"><label for="e-log">Logistics (hours, set up, parking)</label><textarea id="e-log" rows="4">${esc(ev.logistics||"")}</textarea></div>
+      <div class="row"><label for="e-web">Website</label><input id="e-web" value="${esc(ev.website||"")}"></div>
+      <p class="note" id="e-err" hidden></p>
+      <div class="actions">${isNew?"":`<button type="button" class="btn danger" data-del>Delete event</button>`}<button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn primary" data-ok>${isNew?"Add event":"Save changes"}</button></div>`, sh=>{
+      sh.querySelector("[data-x]").onclick=close;
+      const del=sh.querySelector("[data-del]");
+      if(del){ let armed=false; del.onclick=()=>{ if(!armed){ armed=true; del.textContent="Tap again to delete"; return; } close();
+        delete D.events[ev.id]; for(const k of Object.keys(D.claims)) if(D.claims[k].eventId===ev.id) delete D.claims[k];
+        save(); render(); toast("Event deleted."); }; }
+      sh.querySelector("[data-ok]").onclick=()=>{
+        const g=id=>sh.querySelector(id).value.trim(), num=v=>v===""?null:Number(v);
+        const body={name:g("#e-name"), type:g("#e-type"), status:g("#e-status"), start:g("#e-start"), end:g("#e-end")||g("#e-start"),
+          slots:Math.max(1,Math.min(6,Number(g("#e-slots"))||1)), cost:num(g("#e-cost")), pay:num(g("#e-pay")), split:g("#e-split")==="1",
+          booth:g("#e-booth"), city:g("#e-city"), venue:g("#e-venue"), logistics:g("#e-log"), website:g("#e-web")};
+        const err=sh.querySelector("#e-err");
+        if(!body.name||!body.start){ err.hidden=false; err.textContent="Add an event name and a start date."; return; }
+        if(body.end<body.start){ err.hidden=false; err.textContent="End date is before the start date."; return; }
+        let id=ev.id; if(!id){ id=slug(body.name)+"-"+body.start.slice(0,4); let n=2; const base=id; while(D.events[id]) id=base+"-"+(n++); }
+        D.events[id]=body; save(); close(); render(); toast(isNew?"Event added.":"Event saved.");
+      };
+    });
+  }
+
+  function rosterSheet(){
+    let reps=D.reps.map(r=>({...r}));
+    const draw=sh=>{
+      sh.querySelector(".roster-list").innerHTML=reps.map((r,i)=>`<div class="cfg-row"><input value="${esc(r.name)}" data-n="${i}" aria-label="Name"><button type="button" class="btn" data-rm="${i}" aria-label="Remove ${esc(r.name)}">✕</button></div>`).join("");
+    };
+    sheet(`<h4>Roster</h4><p class="note">Names here appear in the "Your name" list and in the assign menu.</p>
+      <div class="roster-list"></div>
+      <div class="row2"><input id="newRep" placeholder="Add a rep" aria-label="New rep name"><button type="button" class="btn" data-add>Add rep</button></div>
+      <div class="actions"><button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn primary" data-ok>Save roster</button></div>`, sh=>{
+      draw(sh);
+      sh.addEventListener("input",e=>{ const n=e.target.dataset.n; if(n!=null) reps[n].name=e.target.value; });
+      sh.addEventListener("click",e=>{ const rm=e.target.dataset.rm; if(rm!=null){ reps.splice(Number(rm),1); draw(sh); } });
+      sh.querySelector("[data-add]").onclick=()=>{ const v=sh.querySelector("#newRep").value.trim(); if(v){ reps.push({name:v}); sh.querySelector("#newRep").value=""; draw(sh); } };
+      sh.querySelector("[data-x]").onclick=close;
+      sh.querySelector("[data-ok]").onclick=()=>{
+        D.reps=reps.filter(r=>r.name.trim()).map(r=>({name:r.name.trim()})).sort((a,b)=>a.name.localeCompare(b.name));
+        save(); close(); render(); toast("Roster saved.");
+      };
+    });
+  }
+
+  function saveSession(patch){ D.session={...D.session,...patch}; save(); render(); }
+
+  /* ---------- share / backup ---------- */
+  function encodeBoard(){ return btoa(unescape(encodeURIComponent(JSON.stringify(D)))); }
+  function decodeBoard(txt){
+    const clean=String(txt).trim();
+    let json=clean;
+    if(!/^[\[{]/.test(clean)){ try{ json=decodeURIComponent(escape(atob(clean.replace(/\s+/g,"")))); }catch(e){ return null; } }
+    try{ return normalize(JSON.parse(json)); }catch(e){ return null; }
+  }
+  function confirmImport(board, label){
+    const ne=Object.keys(board.events).length, nc=Object.keys(board.claims).length;
+    sheet(`<h4>Replace this board?</h4><p class="note">${esc(label)} has ${ne} event${ne===1?"":"s"}, ${nc} claimed shift${nc===1?"":"s"} and ${board.reps.length} people. It will replace the board on this device. Export first if you want a backup.</p>
+      <div class="actions"><button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn primary" data-ok>Replace the board</button></div>`, sh=>{
+      sh.querySelector("[data-x]").onclick=close;
+      sh.querySelector("[data-ok]").onclick=()=>{ D=board; save(); close(); render(); toast("Board imported."); };
+    });
+  }
+  function exportFile(){
+    const blob=new Blob([JSON.stringify(D,null,2)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="event-shift-board-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("Board exported.");
+  }
+  function shareSheet(){
+    sheet(`<h4>Share &amp; backup</h4>
+      <p class="sub">This board saves on this device. To share it, export and send the file, or ask us to connect it to a Google Sheet.</p>
+      <div class="actions" style="justify-content:flex-start"><button type="button" class="btn primary" data-export>Export board (JSON)</button>
+        <button type="button" class="btn" data-import>Import board (JSON)</button><input type="file" id="impFile" accept=".json,application/json" hidden></div>
+      <div class="row"><label for="code">Share code</label><textarea id="code" class="code" aria-label="Share code" placeholder="Paste a share code here, or copy yours"></textarea></div>
+      <div class="actions" style="justify-content:flex-start"><button type="button" class="btn" data-copy>Copy share code</button><button type="button" class="btn" data-paste>Paste share code</button></div>
+      <p class="sub">Copy share code puts the current board in the box and on your clipboard. To load someone else's, paste their code into the box and tap Paste share code.</p>
+      <div class="actions"><button type="button" class="btn" data-x>Close</button></div>`, sh=>{
+      const code=sh.querySelector("#code");
+      sh.querySelector("[data-x]").onclick=close;
+      sh.querySelector("[data-export]").onclick=exportFile;
+      const fi=sh.querySelector("#impFile");
+      sh.querySelector("[data-import]").onclick=()=>fi.click();
+      fi.onchange=()=>{ const f=fi.files[0]; if(!f) return; const r=new FileReader();
+        r.onload=()=>{ const b=decodeBoard(r.result); if(!b){ toast("That file isn't a shift board export."); return; } confirmImport(b,"“"+f.name+"”"); };
+        r.onerror=()=>toast("Couldn't read that file."); r.readAsText(f); };
+      sh.querySelector("[data-copy]").onclick=async()=>{
+        code.value=encodeBoard(); code.select();
+        try{ await navigator.clipboard.writeText(code.value); toast("Share code copied."); }catch(e){ toast("Share code is in the box. Select it and copy."); }
+      };
+      sh.querySelector("[data-paste]").onclick=async()=>{
+        let t=code.value.trim();
+        if(!t){ try{ t=(await navigator.clipboard.readText()).trim(); code.value=t; }catch(e){} }
+        if(!t){ toast("Paste a share code into the box first."); return; }
+        const b=decodeBoard(t); if(!b){ toast("That share code didn't work. Check you copied all of it."); return; }
+        confirmImport(b,"This share code");
+      };
+    });
+  }
+
+  /* ---------- reset ---------- */
+  function resetSheet(){
+    sheet(`<h4>Reset board?</h4><p class="note">This clears the board, your name and the setup answers saved on this device, then restarts setup. Export first if you want to keep it.</p>
+      <div class="actions"><button type="button" class="btn" data-x>Cancel</button><button type="button" class="btn danger" data-ok>Clear everything</button></div>`, sh=>{
+      sh.querySelector("[data-x]").onclick=close;
+      sh.querySelector("[data-ok]").onclick=()=>{
+        ls.del(KEY); ls.del(KEY_ME); ls.del(KEY_ADMIN);
+        if(window.EvergreenSetup) EvergreenSetup.reset(SETUP_ID);
+        D=sample(); myName=""; admin=false; month="all"; close(); render();
+        if(window.EvergreenSetup) EvergreenSetup.open(SETUP_ID);
+      };
+    });
+  }
+
+  /* ---------- wiring ---------- */
+  $("#months").addEventListener("click",e=>{ const b=e.target.closest("[data-m]"); if(!b) return; month=b.dataset.m; render(); });
+  ["#q","#fType","#fStatus","#fOpen","#fMine"].forEach(s=>$(s).addEventListener("input",render));
+  $("#me").addEventListener("change",e=>setMe(e.target.value));
+  $("#coordMode").addEventListener("change",e=>{ admin=e.target.checked; ls.set(KEY_ADMIN,admin?"1":"0"); render(); });
+  $("#board").addEventListener("click",e=>{
+    const b=e.target.closest("[data-act]"); if(!b) return;
+    if(b.dataset.act==="slot") onSlot(b.dataset.ev,b.dataset.d,Number(b.dataset.s));
+    if(b.dataset.act==="edit") editEvent({id:b.dataset.ev,...D.events[b.dataset.ev]});
+  });
+  $("#btnAdd").onclick=()=>editEvent(null);
+  $("#btnRoster").onclick=rosterSheet;
+  $("#btnShare").onclick=shareSheet;
+  $("#btnReset").onclick=resetSheet;
+  $("#onClock").addEventListener("change",e=>saveSession({onClock:e.target.value}));
+  $("#round").addEventListener("change",e=>saveSession({round:Number(e.target.value)}));
+
+  /* ---------- first-run setup interview ---------- */
+  function buildFromAnswers(a){
+    const list=v=>Array.isArray(v)?v:[];
+    const shiftTypes=list(a.shiftTypes).filter(t=>t.label||t.start).map(t=>({label:t.label||"Shift",start:t.start||"",end:t.end||""}));
+    const pay=(a.pay&&a.pay[0])||{};
+    const split=String(pay.splitPay??"").trim()!=="";
+    const next={
+      v:1, team:a.team||D.team, coordinator:a.coordinator||"",
+      pay:{perShift:numOrNull(pay.perShift), splitDiffers:split, splitPay:split?numOrNull(pay.splitPay):null},
+      maxPerWeek:numOrNull(a.maxPerWeek)||null,
+      shiftTypes, reps:list(a.roster).map(r=>({name:(r.name||"").trim()})).filter(r=>r.name),
+      events:{}, claims:{}, session:{onClock:"",round:1}
+    };
+    const slots=Math.max(1,Math.min(6,shiftTypes.length||1));
+    list(a.events).forEach(e=>{
+      if(!e.name||!e.start) return;
+      let id=slug(e.name)+"-"+e.start.slice(0,4), n=2; const base=id; while(next.events[id]) id=base+"-"+(n++);
+      next.events[id]={name:e.name,type:"Other",status:"Booked",start:e.start,end:e.end&&e.end>=e.start?e.end:e.start,slots,cost:null,pay:null,split:false,booth:"",city:"",venue:e.location||"",logistics:"",website:""};
+    });
+    // keep claims that still fit the rebuilt board
+    for(const [id,c] of Object.entries(D.claims)){ const ev=next.events[c.eventId]; if(ev && daysOf(ev).includes(c.date) && c.slot<=ev.slots) next.claims[id]=c; }
+    return next;
+  }
+
+  D = load();
+  render();
+
+  if(window.EvergreenSetup){
+    EvergreenSetup.init({
+      id:SETUP_ID,
+      title:"Set up your shift board",
+      intro:"A few questions so this board fits your team. Takes about 3 minutes. You can skip and edit the sample instead.",
+      questions:[
+        {key:"team", q:"What is your team or division called?", type:"text", example:"Northside events team", placeholder:"Team name"},
+        {key:"coordinator", q:"Who is the coordinator?", why:"The coordinator can assign open shifts and edit events.", type:"text", example:"Casey P.", placeholder:"Name"},
+        {key:"roster", q:"Who is on the roster?", why:"One name per row. These show up in the “Your name” list.", type:"list", fields:[{key:"name",label:"Name"}], example:"Alex R., Bea M., Dana L."},
+        {key:"events", q:"Which events need shifts?", why:"One row per event.", type:"list", fields:[{key:"name",label:"Event"},{key:"start",label:"Starts",type:"date"},{key:"end",label:"Ends",type:"date"},{key:"location",label:"Location"}], example:"Home Show · Jan 15 – Jan 17 · Expo Center"},
+        {key:"shiftTypes", q:"What shifts happen each day?", why:"Each row becomes one claimable slot per day. Leave one row for a single all-day shift.", type:"list", fields:[{key:"label",label:"Shift"},{key:"start",label:"Starts",type:"time"},{key:"end",label:"Ends",type:"time"}], example:"Morning · 10:00 – 14:00"},
+        {key:"pay", q:"What is the pay per shift?", why:"Fill in the split-shift box only if split shifts pay differently. Leave it blank if they pay the same.", type:"group", fields:[{key:"perShift",label:"Pay per shift ($)",type:"number"},{key:"splitPay",label:"Split shift pay ($, optional)",type:"number"}], example:"100 per shift; split shifts 60"},
+        {key:"maxPerWeek", q:"Most shifts one person can claim per week?", why:"Leave it blank for no limit.", type:"number", optional:true, example:"4", placeholder:"e.g. 4"}
+      ],
+      onDone(answers,info){
+        if(!info||!info.fresh) return;   // only rebuild when the interview was just finished
+        D=buildFromAnswers(answers); save(); month="all"; render();
+        toast("Board built from your answers.");
+      }
+    });
+  }
+})();
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
+</html>

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Region Incentive Flyer · Evergreen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+html,body{margin:0;background:#e9e6dd}
+.bar{display:flex;justify-content:flex-end;padding:8px 12px;font:600 14px Inter,sans-serif}
+.bar button{padding:9px 16px;border-radius:8px;border:1px solid #14432A;background:#14432A;color:#fff;font:inherit;cursor:pointer}
+#wrap{width:100%;overflow:hidden;position:relative}
+#flyer{transform-origin:0 0;position:absolute;left:0;top:0}
+@page{size:1080px 2000px;margin:0}
+@media print{html,body{background:#fff}.bar,.es-fab{display:none!important}#wrap{overflow:visible;height:auto!important}#flyer{position:static;transform:none!important}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+</style></head><body>
+<div class="bar"><button type="button" onclick="window.print()">Print / Save as PDF</button></div>
+<div id="wrap">
+<div id="flyer" style="width: 1080px; min-height: 2000px; box-sizing: border-box; background: #FFFFFF; font-family: Inter, 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #2E3A32; display: flex; flex-direction: column; overflow: hidden">
+
+  <div style="position: relative; width: 1080px; height: 660px; flex-shrink: 0; overflow: hidden; background: #2f6f7a">
+    <img src="cabo.jpg" alt="The Arch at Cabo San Lucas over turquoise water" style="position: absolute; left: 0; top: 0; width: 1080px; height: 660px; object-fit: cover; object-position: 50% 40%; display: block">
+    <div style="position: absolute; left: 0; top: 0; width: 1080px; height: 200px; background: linear-gradient(180deg, rgba(8,28,18,0.55) 0%, rgba(8,28,18,0) 100%)"></div>
+    <div style="position: absolute; left: 0; bottom: 0; width: 1080px; height: 380px; background: linear-gradient(180deg, rgba(10,36,22,0) 0%, rgba(10,36,22,0.72) 55%, rgba(10,36,22,0.94) 100%)"></div>
+
+    <div style="position: absolute; left: 64px; top: 52px; font-size: 17px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: #FFFFFF"><span data-s="region">Your Region</span> · <span style="opacity:.75">sample</span></div>
+
+    <div style="position: absolute; left: 64px; right: 64px; bottom: 50px; display: flex; flex-direction: column; gap: 16px">
+      <div style="font-size: 20px; font-weight: 600; letter-spacing: 0.26em; text-transform: uppercase; color: #E2C99A"><span data-s="push">Winter Break Push</span></div>
+      <h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 104px; line-height: 1.0; font-weight: 600; letter-spacing: -0.01em; color: #FFFFFF"><span data-s="headline">Earn your way<br>to <em style="font-style: italic; color: #F2E3C4">Cabo.</em></span></h1>
+    </div>
+  </div>
+
+  <div style="background: #14432A; color: #FFFFFF; display: flex; align-items: stretch; flex-shrink: 0">
+    <div style="flex: 1; padding: 24px 64px; display: flex; flex-direction: column; gap: 6px; border-right: 1px solid #2f5e44">
+      <div style="font-size: 15px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #C9B48C">Sales window</div>
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 600"><span data-s="window">Dec 29 – Jan 18</span></div>
+      <div style="font-size: 18px; color: #DDD6C4"><span data-s="weeks">3 weeks</span></div>
+    </div>
+    <div style="flex: 1; padding: 24px 48px; display: flex; flex-direction: column; gap: 6px">
+      <div style="font-size: 15px; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: #C9B48C">The trip</div>
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 600"><span data-s="trip">April 2027</span></div>
+      <div style="font-size: 18px; color: #DDD6C4">Exact dates TBA (example)</div>
+    </div>
+  </div>
+
+  <div style="padding: 44px 64px 0; display: flex; flex-direction: column; gap: 18px; flex-shrink: 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #B08D57; padding-bottom: 12px">
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 600; color: #14432A">Qualification levels <span style="font-size:20px;color:#8C6B3C">(examples)</span></div>
+      <div style="font-size: 17px; font-weight: 500; color: #5A6B60">Sales <span data-s="window">Dec 29 – Jan 18</span></div>
+    </div>
+    <div id="levels" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #B08D57">
+          <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #14432A">Level group A (example)</div>
+          <div style="font-size: 15px; line-height: 1.4; color: #5A6B60">Example: new managers with paperwork in by an early deadline</div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$10K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">50% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$12.5K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">75% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$15K</div>
+            <div style="font-size: 18px; font-weight: 700; color: #14432A">100% trip</div>
+          </div>
+        </div>
+        <div style="margin-top: auto; background: #F7F4EC; border-left: 3px solid #B08D57; padding: 12px 14px; font-size: 15px; line-height: 1.45; color: #2E3A32"><strong style="color: #14432A">Head start:</strong> a higher sample target earns 50% if reached early.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #B08D57">
+          <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #14432A">Level group B (example)</div>
+          <div style="font-size: 15px; line-height: 1.4; color: #5A6B60">Example: team leads and all other reps</div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$12K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">50% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$16K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">75% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$20K</div>
+            <div style="font-size: 18px; font-weight: 700; color: #14432A">100% trip</div>
+          </div>
+        </div>
+        <div style="margin-top: auto; background: #F7F4EC; border-left: 3px solid #B08D57; padding: 12px 14px; font-size: 15px; line-height: 1.45; color: #2E3A32"><strong style="color: #14432A">Head start:</strong> a higher sample target earns 50% if reached early.</div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px">
+        <div style="display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid #B08D57">
+          <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 30px; font-weight: 700; color: #14432A">Level group C (example)</div>
+          <div style="font-size: 15px; line-height: 1.4; color: #5A6B60">Example: sales inside the push window only</div>
+        </div>
+        <div style="display: flex; flex-direction: column">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$25K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">50% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$35K</div>
+            <div style="font-size: 18px; font-weight: 500; color: #2E3A32">75% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0; border-bottom: 1px solid #DCD8CC">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #14432A">$45K</div>
+            <div style="font-size: 18px; font-weight: 700; color: #14432A">100% trip</div>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 9px 0">
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 700; color: #8C6B3C">$60K</div>
+            <div style="font-size: 18px; font-weight: 700; color: #8C6B3C">100% for 2</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="padding: 48px 64px 0; display: flex; flex-direction: column; gap: 18px; flex-shrink: 0">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #B08D57; padding-bottom: 12px">
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 600; color: #14432A">Kickers <span style="font-size:20px;color:#8C6B3C">(examples)</span></div>
+      <div style="font-size: 17px; font-weight: 500; color: #5A6B60">Extra trip credit</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+      <div style="border-top: 3px solid #B08D57; background: #F7F4EC; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 700; color: #14432A">$1,000</div>
+        <div style="font-size: 19px; font-weight: 700; color: #14432A">Early list kicker</div>
+        <div style="font-size: 16px; color: #3C4A41">Submitted by <strong>an early date</strong></div>
+      </div>
+      <div style="border-top: 3px solid #B08D57; background: #F7F4EC; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 700; color: #14432A">$1,000</div>
+        <div style="font-size: 19px; font-weight: 700; color: #14432A">Appointments kicker (25)</div>
+        <div style="font-size: 16px; color: #3C4A41"><strong>Sample date range</strong></div>
+      </div>
+      <div style="border-top: 3px solid #14432A; background: #14432A; padding: 20px; display: flex; flex-direction: column; gap: 6px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 42px; font-weight: 700; color: #FFFFFF">$2,000</div>
+        <div style="font-size: 19px; font-weight: 700; color: #E2C99A">Appointments kicker (50)</div>
+        <div style="font-size: 16px; color: #DDD6C4"><strong style="color: #FFFFFF">Sample date range</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex: 1; padding: 48px 64px 0; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; border-bottom: 2px solid #B08D57; padding-bottom: 12px">
+      <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 36px; font-weight: 600; color: #14432A">Bonus: Recruiting incentive <span style="font-size:20px;color:#8C6B3C">(example)</span></div>
+      <div style="font-size: 17px; font-weight: 500; color: #5A6B60">Recruit your way there</div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+      <div style="border-left: 3px solid #14432A; padding: 4px 0 4px 18px; display: flex; flex-direction: column; gap: 2px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 40px; font-weight: 700; color: #14432A">8 recruits</div>
+        <div style="font-size: 18px; font-weight: 500; color: #2E3A32">50% trip</div>
+      </div>
+      <div style="border-left: 3px solid #14432A; padding: 4px 0 4px 18px; display: flex; flex-direction: column; gap: 2px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 40px; font-weight: 700; color: #14432A">10 recruits</div>
+        <div style="font-size: 18px; font-weight: 500; color: #2E3A32">75% trip</div>
+      </div>
+      <div style="border-left: 3px solid #14432A; padding: 4px 0 4px 18px; display: flex; flex-direction: column; gap: 2px">
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 40px; font-weight: 700; color: #14432A">12 recruits</div>
+        <div style="font-size: 18px; font-weight: 700; color: #14432A">100% trip</div>
+      </div>
+    </div>
+    <div style="background: #F7F4EC; border-left: 3px solid #B08D57; padding: 16px 20px; font-size: 17px; line-height: 1.45; color: #2E3A32"><strong style="color: #14432A">Example rule:</strong> recruits count double once they reach a minimum in sales. Add your own eligibility rules here.</div>
+  </div>
+
+  <div style="margin: 0 64px; padding: 20px 0 28px; border-top: 1px solid #DCD8CC; display: flex; justify-content: space-between; align-items: center; gap: 24px; font-size: 16px; color: #5A6B60">
+    <div>% = share of your trip covered · <em style="font-style: italic">Rules and rights set by your region.</em></div>
+    <div style="font-weight: 600; letter-spacing: 0.08em; color: #14432A; white-space: nowrap"><span data-s="region">Your Region</span> · sample</div>
+  </div>
+</div>
+</div>
+<script>
+(function(){var w=document.getElementById('wrap'),f=document.getElementById('flyer');
+function fit(){var s=Math.min(1,document.documentElement.clientWidth/1080);f.style.transform='scale('+s+')';w.style.height=(f.offsetHeight*s)+'px';}
+window.addEventListener('resize',fit);window.addEventListener('load',fit);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);window.fit=fit;fit();})();
+</script>
+<script src="../shared/setup-interview.js"></script>
+<script>
+(function(){
+var $=function(s){return document.querySelectorAll(s)};
+var sample=document.getElementById('levels').innerHTML;
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function set(k,h){$('[data-s="'+k+'"]').forEach(function(e){e.innerHTML=h})}
+function fd(s){if(!s)return'';var d=new Date(s+'T12:00:00');return isNaN(d)?s:d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+function done(a){
+ if(a.region)set('region',esc(a.region));
+ if(a.push)set('push',esc(a.push));
+ if(a.headline){var t=a.headline.trim().split(/\s+/),last=t.pop();set('headline',esc(t.join(' '))+(t.length?' ':'')+'<em style="font-style: italic; color: #F2E3C4">'+esc(last)+'</em>');}
+ var g=a.window&&a.window[0];
+ if(g&&g.start&&g.end){set('window',fd(g.start)+' – '+fd(g.end));var wk=Math.round((new Date(g.end)-new Date(g.start))/6048e5);if(wk>0)set('weeks',wk+(wk==1?' week':' weeks'));}
+ if(a.trip)set('trip',esc(a.trip));
+ var L=(a.levels||[]).filter(function(x){return x.name||x.threshold||x.reward});
+ var el=document.getElementById('levels');
+ if(L.length){el.innerHTML=L.slice(0,6).map(function(x){return '<div style="border-top:3px solid #B08D57;background:#F7F4EC;padding:20px;display:flex;flex-direction:column;gap:6px"><div style="font-size:19px;font-weight:700;color:#14432A">'+esc(x.name)+'</div><div style="font-family:\'Playfair Display\',Georgia,serif;font-size:42px;font-weight:700;color:#14432A">'+esc(x.threshold)+'</div><div style="font-size:18px;font-weight:500;color:#2E3A32">'+esc(x.reward)+'</div></div>'}).join('');}
+ else el.innerHTML=sample;
+ if(window.fit)fit();
+}
+EvergreenSetup.init({id:'region-incentive-flyer',title:'Make this flyer yours',intro:'Six quick questions turn the sample into your region\'s incentive flyer. Skip to keep the sample.',
+ questions:[
+ {key:'region',q:'What is your region or office name?',type:'text',example:'Pacific Northwest Region',placeholder:'Your region'},
+ {key:'push',q:'What is the push called?',type:'text',example:'Winter Break Push',placeholder:'Winter Break Push'},
+ {key:'headline',q:'Headline text',type:'text',why:'The last word is shown in gold italics.',example:'Earn your way to Cabo.',placeholder:'Earn your way to Cabo.'},
+ {key:'window',q:'When does the push run?',type:'group',fields:[{key:'start',label:'Starts',type:'date'},{key:'end',label:'Ends',type:'date'}],example:'Dec 29 – Jan 18'},
+ {key:'trip',q:'Destination or prize line',type:'text',example:'Cabo San Lucas · April 2027',placeholder:'Destination · when'},
+ {key:'levels',q:'Your incentive levels (up to 6)',type:'list',fields:[{key:'name',label:'Level name'},{key:'threshold',label:'Sales threshold'},{key:'reward',label:'Reward'}],example:'Silver · $10K · 50% of trip'}
+ ],onDone:done});
+})();
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body></html>

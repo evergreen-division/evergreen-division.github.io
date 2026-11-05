@@ -119,6 +119,32 @@ td.txt{white-space:normal;text-align:left;min-width:150px}
 td.l{text-align:left}
 th.l{text-align:left}
 footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
+/* Click a name: month by month */
+button.who{all:unset;cursor:pointer;font-weight:800;border-bottom:1px dotted var(--copper);overflow-wrap:anywhere}
+button.who:hover{color:var(--copper-2)}
+button.who:focus-visible,.lnk:focus-visible,.vcard:focus-visible,.x:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.lnk{all:unset;cursor:pointer;font-weight:700;font-size:13px;color:var(--copper-2);border-bottom:1px dotted var(--copper)}
+.kpi .n .lnk{display:inline-block;margin-top:6px}
+.ord{font-size:12.5px;color:var(--muted)}
+dialog#drill{width:min(920px,calc(100vw - 32px));max-height:calc(100dvh - 32px);padding:0;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);overflow:auto}
+dialog#drill::backdrop{background:rgba(15,20,17,.55)}
+.dbody{padding:18px;display:grid;gap:14px}
+.dhead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dhead h2{font-size:26px;margin:2px 0 0}
+.x{all:unset;cursor:pointer;font-weight:800;font-size:13px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);flex:none}
+.vcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.vcard{all:unset;box-sizing:border-box;cursor:pointer;display:block;min-width:0;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px}
+.vcard.on{border-color:var(--copper)}
+.vcard h3{margin:0 0 8px;font-size:14.5px;font-weight:800;color:var(--forest)}
+.vcard .big{font-size:21px;font-weight:800;color:var(--forest)}
+.vcard .ln{font-size:12.5px;color:var(--muted);margin-top:3px}
+.vcard hr{border:0;border-top:1px solid var(--line);margin:8px 0}
+.dtable td,.dtable th{padding:8px 7px;font-size:13.5px}
+.dtable tr.now td{background:color-mix(in srgb,var(--copper) 12%,transparent)}
+.dtable tr.tot td{font-weight:800;border-top:2px solid var(--line)}
+.dtable th.grp{text-align:center;border-left:1px solid var(--line)}
+.dtable td.gs,.dtable th.gs{border-left:1px solid var(--line)}
+.dtable .fut{color:var(--muted)}
 @media (max-width:760px){
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .kpi .v{font-size:20px;overflow-wrap:anywhere}
@@ -132,6 +158,10 @@ footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
   .rnum{font-size:12.5px}
   .divcard{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}
   .plan .keys{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .seg button{font-size:13px;padding:7px 10px}
+  dialog#drill{width:100vw;max-width:100vw;max-height:100dvh;height:100dvh;border:0;border-radius:0;margin:0}
+  .dbody{padding:14px}
+  .vcards{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:76%;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
   .grid2{grid-template-columns:minmax(0,1fr)}
   .drow{grid-template-columns:22px minmax(0,1fr) auto 52px;gap:4px 8px}
   .drow .track{grid-column:2 / 5;grid-row:2}
@@ -160,7 +190,8 @@ footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
       <div class="sub" id="asof"></div>
     </div>
     <div class="seg" id="types">
-      <button data-t="BIZ" class="on">Business gifts</button>
+      <button data-t="ALL" class="on">All gifting</button>
+      <button data-t="BIZ">Business gifts</button>
       <button data-t="RLT">Realtor gifts</button>
     </div>
   </header>
@@ -186,6 +217,7 @@ footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
 
   <footer id="foot"></footer>
 </div>
+<dialog id="drill" aria-labelledby="dName"><div class="dbody" id="dBody"></div></dialog>
 <script>
 window.EGD=(function(){
   var cfg,KEY;
@@ -216,7 +248,7 @@ window.EGD=(function(){
     banner.appendChild(open);
     var ov=el('div',{'class':'egd-ov',hidden:''});
     var panel=el('div',{'class':'egd-panel',role:'dialog','aria-label':'Load your own data'});
-    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
+    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
     panel.querySelector('code').textContent=cfg.columns.join(',');
     var file=el('input',{type:'file',accept:'.csv,text/csv,text/plain'});
     var ta=el('textarea',{placeholder:'Or paste CSV text here',spellcheck:'false'});
@@ -273,37 +305,90 @@ function buildGifts(rows, isSample){
   const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
   const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
   const opt=v=>{if(v==null||String(v).trim()==='')return null;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isFinite(n)?n:null;};
-  const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:num(r.orders),goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
+  const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:Math.max(0,Math.round(num(r.orders))),hasO:opt(r.orders)!=null,goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
   if(!recs.length)throw new Error('No usable rows (each row needs a name and a year).');
   const Y=Math.max(...recs.map(x=>x.year)), years=[Y-2,Y-1,Y];
   const now=new Date(), pad=n=>String(n).padStart(2,'0');
   const asof=isSample?'2026-11-03':(now.getFullYear()===Y?`${Y}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`:`${Y}-12-31`);
-  const ad=new Date(asof+'T12:00:00'), cm=ad.getMonth(), frac=ad.getDate()/new Date(Y,cm+1,0).getDate();
+  const ad=new Date(asof+'T12:00:00'), cm=ad.getMonth(), day=ad.getDate();
   const sum=a=>a.reduce((x,z)=>x+z,0);
   const zero=()=>Array(12).fill(0);
-  const toDate=a=>Math.round(sum(a.slice(0,cm))+a[cm]*frac);
-  const labels={BIZ:'Business gifts',RLT:'Realtor gifts'};
-  const types={}, gl=[];
+  const labels={ALL:'All gifting',BIZ:'Business gifts',RLT:'Realtor gifts'};
+  // Spread a yearly order count over the months in proportion to sales (every month with sales gets at least one order when the count allows). Sums back to the count exactly.
+  const spread=(sales,n)=>{
+    const o=zero(), tot=sum(sales);
+    if(!n||!tot)return o;
+    const act=sales.map((v,i)=>v>0?i:-1).filter(i=>i>=0);
+    let left=n;
+    if(n>=act.length){act.forEach(i=>{o[i]=1;});left=n-act.length;}
+    const q=sales.map(v=>v/tot*left), fl=q.map(Math.floor);
+    fl.forEach((v,i)=>{o[i]+=v;});
+    let rem=left-sum(fl);
+    q.map((v,i)=>[v-fl[i],i]).sort((x,y)=>y[0]-x[0]).slice(0,rem).forEach(([,i])=>{o[i]+=1;});
+    return o;
+  };
+  // Last year's same month, up to the same day of the month (by proportion: the CSV has months, not days).
+  const mtdFrac=day/new Date(Y-1,cm+1,0).getDate();
+  const mkHist=sales=>{const h={};years.forEach(y=>{h[y]={s:(sales[y]||zero()).slice(),o:zero()};});return h;};
+  const fin=h=>{
+    const ly=h[Y-1], mtdS=Math.round(ly.s[cm]*mtdFrac), mtd={s:mtdS,o:mtdS>0&&ly.o[cm]>0?Math.min(ly.o[cm],Math.max(1,Math.round(ly.o[cm]*mtdFrac))):Math.round(ly.o[cm]*mtdFrac)};
+    return {ly_mtd:mtd,ytd:sum(h[Y].s),orders:sum(h[Y].o),ly_ytd:sum(ly.s.slice(0,cm))+mtd.s,orders_ly:sum(ly.o.slice(0,cm))+mtd.o};
+  };
+  const mkRep=(name,h)=>{
+    const n=fin(h), yrs={};years.forEach(y=>{yrs[y]=sum(h[y].s);});
+    return {name:name,years:yrs,ytd:n.ytd,ly_ytd:n.ly_ytd,orders:n.orders,orders_ly:n.orders_ly,ly_mtd:n.ly_mtd,avg:n.orders?Math.round(n.ytd/n.orders):null,months:h[Y].s.slice(),hist:h};
+  };
+  const mkType=(T,reps)=>{
+    const monthly={}, monthly_orders={}, totals={}, orders_totals={};
+    years.forEach(y=>{
+      monthly[y]=zero();monthly_orders[y]=zero();
+      reps.forEach(r=>{r.hist[y].s.forEach((v,i)=>{monthly[y][i]+=v;});r.hist[y].o.forEach((v,i)=>{monthly_orders[y][i]+=v;});});
+      totals[y]=sum(monthly[y]);orders_totals[y]=sum(monthly_orders[y]);
+    });
+    reps.sort((a,b)=>b.ytd-a.ytd);
+    return {label:labels[T],monthly:monthly,monthly_orders:monthly_orders,totals:totals,orders_totals:orders_totals,
+      ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),orders_ly_ytd:sum(reps.map(r=>r.orders_ly)),
+      ly_mtd:{s:sum(reps.map(r=>r.ly_mtd.s)),o:sum(reps.map(r=>r.ly_mtd.o))},reps:reps};
+  };
+  const types={}, gl=[], byT={BIZ:{},RLT:{}};
   ['BIZ','RLT'].forEach(T=>{
     const byName={};
     recs.filter(x=>x.type===T).forEach(x=>{
-      const o=byName[x.name]||(byName[x.name]={name:x.name,y:{},orders:0});
+      const o=byName[x.name]||(byName[x.name]={name:x.name,y:{},n:{},has:{}});
       const cur=o.y[x.year]||(o.y[x.year]=zero());
       x.m.forEach((v,i)=>{cur[i]+=v;});
-      if(x.year===Y)o.orders+=x.orders;
+      o.n[x.year]=(o.n[x.year]||0)+x.orders; if(x.hasO)o.has[x.year]=true;
       if(x.goal!=null||x.proj!=null)gl.push({name:x.name,T:T,goal:x.goal,proj:x.proj});
     });
-    const monthly={};years.forEach(y=>{monthly[y]=zero();});
-    const reps=Object.values(byName).map(o=>{
-      const yrs={};
-      years.forEach(y=>{const a=o.y[y]||zero();yrs[y]=sum(a);a.forEach((v,i)=>{monthly[y][i]+=v;});});
-      const cur=o.y[Y]||zero(), ly=o.y[Y-1]||zero(), ytd=sum(cur);
-      return {name:o.name,years:yrs,ytd:ytd,ly_ytd:toDate(ly),orders:o.orders,avg:o.orders?Math.round(ytd/o.orders):null,months:cur,goal:null};
+    // Yearly order counts that are missing are estimated from this person's latest average order (or the division's), never left blank.
+    const tS=sum(Object.values(byName).map(o=>sum(o.y[Y]||zero()))), tN=sum(Object.values(byName).map(o=>o.n[Y]||0));
+    const divAvg=tN?tS/tN:0;
+    byT[T]=Object.values(byName).map(o=>{
+      const h=mkHist(o.y);
+      years.forEach(y=>{
+        let n=o.n[y]||0;
+        const tot=sum(h[y].s);
+        if(!o.has[y]&&tot>0){const a=(o.n[Y]&&sum(o.y[Y]||zero())>0)?sum(o.y[Y])/o.n[Y]:divAvg; n=a>0?Math.max(1,Math.round(tot/a)):0;}
+        h[y].o=spread(h[y].s,n);
+      });
+      return mkRep(o.name,h);
     });
-    reps.sort((a,b)=>b.ytd-a.ytd);
-    const totals={};years.forEach(y=>{totals[y]=sum(monthly[y]);});
-    types[T]={label:labels[T],monthly:monthly,totals:totals,ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),reps:reps};
+    types[T]=mkType(T,byT[T]);
   });
+  // ALL = BIZ + RLT, per person and per month
+  const allMap={};
+  ['BIZ','RLT'].forEach(T=>byT[T].forEach(r=>{
+    const e=allMap[r.name]||(allMap[r.name]=mkHist({}));
+    years.forEach(y=>{r.hist[y].s.forEach((v,i)=>{e[y].s[i]+=v;});r.hist[y].o.forEach((v,i)=>{e[y].o[i]+=v;});});
+  }));
+  // ly_mtd for ALL is the sum of the two types' own (so Business + Realtor = All to the dollar)
+  const allReps=Object.keys(allMap).map(n=>{
+    const r=mkRep(n,allMap[n]), parts=['BIZ','RLT'].map(T=>byT[T].find(x=>x.name===n)).filter(Boolean);
+    r.ly_mtd={s:sum(parts.map(p=>p.ly_mtd.s)),o:sum(parts.map(p=>p.ly_mtd.o))};
+    r.ly_ytd=sum(allMap[n][Y-1].s.slice(0,cm))+r.ly_mtd.s; r.orders_ly=sum(allMap[n][Y-1].o.slice(0,cm))+r.ly_mtd.o;
+    return r;
+  });
+  types.ALL=mkType('ALL',allReps);
   if(!isSample){
     if(!types.BIZ.reps.length)throw new Error('Add at least one BIZ (business gift) row.');
     if(!types.BIZ.reps.some(r=>r.years[Y-1]>0))throw new Error('Needs earlier-year BIZ sales: the page measures each person against the year before the latest year in your file.');
@@ -321,64 +406,65 @@ function buildGifts(rows, isSample){
   return {sample:!!isSample,asof:asof,pulled:now.toISOString(),year:Y,years:years,types:types,national:national,goals:goals};
 }
 const D = EGD.init({setup:SETUP_ID,key:"egd-business-gifts-v2",columns:["type","name","year","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec","orders","goal","projection"],required:["name","year"],
-  help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year (the latest year is treated as the current year, up to three years are shown; include the year before it so pace can be measured). <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year’s row, <b>orders</b> = number of orders, and <b>goal</b> / <b>projection</b> = next-year goal and projection (optional).",
+  help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year (the latest year is treated as the current year, up to three years are shown; include the year before it so pace can be measured). <b>jan&ndash;dec</b> = gift sales for that month in dollars. <b>orders</b> = number of orders that year (optional on earlier years; monthly order counts are spread in proportion to sales, and a missing count is estimated from the average order). On the latest year’s row, <b>goal</b> / <b>projection</b> = next-year goal and projection (optional).",
   filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
-BIZ,Jordan K.,2024,3391,0,5753,3204,15022,2240,3423,1877,12062,4869,7675,3734,,,
-BIZ,Jordan K.,2025,3397,764,2394,5130,42935,2928,8218,5627,7256,2195,3298,15037,,,
+BIZ,Jordan K.,2024,3391,0,5753,3204,15022,2240,3423,1877,12062,4869,7675,3734,20,,
+BIZ,Jordan K.,2025,3397,764,2394,5130,42935,2928,8218,5627,7256,2195,3298,15037,34,,
 BIZ,Jordan K.,2026,3177,17030,9490,5706,6960,9002,0,10674,11415,8850,3001,0,34,,
-BIZ,Taylor M.,2024,0,282,423,0,131,470,994,0,0,0,0,0,,,
-BIZ,Taylor M.,2025,0,2922,0,5384,0,4184,979,0,0,3632,0,0,,,
+BIZ,Taylor M.,2024,0,282,423,0,131,470,994,0,0,0,0,0,3,,
+BIZ,Taylor M.,2025,0,2922,0,5384,0,4184,979,0,0,3632,0,0,7,,
 BIZ,Taylor M.,2026,0,742,5442,182,4822,10056,0,0,581,14256,218,0,14,,
-BIZ,Casey R.,2024,2151,362,0,0,722,0,1304,0,0,0,5811,0,,,
-BIZ,Casey R.,2025,1159,1388,0,480,853,4307,0,452,0,0,5021,10280,,,
+BIZ,Casey R.,2024,2151,362,0,0,722,0,1304,0,0,0,5811,0,4,,
+BIZ,Casey R.,2025,1159,1388,0,480,853,4307,0,452,0,0,5021,10280,9,,
 BIZ,Casey R.,2026,3624,1074,0,1928,0,6478,7986,3350,0,0,972,0,16,,
-BIZ,Riley P.,2024,369,0,0,0,0,0,0,0,0,0,3081,0,,,
-BIZ,Riley P.,2025,0,0,0,1073,0,0,0,0,0,1868,7319,0,,,
+BIZ,Riley P.,2024,369,0,0,0,0,0,0,0,0,0,3081,0,2,,
+BIZ,Riley P.,2025,0,0,0,1073,0,0,0,0,0,1868,7319,0,3,,
 BIZ,Riley P.,2026,0,0,0,0,4562,0,6328,0,0,0,0,0,6,,
-BIZ,Morgan S.,2024,1021,588,0,0,334,458,1493,0,0,599,1256,0,,,
-BIZ,Morgan S.,2025,0,0,0,0,0,5130,0,0,0,0,0,0,,,
+BIZ,Morgan S.,2024,1021,588,0,0,334,458,1493,0,0,599,1256,0,4,,
+BIZ,Morgan S.,2025,0,0,0,0,0,5130,0,0,0,0,0,0,2,,
 BIZ,Morgan S.,2026,0,0,0,0,0,0,1218,6042,0,0,0,0,5,,
-BIZ,Avery L.,2024,0,0,0,0,0,0,248,0,0,135,1917,0,,,
-BIZ,Avery L.,2025,0,1448,0,0,0,581,0,0,0,1929,0,2881,,,
+BIZ,Avery L.,2024,0,0,0,0,0,0,248,0,0,135,1917,0,2,,
+BIZ,Avery L.,2025,0,1448,0,0,0,581,0,0,0,1929,0,2881,3,,
 BIZ,Avery L.,2026,0,0,0,0,2818,0,0,0,2627,0,0,0,4,,
-BIZ,Quinn B.,2024,0,0,929,0,0,0,2521,0,0,0,0,0,,,
-BIZ,Quinn B.,2025,524,0,952,0,0,241,516,0,1187,0,0,0,,,
+BIZ,Quinn B.,2024,0,0,929,0,0,0,2521,0,0,0,0,0,2,,
+BIZ,Quinn B.,2025,524,0,952,0,0,241,516,0,1187,0,0,0,3,,
 BIZ,Quinn B.,2026,0,0,0,0,0,2101,0,0,2436,0,0,0,2,,
-BIZ,Jamie D.,2024,0,554,0,479,0,0,0,0,117,0,0,0,,,
-BIZ,Jamie D.,2025,0,0,0,357,0,223,0,0,0,0,0,1129,,,
+BIZ,Jamie D.,2024,0,554,0,479,0,0,0,0,117,0,0,0,2,,
+BIZ,Jamie D.,2025,0,0,0,357,0,223,0,0,0,0,0,1129,2,,
 BIZ,Jamie D.,2026,0,0,0,0,0,0,0,0,0,6353,0,0,1,,
 BIZ,Sam T.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
-BIZ,Sam T.,2025,0,0,0,0,0,0,0,0,0,2228,1192,0,,,
-BIZ,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
-RLT,Jordan K.,2024,6833,4499,10259,6044,8579,5032,4784,3820,4582,10175,6554,7720,,,
-RLT,Jordan K.,2025,5068,928,3744,3593,5766,4361,967,8021,9994,7976,5083,4450,,,
+BIZ,Sam T.,2025,0,0,0,0,0,0,0,0,0,2228,1192,0,2,,
+BIZ,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,,,
+RLT,Jordan K.,2024,6833,4499,10259,6044,8579,5032,4784,3820,4582,10175,6554,7720,28,,
+RLT,Jordan K.,2025,5068,928,3744,3593,5766,4361,967,8021,9994,7976,5083,4450,22,,
 RLT,Jordan K.,2026,4679,5577,4947,3523,3545,4711,1899,11688,4891,3222,230,0,27,,
-RLT,Taylor M.,2024,776,0,0,0,493,776,0,0,206,766,0,1064,,,
-RLT,Taylor M.,2025,0,0,0,0,0,0,1477,0,2883,0,0,0,,,
-RLT,Taylor M.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
-RLT,Casey R.,2024,0,7998,4178,0,0,0,0,1424,0,0,0,0,,,
-RLT,Casey R.,2025,0,0,0,0,9830,0,0,1521,0,0,0,640,,,
+RLT,Taylor M.,2024,776,0,0,0,493,776,0,0,206,766,0,1064,4,,
+RLT,Taylor M.,2025,0,0,0,0,0,0,1477,0,2883,0,0,0,2,,
+RLT,Taylor M.,2026,0,0,0,0,0,0,0,0,0,0,0,0,,,
+RLT,Casey R.,2024,0,7998,4178,0,0,0,0,1424,0,0,0,0,5,,
+RLT,Casey R.,2025,0,0,0,0,9830,0,0,1521,0,0,0,640,6,,
 RLT,Casey R.,2026,0,0,0,0,0,3024,2106,0,0,1763,1867,0,6,,
-RLT,Riley P.,2024,0,917,0,0,2800,5217,1538,0,0,1769,0,0,,,
-RLT,Riley P.,2025,0,0,0,0,0,0,375,5006,713,0,0,446,,,
+RLT,Riley P.,2024,0,917,0,0,2800,5217,1538,0,0,1769,0,0,4,,
+RLT,Riley P.,2025,0,0,0,0,0,0,375,5006,713,0,0,446,3,,
 RLT,Riley P.,2026,0,1976,0,617,0,0,0,182,2335,0,0,0,5,,
-RLT,Morgan S.,2024,0,0,0,0,2227,865,0,1273,0,0,0,2434,,,
-RLT,Morgan S.,2025,2106,0,0,1104,0,0,956,0,4554,0,0,0,,,
+RLT,Morgan S.,2024,0,0,0,0,2227,865,0,1273,0,0,0,2434,3,,
+RLT,Morgan S.,2025,2106,0,0,1104,0,0,956,0,4554,0,0,0,4,,
 RLT,Morgan S.,2026,0,0,451,0,0,4397,587,0,1015,0,119,0,4,,
-RLT,Avery L.,2024,962,0,2245,0,0,0,873,0,0,0,0,0,,,
-RLT,Avery L.,2025,0,0,0,0,1952,1318,0,0,0,0,0,0,,,
+RLT,Avery L.,2024,962,0,2245,0,0,0,873,0,0,0,0,0,2,,
+RLT,Avery L.,2025,0,0,0,0,1952,1318,0,0,0,0,0,0,2,,
 RLT,Avery L.,2026,545,0,221,357,0,0,281,0,0,697,89,0,1,,
-RLT,Quinn B.,2024,0,2720,0,0,0,0,0,0,0,0,0,0,,,
-RLT,Quinn B.,2025,0,0,0,2180,0,0,0,0,0,0,0,0,,,
+RLT,Quinn B.,2024,0,2720,0,0,0,0,0,0,0,0,0,0,1,,
+RLT,Quinn B.,2025,0,0,0,2180,0,0,0,0,0,0,0,0,1,,
 RLT,Quinn B.,2026,0,0,0,0,0,0,0,0,0,0,1460,0,1,,
-RLT,Jamie D.,2024,0,1719,2150,0,0,0,0,1166,0,0,5845,0,,,
-RLT,Jamie D.,2025,4105,0,0,1173,0,775,284,1427,0,1355,0,691,,,
-RLT,Jamie D.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
-RLT,Sam T.,2024,0,0,0,690,0,127,0,624,1279,0,0,0,,,
-RLT,Sam T.,2025,0,0,0,0,184,0,482,0,0,0,1414,100,,,
-RLT,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+RLT,Jamie D.,2024,0,1719,2150,0,0,0,0,1166,0,0,5845,0,4,,
+RLT,Jamie D.,2025,4105,0,0,1173,0,775,284,1427,0,1355,0,691,4,,
+RLT,Jamie D.,2026,0,0,0,0,0,0,0,0,0,0,0,0,,,
+RLT,Sam T.,2024,0,0,0,690,0,127,0,624,1279,0,0,0,3,,
+RLT,Sam T.,2025,0,0,0,0,184,0,482,0,0,0,1414,100,3,,
+RLT,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,,,
 `,build:(rows,isSample)=>buildGifts(rows,isSample)});
 const G = D.goals || null;
+const NO_RLT = /^no/i.test(ANS.realtor || "") || !D.types.RLT.reps.length;
 
 const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const $ = s => document.querySelector(s);
@@ -390,8 +476,16 @@ const Y = D.year, asof = new Date(D.asof + 'T12:00:00');
 const mi = asof.getMonth(), dayFrac = asof.getDate() / new Date(Y, mi + 1, 0).getDate();
 const monthsLeft = Math.max(.5, 12 - mi - dayFrac);
 const goalsOn = !!(G && G.year === Y);
-let TT = 'BIZ', VIEW = 'score';
+let TT = 'ALL', VIEW = 'score';
 const charts = {};
+
+const DIV = '__division';
+const who = (name, label) => `<button class="who" data-who="${esc(name)}" title="See month by month">${esc(label || name)}</button>`;
+const divLink = txt => `<button class="lnk" data-who="${DIV}">${txt}</button>`;
+const nOrd = n => `${n} order${n === 1 ? '' : 's'}`;
+const avgOf = (s, o) => o ? money(s / o) : '—';
+// "12 orders vs 20": red when fewer orders than the same date last year, so big orders can't hide a slowdown.
+const ordVs = (o, ly) => `<span class="ord"><span class="${o < ly ? 'down' : o > ly ? 'up' : ''} b">${nOrd(o)}</span> vs ${ly}</span>`;
 
 function model(t){
   const T = D.types[t];
@@ -403,27 +497,26 @@ function model(t){
   const FR = shareBy(mi, dayFrac);
   const byName = Object.fromEntries(T.reps.map(r => [nk(r.name), r]));
   let people = [], others = [], missing = [];
-  if (goalsOn) {
-    for (const g of G.rows) {
-      const L = g[t] || {}, target = L.goal || L.proj, r = byName[nk(g.name)];
-      if (!r && !target) { missing.push(g.name); continue; }
-      const p = {name:r ? r.name : g.name, ytd:r ? r.ytd : 0, ly:r ? r.ly_ytd : 0, months:r ? r.months : Array(12).fill(0), target, proj:L.proj || L.goal};
-      if (target) people.push(p); else others.push(p);
-      if (!r) p.noOrders = true;
-    }
-    const onSheet = new Set(G.rows.map(g => nk(g.name)));
-    T.reps.filter(r => !onSheet.has(nk(r.name)) && r.ytd > 0).forEach(r => others.push({name:r.name, ytd:r.ytd}));
-  } else {
-    T.reps.forEach(r => { const last = r.years[String(Y-1)] || 0;
-      if (last > 0) people.push({name:r.name, ytd:r.ytd, ly:r.ly_ytd, months:r.months, target:last});
-      else if (r.ytd > 0) others.push({name:r.name, ytd:r.ytd}); });
-  }
+  const sheet = new Map(goalsOn ? G.rows.map(g => [nk(g.name), g]) : []);
+  const goalFor = g => { if (!g) return {goal:0, proj:0};
+    const one = x => { const L = g[x] || {}; return {goal:L.goal || L.proj || 0, proj:L.proj || L.goal || 0}; };
+    if (t !== 'ALL') return one(t);
+    const a = one('BIZ'), b = one('RLT'); return {goal:a.goal + b.goal, proj:a.proj + b.proj}; };
+  T.reps.forEach(r => { const last = r.years[String(Y-1)] || 0, L = goalFor(sheet.get(nk(r.name)));
+    const p = {name:r.name, r, ytd:r.ytd, ly:r.ly_ytd, orders:r.orders, lyOrders:r.orders_ly, months:r.months,
+      target:L.goal || last, proj:L.proj || last, hasGoal:!!L.goal};
+    if (p.target) people.push(p); else if (r.ytd > 0) others.push(p); });
+  sheet.forEach((g, key) => { const name = g.name; if (byName[key]) return; const L = goalFor(g);
+    if (L.goal) people.push({name, r:null, ytd:0, ly:0, orders:0, lyOrders:0, months:Array(12).fill(0), target:L.goal, proj:L.proj, hasGoal:true, noOrders:true});
+    else missing.push(name); });
+  const withGoal = people.filter(p => p.hasGoal).length;
+  const word = !withGoal ? `${Y-1} total` : withGoal === people.length ? 'goal' : 'target';
   const divTarget = people.reduce((a,p)=>a+p.target,0);
-  const divProj = goalsOn ? people.reduce((a,p)=>a+(p.proj||0),0) : null;
-  return {T, FR, shareBy, people, others, missing, divTarget, divProj, ytd:T.ytd, lyYtd:T.ly_ytd,
+  const divProj = withGoal ? people.reduce((a,p)=>a+(p.proj||0),0) : null;
+  return {T, FR, shareBy, people, others, missing, divTarget, divProj, withGoal, word, ytd:T.ytd, lyYtd:T.ly_ytd,
     fore: FR > .03 ? T.ytd/FR : null, label: T.label};
 }
-const tgtWord = () => goalsOn ? 'goal' : `${Y-1} total`;
+const pWord = p => p.hasGoal ? 'goal' : `${Y-1} total`;
 function status(m, ytd, target){ const r = target ? ytd/(target*m.FR) : 0;
   return r >= 1 ? {c:'up', t:'Ahead of pace'} : r >= BEHIND ? {c:'mid', t:'Close to pace'} : {c:'down', t:'Behind pace'}; }
 const gapTxt = (m, ytd, target) => { const g = ytd - target*m.FR; return g >= 0 ? `${k(g)} ahead` : `${k(-g)} behind`; };
@@ -434,15 +527,17 @@ function header(m){
   $('#title').textContent = `${m.label} ${Y}`;
   $('#asof').textContent = `${D.sample ? 'Sample data' : 'Your data'} · as of ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · ${m.people.length} ${RLOW}`;
   const n = $('#note');
-  if (!goalsOn) { n.hidden = false;
-    n.innerHTML = `<b>${G && G.year > Y ? `${G.year} goals start on January 1.` : 'No goals yet.'}</b> Until then, each person is measured against their own ${Y-1} total, so "ahead" means ahead of last year's pace.`;
-  } else n.hidden = true;
+  n.hidden = false;
+  n.innerHTML = m.withGoal && m.withGoal < m.people.length
+    ? `<b>Goals and last year.</b> People who set a ${Y} goal are measured against it. Everyone else is measured against their own ${Y-1} total.`
+    : m.withGoal ? `<b>Measured against ${Y} goals.</b> Click any name to see them month by month.`
+    : `<b>Measured against last year.</b> Each person's target is their own ${Y-1} total, so "ahead" means ahead of last year's pace. Click any name to see them month by month.`;
   const s = status(m, m.ytd, m.divTarget);
   $('#kpis').innerHTML = `
-    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(m.ytd)}</div><div class="n">${vsLyHtml(m)}</div></div>
-    <div class="card kpi"><div class="l">${goalsOn ? 'Division goal' : `Division ${Y-1} total`}</div><div class="v">${money(m.divTarget)}</div><div class="n">${goalsOn ? `Team projection ${money(m.divProj)}` : `Same people, all of ${Y-1}`}</div></div>
+    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(m.ytd)}</div><div class="n">${vsLyHtml(m)}<br>${ordVs(m.T.orders_ytd, m.T.orders_ly_ytd)}<br>${divLink('Month by month')}</div></div>
+    <div class="card kpi"><div class="l">${m.withGoal ? `Division ${m.word}` : `Division ${Y-1} total`}</div><div class="v">${money(m.divTarget)}</div><div class="n">${m.withGoal ? `Team projection ${money(m.divProj)}` : `Same people, all of ${Y-1}`}</div></div>
     <div class="card kpi"><div class="l">Pace today</div><div class="v ${s.c}">${gapTxt(m, m.ytd, m.divTarget)}</div><div class="n">Should be at ${money(m.divTarget*m.FR)} by now</div></div>
-    <div class="card kpi"><div class="l">On track to finish</div><div class="v">${money(m.fore)}</div><div class="n">${m.fore ? `${Math.round(m.fore/m.divTarget*100)}% of ${tgtWord()} at this speed` : 'Too early in the year to tell'}</div></div>`;
+    <div class="card kpi"><div class="l">On track to finish</div><div class="v">${money(m.fore)}</div><div class="n">${m.fore ? `${Math.round(m.fore/m.divTarget*100)}% of ${m.word} at this speed` : 'Too early in the year to tell'}</div></div>`;
 }
 
 function trendChart(id, m){
@@ -450,7 +545,7 @@ function trendChart(id, m){
   const cum = (a, upto) => { let c = 0; return a.map((v,i) => i > upto ? null : (c += v)); };
   charts[id] = new Chart(document.getElementById(id), {type:'line', data:{labels:M, datasets:[
     {label:`${Y}`, data:cum(m.T.monthly[Y], mi), borderColor:css('--copper'), backgroundColor:css('--copper'), borderWidth:3, pointRadius:0, tension:.25},
-    {label:`Pace to ${tgtWord()}`, data:M.map((_,i)=>Math.round(m.divTarget*m.shareBy(i,1))), borderColor:css('--pace'), borderDash:[6,5], borderWidth:2, pointRadius:0, tension:.25},
+    {label:`Pace to ${m.word}`, data:M.map((_,i)=>Math.round(m.divTarget*m.shareBy(i,1))), borderColor:css('--pace'), borderDash:[6,5], borderWidth:2, pointRadius:0, tension:.25},
     {label:`${Y-1}`, data:cum(m.T.monthly[Y-1], 11), borderColor:css('--ly'), borderWidth:2, pointRadius:0, tension:.25},
   ]}, options:{maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
     plugins:{legend:{position:'bottom',labels:{color:css('--muted'),boxWidth:14,font:{family:'Manrope',weight:'600'}}},
@@ -458,7 +553,7 @@ function trendChart(id, m){
     scales:{x:{grid:{display:false},ticks:{color:css('--muted')}}, y:{beginAtZero:true,grid:{color:css('--grid')},ticks:{color:css('--muted'),callback:v=>k(v)}}}}});
 }
 const othersHtml = m => [
-  m.others.length ? `Also selling, no ${goalsOn ? 'goal entered' : `${Y-1} sales to compare`}: ${m.others.map(o=>`${esc(o.name)} ${money(o.ytd)}`).join(' · ')}.` : '',
+  m.others.length ? `Also selling, no ${Y-1} sales to compare: ${m.others.map(o=>`${who(o.name)} ${money(o.ytd)} (${nOrd(o.orders)})`).join(' · ')}.` : '',
   m.missing.length ? `No orders found yet for: ${m.missing.map(esc).join(', ')}.` : ''
 ].filter(Boolean).map(t=>`<div class="others">${t}</div>`).join('');
 
@@ -466,15 +561,15 @@ function vScore(m){
   const list = [...m.people].sort((a,b)=> b.ytd/b.target - a.ytd/a.target);
   const rows = list.map((p,i)=>{ const s = status(m, p.ytd, p.target), w = Math.min(100, p.ytd/p.target*100);
     return `<div class="rrow"><div class="rank">${i+1}</div>
-      <div class="rname">${esc(p.name)}<small>${p.ytd >= p.target ? `<b class="up">${goalsOn ? 'Goal reached' : `Passed ${Y-1}`}</b> · ` : ''}${Math.round(p.ytd/p.target*100)}% of ${k(p.target)} ${tgtWord()}</small></div>
+      <div class="rname">${who(p.name)}<small>${p.ytd >= p.target ? `<b class="up">${p.hasGoal ? 'Goal reached' : `Passed ${Y-1}`}</b> · ` : ''}${Math.round(p.ytd/p.target*100)}% of ${k(p.target)} ${pWord(p)}</small></div>
       <div class="track"><div class="fill" style="width:${w}%;background:var(--${s.c})"></div><div class="tick" style="left:${Math.min(100,m.FR*100)}%" title="Where they should be today"></div></div>
-      <div class="rnum"><span class="b">${money(p.ytd)}</span><br><span class="${s.c} b">${gapTxt(m, p.ytd, p.target)}</span></div></div>`; }).join('');
+      <div class="rnum"><span class="b">${money(p.ytd)}</span> · ${ordVs(p.orders, p.lyOrders)}<br><span class="${s.c} b">${gapTxt(m, p.ytd, p.target)}</span></div></div>`; }).join('');
   $('#v-score').innerHTML = `
-    <div class="card"><h2>Race to ${goalsOn ? 'goal' : `beat ${Y-1}`}</h2><div class="h2n">Ranked by how much of their own ${tgtWord()} each person has done. The dark line on each bar is where they should be today.</div>
+    <div class="card"><h2>Race to ${m.withGoal ? m.word : `beat ${Y-1}`}</h2><div class="h2n">Ranked by how much of their own ${m.word} each person has done. The dark line on each bar is where they should be today. Orders are compared with the same date ${Y-1}; red means fewer orders. Click a name for month by month.</div>
       <div>${rows || '<div class="muted">Nobody to show yet.</div>'}</div>
       <div class="legend"><span><i style="background:var(--up)"></i>Ahead of pace</span><span><i style="background:var(--mid)"></i>Close</span><span><i style="background:var(--down)"></i>Behind</span><span><i style="background:var(--pace);width:3px"></i>Pace today</span></div>
       ${othersHtml(m)}</div>
-    <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${tgtWord()} and last year.</div><div class="chart"><canvas id="c1"></canvas></div></div>`;
+    <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${m.word} and last year. ${divLink('See the division month by month')}</div><div class="chart"><canvas id="c1"></canvas></div></div>`;
   trendChart('c1', m);
 }
 
@@ -485,29 +580,32 @@ function spark(a){
 }
 function vTrend(m){
   const s = status(m, m.ytd, m.divTarget);
-  const rows = [...m.people].sort((a,b)=>b.ytd-a.ytd).map(p=>{ const st = status(m, p.ytd, p.target); return `<tr>
-    <td class="name">${esc(p.name)}</td><td>${money(p.ytd)}</td><td>${money(p.target)}</td>
-    <td><span class="pill ${st.c}">${gapTxt(m, p.ytd, p.target)}</span></td>
+  const rows = [...m.people].sort((a,b)=>b.ytd-a.ytd).map(p=>{ const st = status(m, p.ytd, p.target), r = p.r;
+    const mS = p.months[mi] || 0, mO = r ? r.hist[String(Y)].o[mi] : 0, l = r ? r.ly_mtd : {s:0, o:0};
+    return `<tr>
+    <td class="name">${who(p.name)}</td><td>${money(p.ytd)}</td><td>${ordVs(p.orders, p.lyOrders)}</td><td>${avgOf(p.ytd, p.orders)}</td>
+    <td>${money(mS)} · ${mO}<br><span class="ord">was ${money(l.s)} · ${l.o}</span></td>
+    <td>${money(p.target)}</td><td><span class="pill ${st.c}">${gapTxt(m, p.ytd, p.target)}</span></td>
     <td>${m.FR > .03 ? money(p.ytd/m.FR) : '—'}</td><td>${spark(p.months)}</td></tr>`; }).join('');
   $('#v-trend').innerHTML = `
     <div class="hero2">
-      <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${tgtWord()} and last year.</div><div class="chart big"><canvas id="c2"></canvas></div></div>
+      <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${m.word} and last year.</div><div class="chart big"><canvas id="c2"></canvas></div></div>
       <div class="card side">
-        <div class="eyebrow">So far</div><div class="big">${money(m.ytd)}</div><p>${vsLyHtml(m)}</p><hr>
-        <div class="eyebrow">${goalsOn ? 'Goal' : `${Y-1} total`}</div><div class="big">${money(m.divTarget)}</div>
-        <p>${goalsOn ? `Team projection ${money(m.divProj)}. ` : ''}<span class="${s.c} b">${gapTxt(m, m.ytd, m.divTarget)}</span> of pace.</p><hr>
+        <div class="eyebrow">So far</div><div class="big">${money(m.ytd)}</div><p>${vsLyHtml(m)}<br>${ordVs(m.T.orders_ytd, m.T.orders_ly_ytd)}<br>${divLink('Month by month')}</p><hr>
+        <div class="eyebrow">${m.withGoal ? m.word : `${Y-1} total`}</div><div class="big">${money(m.divTarget)}</div>
+        <p>${m.withGoal ? `Team projection ${money(m.divProj)}. ` : ''}<span class="${s.c} b">${gapTxt(m, m.ytd, m.divTarget)}</span> of pace.</p><hr>
         <div class="eyebrow">On track to finish</div><div class="big">${money(m.fore)}</div><p>If the rest of the year goes like other years.</p>
       </div>
     </div>
-    <div class="card"><h2>Each person</h2><div class="h2n">Pace = where they should be today. Bars = each month this year.</div>
-      <div class="tablewrap"><table><thead><tr><th>Name</th><th>So far</th><th>${goalsOn ? 'Goal' : `${Y-1} total`}</th><th>Pace</th><th>On track for</th><th>${Y} by month</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div class="card"><h2>Each person</h2><div class="h2n">Pace = where they should be today. ${M[mi]} so far is CPO · orders, against the same dates in ${Y-1}. Bars = each month this year. Click a name for month by month.</div>
+      <div class="tablewrap"><table><thead><tr><th>Name</th><th>So far</th><th>Orders</th><th>Avg order</th><th>${M[mi]} so far</th><th>${m.withGoal ? m.word : `${Y-1} total`}</th><th>Pace</th><th>On track for</th><th>${Y} by month</th></tr></thead><tbody>${rows}</tbody></table></div>
       ${othersHtml(m)}</div>`;
   trendChart('c2', m);
 }
 
 function ring(m, p, size, col){
   const r = size/2 - 7, C = 2*Math.PI*r, f = Math.min(1, p);
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${Math.round(p*100)}% of ${tgtWord()}">
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${Math.round(p*100)}% of ${m.word}">
     <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/>
     <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*f} ${C}" transform="rotate(-90 ${size/2} ${size/2})"/>
     <line x1="${size/2}" y1="${size/2 - r - 8}" x2="${size/2}" y2="${size/2 - r + 8}" stroke="var(--pace)" stroke-width="2.5" transform="rotate(${m.FR*360} ${size/2} ${size/2})"/>
@@ -516,17 +614,20 @@ function ring(m, p, size, col){
 function vPeople(m){
   const s = status(m, m.ytd, m.divTarget);
   const cards = [...m.people].sort((a,b)=>b.ytd-a.ytd).map(p=>{ const st = status(m, p.ytd, p.target); return `<div class="card pc">
-    <div class="top">${ring(m, p.ytd/p.target, 74, st.c)}<div><div class="nm">${esc(p.name)}</div><span class="pill ${st.c}">${st.t}</span></div></div>
+    <div class="top">${ring(m, p.ytd/p.target, 74, st.c)}<div><div class="nm">${who(p.name)}</div><span class="pill ${st.c}">${st.t}</span></div></div>
     <div class="line"><span class="muted">So far</span><span class="b">${money(p.ytd)}</span></div>
-    <div class="line"><span class="muted">${goalsOn ? 'Goal' : `${Y-1} total`}</span><span>${money(p.target)}</span></div>
     <div class="line"><span class="muted">Same date ${Y-1}</span><span>${money(p.ly)}</span></div>
-    <div class="need">${p.ytd >= p.target ? `<b class="up">${goalsOn ? 'Goal reached.' : `Already past ${Y-1}.`}</b> Everything now is extra.` : `To reach ${tgtWord()}: <b>${money((p.target-p.ytd)/monthsLeft)}</b> a month from now on.`}</div>
+    <div class="line"><span class="muted">Orders</span>${ordVs(p.orders, p.lyOrders)}</div>
+    <div class="line"><span class="muted">Avg order</span><span>${avgOf(p.ytd, p.orders)} <span class="ord">vs ${avgOf(p.ly, p.lyOrders)}</span></span></div>
+    <div class="line"><span class="muted">${p.hasGoal ? 'Goal' : `${Y-1} total`}</span><span>${money(p.target)}</span></div>
+    <div class="need">${p.ytd >= p.target ? `<b class="up">${p.hasGoal ? 'Goal reached.' : `Already past ${Y-1}.`}</b> Everything now is extra.` : `To reach ${pWord(p)}: <b>${money((p.target-p.ytd)/monthsLeft)}</b> a month from now on.`}</div>
     ${p.noOrders ? '<span class="pill none">No orders found yet</span>' : ''}
   </div>`; }).join('');
   $('#v-people').innerHTML = `
     <div class="card divcard">${ring(m, m.ytd/m.divTarget, 150, s.c)}
       <div><div class="eyebrow">Whole division</div><h2 style="font-size:26px">${money(m.ytd)} of ${money(m.divTarget)}</h2>
       <div class="sub"><span class="${s.c} b">${gapTxt(m, m.ytd, m.divTarget)}</span> of pace · on track to finish at <b>${money(m.fore)}</b> · ${vsLyHtml(m)}</div>
+      <div class="sub" style="margin-top:4px">${ordVs(m.T.orders_ytd, m.T.orders_ly_ytd)} same date ${Y-1} · avg order ${avgOf(m.ytd, m.T.orders_ytd)} · ${divLink('Month by month')}</div>
       <div class="sub" style="margin-top:6px">The small dark mark on each circle is where the person should be today.</div></div></div>
     <div class="cards">${cards}</div>${othersHtml(m)}`;
 }
@@ -568,7 +669,7 @@ function natHeader(){
   $('#title').textContent = `National gifting ${N.year}`;
   $('#asof').textContent = `Sample national report, week ${N.week} (${natDate()}) · made-up numbers`;
   $('#note').hidden = false;
-  $('#note').innerHTML = `<b>Sample data.</b> National tabs show made-up numbers; they need your company's national report. Such a report lists the top 25 divisions, sellers, events and items, so "nationwide" here means the top 25 divisions combined. Divisions and events count business gifts only.`;
+  $('#note').innerHTML = `<b>Sample data.</b> National tabs show made-up numbers; they need your company's national report. Such a report lists the top 25 divisions, sellers, events and items, so "nationwide" here means the top 25 divisions combined. Divisions and events count business gifts only.${TT === 'ALL' && !NO_RLT ? ' The report lists business and realtor separately, so All gifting shows the business lists here; pick Realtor gifts for the realtor lists.' : ''}`;
   const g = n.lyPt ? pct(n.now.top25, n.lyPt.top25) : null;
   $('#kpis').innerHTML = `
     <div class="card kpi"><div class="l">Top 25 divisions, business gifts</div><div class="v">${k(n.now.top25)}</div><div class="n">${g == null ? 'No report for last year' : `${pctHtml(g)} vs same week ${N.year-1}`}</div></div>
@@ -579,7 +680,7 @@ function natHeader(){
     <div class="card kpi"><div class="l">#1 division</div><div class="v">${n.divs[0] ? esc(n.divs[0].name) : '—'}</div><div class="n">${n.divs[0] ? `${money(n.divs[0].cpo)} · ${n.divs[0].reps} sellers` : ''}</div></div>`;
 }
 function vNRanks(){
-  const n = natNumbers(), T = TT === 'BIZ', word = T ? 'business gifts' : 'realtor gifts';
+  const n = natNumbers(), T = TT !== 'RLT', word = T ? 'business gifts' : 'realtor gifts';
   const lyDiv = lyBy('divisions', d => d.name), mx = n.divs.length ? n.divs[0].cpo : 1;
   const homeLyNow = (N.home_cum[String(N.year-1)] || [])[N.week-1] || 0;
   const drow = (d, cls) => { const was = lyDiv[d.name], isHome = d.name === N.home;
@@ -590,7 +691,7 @@ function vNRanks(){
   let divHtml = n.divs.map(d => drow(d, d.name === N.home ? 'home' : '')).join('');
   if (!n.home) divHtml += drow({name:N.home, cpo:n.homeNow, reps:'—', orders:'—'}, 'home gap');
   const reps = n.L[T ? 'reps_biz' : 'reps_rlt'] || [], lyRep = lyBy(T ? 'reps_biz' : 'reps_rlt', r => r.name);
-  const mine = (D.types[TT].reps.find(r => r.name === N.home_rep) || {}).ytd || 0;
+  const mine = (D.types[T ? 'BIZ' : 'RLT'].reps.find(r => r.name === N.home_rep) || {}).ytd || 0;
   const inList = reps.find(r => r.name === N.home_rep), repCut = reps.length ? reps[reps.length-1].cpo : 0;
   const repRows = reps.map(r => `<tr class="${r.name === N.home_rep ? 'home' : ''}"><td>${r.rank}</td><td class="name l">${esc(r.name)}</td><td>${r.orders}</td><td>${money(r.cpo)}</td><td>${r.orders ? money(r.cpo/r.orders) : '—'}</td><td>${lyRep[r.name] ? '#' + lyRep[r.name].rank : '<span class="muted">—</span>'}</td></tr>`).join('');
   const ev = (n.L.events || []).map(e => `<tr><td>${e.rank}</td><td class="txt">${esc(e.name)}</td><td>${e.orders}</td><td>${money(e.cpo)}</td></tr>`).join('');
@@ -609,7 +710,7 @@ function vNRanks(){
     </div>`;
 }
 function vNTrends(){
-  const n = natNumbers(), T = TT === 'BIZ', word = T ? 'business gift' : 'realtor';
+  const n = natNumbers(), T = TT !== 'RLT', word = T ? 'business gift' : 'realtor';
   const s1 = natSeries(N.year), s0 = natSeries(N.year - 1), W = Array.from({length:53}, (_, i) => i + 1);
   const at = (s, f) => W.map(w => { const p = s.find(x => x.week === w); return p ? f(p) : null; });
   const homeNow = N.home_cum[String(N.year)] || [], homeLy = N.home_cum[String(N.year-1)] || [];
@@ -644,6 +745,76 @@ function vNTrends(){
     line(`${N.home} ${N.year-1}`, W.map((w, i) => homeLy[i] ?? null), '--ly')]}, options:opts});
 }
 
+/* ---------- Click a name: month vs same month last year, in all three views ---------- */
+const VIEWS = NO_RLT ? [['BIZ','Business gifts']] : [['ALL','All gifting'],['BIZ','Business gifts'],['RLT','Realtor gifts']];
+let DW = null, DT = 'ALL', DY = Y;
+const zeroHist = () => ({s:Array(12).fill(0), o:Array(12).fill(0)});
+function rec(name, t){
+  const T = D.types[t];
+  if (name === DIV) return {hist:y => ({s:T.monthly[y] || Array(12).fill(0), o:T.monthly_orders[y] || Array(12).fill(0)}),
+    ytd:T.ytd, ly:T.ly_ytd, orders:T.orders_ytd, lyOrders:T.orders_ly_ytd, mtd:T.ly_mtd};
+  const r = T.reps.find(x => x.name === name);
+  if (!r) return {hist:zeroHist, ytd:0, ly:0, orders:0, lyOrders:0, mtd:{s:0, o:0}};
+  return {hist:y => r.hist[y] || zeroHist(), ytd:r.ytd, ly:r.ly_ytd, orders:r.orders, lyOrders:r.orders_ly, mtd:r.ly_mtd};
+}
+const chg = (a, b) => b ? pctHtml((a - b) / b) : a ? '<span class="muted">new</span>' : '<span class="muted">—</span>';
+function viewCard([t, label]){
+  const R = rec(DW, t), h = R.hist(Y);
+  return `<button class="vcard ${t === DT ? 'on' : ''}" data-dt="${t}" aria-pressed="${t === DT}"><h3>${label}</h3>
+    <div class="ln">${M[mi]} so far</div><div class="big">${money(h.s[mi])}</div>
+    <div class="ln">${nOrd(h.o[mi])} · ${chg(h.s[mi], R.mtd.s)}</div>
+    <div class="ln">Same dates ${Y-1}: ${money(R.mtd.s)} · ${nOrd(R.mtd.o)}</div><hr>
+    <div class="ln">Year so far</div><div class="big">${money(R.ytd)}</div>
+    <div class="ln">${nOrd(R.orders)} · avg ${avgOf(R.ytd, R.orders)} · ${chg(R.ytd, R.ly)}</div>
+    <div class="ln">Same date ${Y-1}: ${money(R.ly)} · ${nOrd(R.lyOrders)}</div></button>`;
+}
+function drawDrill(){
+  const R = rec(DW, DT), label = VIEWS.find(v => v[0] === DT)[1], A = R.hist(DY), B = R.hist(DY - 1), live = DY === Y;
+  const rows = M.map((name, i) => {
+    const future = live && i > mi, now = live && i === mi;
+    const bs = now ? R.mtd.s : B.s[i], bo = now ? R.mtd.o : B.o[i];
+    if (future) return `<tr class="fut"><td>${name}</td><td class="gs">—</td><td>${money(bs)}</td><td></td><td class="gs">—</td><td>${bo}</td><td></td><td class="gs">—</td><td>${avgOf(bs, bo)}</td></tr>`;
+    return `<tr class="${now ? 'now' : ''}"><td>${name}${now ? ' so far' : ''}</td>
+      <td class="gs b">${money(A.s[i])}</td><td>${money(bs)}</td><td>${chg(A.s[i], bs)}</td>
+      <td class="gs b">${A.o[i]}</td><td>${bo}</td><td>${chg(A.o[i], bo)}</td>
+      <td class="gs">${avgOf(A.s[i], A.o[i])}</td><td>${avgOf(bs, bo)}</td></tr>`; }).join('');
+  const sum = a => a.reduce((x, z) => x + z, 0);
+  const tS = live ? R.ytd : sum(A.s), tBS = live ? R.ly : sum(B.s), tO = live ? R.orders : sum(A.o), tBO = live ? R.lyOrders : sum(B.o);
+  const pairs = D.years.filter(y => D.years.includes(y - 1)).reverse();
+  const everyYear = D.years.map(y => { const h = R.hist(y); return `<b>${y}</b> ${money(sum(h.s))} · ${nOrd(sum(h.o))}`; }).join(' &nbsp;·&nbsp; ');
+  const warn = tS > tBS && tO < tBO ? `<div class="callout"><b class="down">Sales are up but orders are down.</b> ${tO} orders vs ${tBO}, so a few bigger orders are carrying this.</div>`
+    : tS < tBS && tO > tBO ? `<div class="callout"><b class="up">Orders are up but sales are down.</b> ${tO} orders vs ${tBO}, at a smaller average order.</div>` : '';
+  $('#dBody').innerHTML = `
+    <div class="dhead"><div><div class="eyebrow">Month by month</div><h2 id="dName">${DW === DIV ? 'Whole division' : esc(DW)}</h2></div><button class="x" data-close>Close</button></div>
+    <div class="vcards">${VIEWS.map(viewCard).join('')}</div>
+    <div class="card"><div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px"><h2>${label}</h2>
+        ${pairs.length > 1 ? `<div class="seg">${pairs.map(y => `<button data-dy="${y}" class="${y === DY ? 'on' : ''}">${y} vs ${y-1}</button>`).join('')}</div>` : ''}</div>
+      <div class="h2n">${live ? `${M[mi]} so far is compared with the same dates in ${Y-1}. Later months show ${Y-1} only.` : `Full months, ${DY} against ${DY-1}.`}</div>
+      <div class="chart"><canvas id="dc"></canvas></div>
+      <div class="tablewrap" style="margin-top:12px"><table class="dtable"><thead>
+        <tr><th></th><th class="grp" colspan="3">CPO</th><th class="grp" colspan="3">Orders</th><th class="grp" colspan="2">Avg order</th></tr>
+        <tr><th>Month</th><th class="gs">${DY}</th><th>${DY-1}</th><th>Change</th><th class="gs">${DY}</th><th>${DY-1}</th><th>Change</th><th class="gs">${DY}</th><th>${DY-1}</th></tr></thead>
+        <tbody>${rows}<tr class="tot"><td>${live ? 'Year so far' : 'Full year'}</td><td class="gs">${money(tS)}</td><td>${money(tBS)}</td><td>${chg(tS, tBS)}</td><td class="gs">${tO}</td><td>${tBO}</td><td>${chg(tO, tBO)}</td><td class="gs">${avgOf(tS, tO)}</td><td>${avgOf(tBS, tBO)}</td></tr></tbody></table></div>
+      ${warn}
+      <div class="others">Every year, ${label.toLowerCase()}: ${everyYear}</div>
+    </div>`;
+  if (charts.dc) charts.dc.destroy();
+  charts.dc = new Chart($('#dc'), {type:'bar', data:{labels:M, datasets:[
+    {label:String(DY), data:A.s.map((v, i) => live && i > mi ? null : v), backgroundColor:css('--copper'), borderRadius:3},
+    {label:`${DY-1}${live ? ' (full months)' : ''}`, data:B.s, backgroundColor:css('--ly'), borderRadius:3}]},
+    options:{maintainAspectRatio:false, interaction:{mode:'index', intersect:false},
+      plugins:{legend:{position:'bottom', labels:{color:css('--muted'), boxWidth:14, font:{family:'Manrope', weight:'600'}}},
+        tooltip:{callbacks:{label:c => `${c.dataset.label}: ${money(c.parsed.y)}`}}},
+      scales:{x:{grid:{display:false}, ticks:{color:css('--muted')}}, y:{beginAtZero:true, grid:{color:css('--grid')}, ticks:{color:css('--muted'), callback:v => k(v)}}}}});
+}
+function openDrill(name){ DW = name; DT = TT; DY = Y; const d = $('#drill'); if (!d.open) d.showModal(); drawDrill(); d.scrollTop = 0; }
+document.addEventListener('click', e => { const b = e.target.closest('[data-who]'); if (b) openDrill(b.dataset.who); });
+$('#drill').addEventListener('click', e => {
+  if (e.target === e.currentTarget || e.target.closest('[data-close]')) { e.currentTarget.close(); return; }
+  const v = e.target.closest('[data-dt]'), y = e.target.closest('[data-dy]');
+  if (v) { DT = v.dataset.dt; drawDrill(); } else if (y) { DY = +y.dataset.dy; drawDrill(); }
+});
+
 function render(){
   const nat = VIEW === 'nranks' || VIEW === 'ntrends';
   const m = model(TT);
@@ -654,7 +825,7 @@ function render(){
   const past = D.years.filter(y => y < Y);
   $('#foot').innerHTML = nat
     ? `Sample data. Every name, division, event, item and number on the national tabs is made up for illustration, and loading your own CSV does not change them: they need your company's national report.`
-    : `${D.sample ? 'Sample data: invented people and numbers, so you can see how the page works. Load your own with the button at the top.' : 'Source: the CSV you loaded, kept only in this browser.'} "Pace" ${STRAIGHT ? 'is a straight line across the year' : `follows how ${m.label.toLowerCase()} usually spread across the year (${past.join(', ')})`}: by ${M[mi]} ${asof.getDate()} the division ${STRAIGHT ? 'should have' : 'normally has'} ${Math.round(m.FR*100)}% of its year done.`;
+    : `${D.sample ? 'Sample data: invented people and numbers, so you can see how the page works. Load your own with the button at the top.' : 'Source: the CSV you loaded, kept only in this browser.'} Order counts are spread over the months in proportion to sales (the CSV holds yearly order totals), and last year’s same-month figure is pro-rated to the same day. "Pace" ${STRAIGHT ? 'is a straight line across the year' : `follows how ${m.label.toLowerCase()} usually spread across the year (${past.join(', ')})`}: by ${M[mi]} ${asof.getDate()} the division ${STRAIGHT ? 'should have' : 'normally has'} ${Math.round(m.FR*100)}% of its year done.`;
 }
 if (!N) document.querySelectorAll('#tabs .nat').forEach(b => b.hidden = true);
 document.querySelectorAll('#types button').forEach(b => b.onclick = () => { TT = b.dataset.t;
@@ -663,7 +834,7 @@ document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { VIEW 
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
 if (ANS.team) $('#eyebrow').textContent = ANS.team;
 document.querySelector('#tabs [data-v=people]').textContent = REPS;
-if (/^no/i.test(ANS.realtor || '') || !D.types.RLT.reps.length) $('#types').style.display = 'none';
+if (NO_RLT) { $('#types').style.display = 'none'; TT = 'BIZ'; }
 plan();
 render();
 if (window.EvergreenSetup) EvergreenSetup.init({

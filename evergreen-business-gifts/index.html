@@ -185,7 +185,7 @@ dialog#drill::backdrop{background:rgba(15,20,17,.55)}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow" id="eyebrow">Evergreen Division</div>
+      <div class="eyebrow" id="eyebrow">Evergreen Division · Version 2</div>
       <h1 id="title"></h1>
       <div class="sub" id="asof"></div>
     </div>
@@ -832,7 +832,7 @@ document.querySelectorAll('#types button').forEach(b => b.onclick = () => { TT =
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x === b)); render(); });
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { VIEW = b.dataset.v;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
-if (ANS.team) $('#eyebrow').textContent = ANS.team;
+if (ANS.team) $('#eyebrow').textContent = ANS.team + ' · Version 2';
 document.querySelector('#tabs [data-v=people]').textContent = REPS;
 if (NO_RLT) { $('#types').style.display = 'none'; TT = 'BIZ'; }
 plan();

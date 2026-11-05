@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Evergreen Business Gifts</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Layout: header + 4 numbers, then 3 tabs (Scoreboard / Trend line / People); 2027 plan card under every tab. */
+:root{
+  --bg:#f6f2e8; --card:#fffdf8; --ink:#1e2a24; --muted:#6b6f63; --line:#e3dccb;
+  --forest:#1e3a2f; --copper:#b0764a; --copper-2:#966139; --cream:#efe9dc;
+  --up:#2e7d4f; --mid:#b8862b; --down:#b3412f; --grid:rgba(30,42,36,.08); --track:#ebe4d3;
+  --ly:#9fb3a6; --pace:#1e3a2f;
+  --l1:#1e3a2f; --l2:#b0764a; --l3:#7f9c8a; --l4:#c9bfa8;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+    --forest:#cfe0d4; --copper:#d39a6c; --copper-2:#e0ad83; --cream:#232d27;
+    --up:#6fcf97; --mid:#e2b45a; --down:#ef8a75; --grid:rgba(236,230,216,.08); --track:#2a352f; --ly:#5e7a6a; --pace:#cfe0d4;
+    --l1:#cfe0d4; --l2:#d39a6c; --l3:#6f9a83; --l4:#5b5a50; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141a17; --card:#1c241f; --ink:#ece6d8; --muted:#a39f92; --line:#2d3832;
+  --forest:#cfe0d4; --copper:#d39a6c; --copper-2:#e0ad83; --cream:#232d27;
+  --up:#6fcf97; --mid:#e2b45a; --down:#ef8a75; --grid:rgba(236,230,216,.08); --track:#2a352f; --ly:#5e7a6a; --pace:#cfe0d4;
+  --l1:#cfe0d4; --l2:#d39a6c; --l3:#6f9a83; --l4:#5b5a50; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{overflow-x:hidden}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:24px 16px 48px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;margin-bottom:18px}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--copper);font-weight:700}
+h1{font-family:"Playfair Display",Georgia,serif;font-size:clamp(26px,4vw,36px);margin:4px 0 2px;color:var(--forest);line-height:1.1;text-wrap:balance}
+h2{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 4px;color:var(--forest)}
+.sub,.h2n{color:var(--muted);font-size:13.5px}
+.h2n{margin-bottom:12px}
+.seg{display:inline-flex;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px}
+.seg button{white-space:nowrap;border:0;background:transparent;color:var(--muted);font:700 14px Manrope,sans-serif;padding:8px 15px;border-radius:999px;cursor:pointer}
+.seg button.on{background:var(--forest);color:var(--bg)}
+.seg button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--copper);outline-offset:2px}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:4px 0 14px;overflow-x:auto}
+.tabs button{border:0;background:transparent;color:var(--muted);font:700 15px Manrope,sans-serif;padding:10px 12px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button.on{color:var(--forest);border-bottom-color:var(--copper)}
+.card{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.kpi .l{font-size:11.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.kpi .v{font-size:clamp(22px,3vw,30px);font-weight:800;margin-top:6px;color:var(--forest)}
+.kpi .n{font-size:13px;color:var(--muted);margin-top:4px}
+.up{color:var(--up)}.mid{color:var(--mid)}.down{color:var(--down)}
+.b{font-weight:800}
+.muted{color:var(--muted)}
+.chart{position:relative;height:280px}
+.chart.big{height:360px}
+.stack{display:grid;gap:14px}
+.note{background:var(--cream);border:1px dashed var(--copper);border-radius:12px;padding:10px 14px;font-size:13.5px;margin-bottom:12px}
+.note b{color:var(--copper-2)}
+.pill{display:inline-block;font-size:12px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.up{background:color-mix(in srgb,var(--up) 14%,transparent)}
+.pill.mid{background:color-mix(in srgb,var(--mid) 16%,transparent)}
+.pill.down{background:color-mix(in srgb,var(--down) 14%,transparent)}
+.pill.none{background:var(--cream);color:var(--muted)}
+/* Scoreboard */
+.rrow{display:grid;grid-template-columns:28px minmax(120px,190px) minmax(0,1fr) minmax(150px,210px);gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.rrow:last-child{border-bottom:0}
+.rank{font-weight:800;color:var(--muted);text-align:right}
+.rname{font-weight:800}
+.rname small{display:block;font-weight:500;color:var(--muted);font-size:12px}
+.track{position:relative;height:14px;background:var(--track);border-radius:7px}
+.fill{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.tick{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--pace)}
+.rnum{text-align:right;font-size:13.5px}
+.rnum .b{font-size:15px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12.5px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+.others{font-size:13px;color:var(--muted);margin-top:10px}
+/* Trend line */
+.hero2{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:14px}
+.side .big{font-size:32px;font-weight:800;color:var(--forest);margin:4px 0}
+.side p{margin:0 0 12px;font-size:13.5px;color:var(--muted)}
+.side hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:right;font-weight:700;padding:8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+td.name{font-weight:800}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+/* People */
+.divcard{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:center}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.pc{display:grid;gap:10px;align-content:start}
+.pc .top{display:flex;gap:12px;align-items:center}
+.pc .nm{font-weight:800;font-size:16px}
+.pc .line{display:flex;justify-content:space-between;font-size:13.5px}
+.pc .need{background:var(--cream);border-radius:10px;padding:8px 10px;font-size:13px}
+.ringtxt{font-weight:800;fill:var(--forest)}
+/* 2027 plan */
+.plan .bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--track);margin:10px 0}
+.plan .bar span{display:block;height:100%}
+.plan .keys{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.plan .keys div{font-size:13px;color:var(--muted)}
+.plan .keys b{display:block;font-size:16px;color:var(--forest)}
+.plan .keys i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+/* National */
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.drow{display:grid;grid-template-columns:28px minmax(110px,170px) minmax(0,1fr) minmax(86px,auto) 64px;gap:10px;align-items:center;padding:6px 4px;font-size:13.5px}
+.drow .track{height:12px}
+.drow.home{background:color-mix(in srgb,var(--copper) 12%,transparent);border-radius:8px}
+.drow.home .rname{color:var(--copper-2)}
+.drow.gap{border-top:1px dashed var(--line);margin-top:6px;padding-top:10px}
+tr.home td{background:color-mix(in srgb,var(--copper) 12%,transparent)}
+.callout{background:var(--cream);border-radius:10px;padding:10px 12px;font-size:13.5px;margin-top:10px}
+td.txt{white-space:normal;text-align:left;min-width:150px}
+td.l{text-align:left}
+th.l{text-align:left}
+footer{color:var(--muted);font-size:12.5px;line-height:1.6;margin-top:18px}
+@media (max-width:760px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .kpi .v{font-size:20px;overflow-wrap:anywhere}
+  .kpi .l{font-size:10.5px}
+  .card{padding:13px}
+  .hero2{grid-template-columns:minmax(0,1fr)}
+  .chart.big{height:260px}
+  .chart{height:240px}
+  .rrow{grid-template-columns:22px minmax(0,1fr) auto;gap:6px 10px}
+  .rrow .track{grid-column:2 / 4;grid-row:2}
+  .rnum{font-size:12.5px}
+  .divcard{grid-template-columns:minmax(0,1fr);justify-items:center;text-align:center}
+  .plan .keys{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:minmax(0,1fr)}
+  .drow{grid-template-columns:22px minmax(0,1fr) auto 52px;gap:4px 8px}
+  .drow .track{grid-column:2 / 5;grid-row:2}
+  td.name{position:sticky;left:0;background:var(--card)}
+}
+.egd-banner{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:center;padding:8px 12px;background:var(--cream,var(--panel,#efe9dc));border-bottom:1px solid var(--line,var(--rule,#dcd3bf));color:var(--ink,#1e2a24);font:600 12.5px/1.4 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:center}
+.egd-btn{border:1px solid var(--line,var(--rule,#dcd3bf));background:var(--card,#fff);color:var(--ink,#1e2a24);font:700 12px/1 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;padding:7px 11px;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-block}
+.egd-btn.pri{background:var(--forest,var(--ink,#1e3a2f));color:var(--bg,var(--ground,#fff));border-color:var(--forest,var(--ink,#1e3a2f))}
+.egd-ov{position:fixed;inset:0;z-index:2147483000;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.egd-ov[hidden]{display:none!important}
+.egd-panel{background:var(--card,#fff);color:var(--ink,#1e2a24);border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:14px;max-width:560px;width:100%;max-height:90vh;overflow:auto;padding:18px;font:13.5px/1.5 Manrope,Inter,-apple-system,BlinkMacSystemFont,sans-serif;text-align:left}
+.egd-panel h3{margin:0 0 6px;font-size:17px}
+.egd-panel p{margin:0 0 10px;color:var(--muted,#6b6f63)}
+.egd-panel code{display:block;background:var(--cream,var(--panel,#efe9dc));border-radius:8px;padding:8px 10px;font:12px/1.5 ui-monospace,Menlo,monospace;word-break:break-word;margin-bottom:10px;color:var(--ink,#1e2a24)}
+.egd-panel textarea{width:100%;min-height:110px;box-sizing:border-box;border:1px solid var(--line,var(--rule,#dcd3bf));border-radius:8px;padding:8px;background:var(--bg,var(--ground,#fff));color:var(--ink,#1e2a24);font:12px/1.4 ui-monospace,Menlo,monospace;margin:6px 0 10px}
+.egd-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.egd-err{color:var(--down,#b3412f);font-weight:700;margin-bottom:8px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow" id="eyebrow">Evergreen Division</div>
+      <h1 id="title"></h1>
+      <div class="sub" id="asof"></div>
+    </div>
+    <div class="seg" id="types">
+      <button data-t="BIZ" class="on">Business gifts</button>
+      <button data-t="RLT">Realtor gifts</button>
+    </div>
+  </header>
+
+  <div class="note" id="note" hidden></div>
+  <section class="kpis" id="kpis"></section>
+
+  <nav class="tabs" id="tabs">
+    <button data-v="score" class="on">Scoreboard</button>
+    <button data-v="trend">Trend line</button>
+    <button data-v="people">People</button>
+    <button data-v="nranks" class="nat">National ranks</button>
+    <button data-v="ntrends" class="nat">National trends</button>
+  </nav>
+
+  <section id="v-score" class="stack"></section>
+  <section id="v-trend" class="stack" hidden></section>
+  <section id="v-people" class="stack" hidden></section>
+  <section id="v-nranks" class="stack" hidden></section>
+  <section id="v-ntrends" class="stack" hidden></section>
+
+  <section class="card plan" id="plan" style="margin-top:14px" hidden></section>
+
+  <footer id="foot"></footer>
+</div>
+<script>
+window.EGD=(function(){
+  var cfg,KEY;
+  function parseCSV(text){
+    text=String(text).replace(/^﻿/,'');
+    var rows=[],row=[],f='',q=false,i,c;
+    for(i=0;i<text.length;i++){c=text[i];
+      if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++;}else q=false;}else f+=c;}
+      else if(c==='"')q=true;
+      else if(c===','){row.push(f);f='';}
+      else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);f='';rows.push(row);row=[];}
+      else f+=c;
+    }
+    if(f!==''||row.length){row.push(f);rows.push(row);}
+    rows=rows.filter(function(r){return r.some(function(x){return String(x).trim()!=='';});});
+    if(rows.length<2)throw new Error('Need a header row and at least one data row.');
+    var head=rows[0].map(function(h){return String(h).trim().toLowerCase().replace(/\s+/g,'_');});
+    var miss=cfg.required.filter(function(c){return head.indexOf(c)<0;});
+    if(miss.length)throw new Error('Missing column(s): '+miss.join(', '));
+    return rows.slice(1).map(function(r){var o={};head.forEach(function(h,j){o[h]=(r[j]==null?'':String(r[j]).trim());});return o;});
+  }
+  function load(text,isSample){return cfg.build(parseCSV(text),isSample);}
+  function el(tag,attrs,html){var e=document.createElement(tag);for(var k in (attrs||{}))e.setAttribute(k,attrs[k]);if(html!=null)e.innerHTML=html;return e;}
+  function mount(isSample){
+    var banner=el('div',{'class':'egd-banner'});
+    banner.appendChild(el('span',{},isSample?'Sample data — load your own to see your team (national tabs always show sample data).':'Showing your data (kept only in this browser).'));
+    var open=el('button',{'class':'egd-btn pri',type:'button'},'Load your own data');
+    banner.appendChild(open);
+    var ov=el('div',{'class':'egd-ov',hidden:''});
+    var panel=el('div',{'class':'egd-panel',role:'dialog','aria-label':'Load your own data'});
+    panel.innerHTML='<h3>Load your own data</h3><p>Upload a CSV file or paste CSV text. It is read only in your browser and saved in this browser’s local storage. Nothing is sent anywhere.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>National tabs show sample data; they need your company’s national report.</b> Loading a CSV replaces only the team side: Scoreboard, Trend line and People.</p><p><b>Expected columns</b> (first row = header):</p><code></code><p>'+cfg.help+'</p>';
+    panel.querySelector('code').textContent=cfg.columns.join(',');
+    var file=el('input',{type:'file',accept:'.csv,text/csv,text/plain'});
+    var ta=el('textarea',{placeholder:'Or paste CSV text here',spellcheck:'false'});
+    var err=el('div',{'class':'egd-err'});
+    var row=el('div',{'class':'egd-row'});
+    var go=el('button',{'class':'egd-btn pri',type:'button'},'Load data');
+    var tpl=el('a',{'class':'egd-btn',href:'#',download:cfg.filename},'Download CSV template');
+    var rst=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');
+    var cl=el('button',{'class':'egd-btn',type:'button'},'Close');
+    [go,tpl,rst,cl].forEach(function(b){row.appendChild(b);});
+    [file,ta,err,row].forEach(function(n){panel.appendChild(n);});
+    ov.appendChild(panel);
+    try{tpl.href=URL.createObjectURL(new Blob([cfg.sample],{type:'text/csv'}));}catch(e){tpl.href='data:text/csv;charset=utf-8,'+encodeURIComponent(cfg.sample);}
+    function reset(){try{localStorage.removeItem(KEY);}catch(e){}try{if(window.EvergreenSetup&&cfg.setup)EvergreenSetup.reset(cfg.setup);}catch(e){}location.reload();}
+    open.onclick=function(){err.textContent='';ov.hidden=false;};
+    cl.onclick=function(){ov.hidden=true;};
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.hidden=true;});
+    rst.onclick=reset;
+    function apply(){
+      var text=ta.value;err.textContent='';
+      try{load(text,false);}catch(e){err.textContent='Could not read that data: '+e.message;return;}
+      try{localStorage.setItem(KEY,text);}catch(e){err.textContent='Your browser blocked local storage, so the data cannot be saved.';return;}
+      location.reload();
+    }
+    go.onclick=apply;
+    file.onchange=function(){var f=file.files&&file.files[0];if(!f)return;var r=new FileReader();r.onload=function(){ta.value=String(r.result);apply();};r.readAsText(f);};
+    if(!isSample){var b2=el('button',{'class':'egd-btn',type:'button'},'Reset to sample');b2.onclick=reset;banner.appendChild(b2);}
+    document.body.insertBefore(banner,document.body.firstChild);
+    document.body.appendChild(ov);
+  }
+  return {init:function(c){
+    cfg=c;KEY=c.key;var saved=null,D=null,isSample=true;
+    try{saved=localStorage.getItem(KEY);}catch(e){}
+    if(saved){try{D=load(saved,false);isSample=false;}catch(e){D=null;}}
+    if(!D)D=load(c.sample,true);
+    mount(isSample);
+    return D;
+  }};
+})();
+</script>
+<script src="../../shared/setup-interview.js"></script>
+<script>
+const SETUP_ID='business-gifts';
+const ANS=(function(){try{return (window.EvergreenSetup&&EvergreenSetup.answers(SETUP_ID))||{};}catch(e){return {};}})();
+const ANS_USED=JSON.stringify(ANS);
+const has=v=>v!==''&&v!=null&&isFinite(Number(v));
+const nk=s=>{const p=String(s||'').toLowerCase().replace(/[^a-z\s]/g,' ').trim().split(/\s+/).filter(Boolean);return p.length?p[0]+(p[1]?' '+p[1][0]:''):'';};
+const REP=['CSP','Rep','Manager'].indexOf(ANS.repWord)>=0?ANS.repWord:'CSP', REPS=REP+'s';
+const RLOW=REP==='CSP'?REPS:REPS.toLowerCase();
+const STRAIGHT=/^straight/i.test(ANS.pace||'');
+const BEHIND=has(ANS.behind)&&Number(ANS.behind)>0&&Number(ANS.behind)<=100?Number(ANS.behind)/100:.9;
+const SAMPLE_NATIONAL={"week":43,"year":2026,"date":"2026-10-29","ly_week":43,"home":"Your Division","home_rep":"Jordan K.","latest":{"items_biz":[{"rank":1,"item":"B110","name":"Sample Bread knife","qty":11868},{"rank":2,"item":"B114","name":"Sample Cleaver","qty":11057},{"rank":3,"item":"B118","name":"Sample Honing steel","qty":9798},{"rank":4,"item":"B124","name":"Sample Fillet knife","qty":8808},{"rank":5,"item":"B106","name":"Sample Carving set","qty":8027},{"rank":6,"item":"B115","name":"Sample Slicer","qty":7865},{"rank":7,"item":"B117","name":"Sample Sharpener","qty":7254},{"rank":8,"item":"B121","name":"Sample Tomato knife","qty":7006},{"rank":9,"item":"B122","name":"Sample Petite chef","qty":6162},{"rank":10,"item":"B107","name":"Sample Serrated set","qty":6043},{"rank":11,"item":"B104","name":"Sample Santoku","qty":5232},{"rank":12,"item":"B108","name":"Sample Kitchen shears","qty":5227},{"rank":13,"item":"B125","name":"Sample Produce knife","qty":4804},{"rank":14,"item":"B120","name":"Sample Butcher blade","qty":4267},{"rank":15,"item":"B113","name":"Sample Mini slicer","qty":4030},{"rank":16,"item":"B111","name":"Sample Utility knife","qty":3815},{"rank":17,"item":"B112","name":"Sample Cheese knife","qty":3304},{"rank":18,"item":"B123","name":"Sample Butcher knife","qty":3228},{"rank":19,"item":"B105","name":"Sample Soft spreader","qty":3101},{"rank":20,"item":"B101","name":"Sample Pocket knife","qty":2670},{"rank":21,"item":"B102","name":"Sample Dinner knife","qty":2669},{"rank":22,"item":"B109","name":"Sample Peeler","qty":2439},{"rank":23,"item":"B116","name":"Sample Cutting board","qty":2312},{"rank":24,"item":"B103","name":"Sample Paring knife","qty":2000},{"rank":25,"item":"B119","name":"Sample Prep knife","qty":1792}],"items_rlt":[{"rank":1,"item":"R114","name":"Sample Cleaver","qty":16386},{"rank":2,"item":"R120","name":"Sample Butcher blade","qty":14807},{"rank":3,"item":"R106","name":"Sample Carving set","qty":14731},{"rank":4,"item":"R123","name":"Sample Butcher knife","qty":12568},{"rank":5,"item":"R124","name":"Sample Fillet knife","qty":12450},{"rank":6,"item":"R117","name":"Sample Sharpener","qty":11263},{"rank":7,"item":"R108","name":"Sample Kitchen shears","qty":9979},{"rank":8,"item":"R125","name":"Sample Produce knife","qty":9867},{"rank":9,"item":"R110","name":"Sample Bread knife","qty":8543},{"rank":10,"item":"R107","name":"Sample Serrated set","qty":8385},{"rank":11,"item":"R116","name":"Sample Cutting board","qty":7371},{"rank":12,"item":"R101","name":"Sample Pocket knife","qty":6852},{"rank":13,"item":"R119","name":"Sample Prep knife","qty":6664},{"rank":14,"item":"R109","name":"Sample Peeler","qty":6527},{"rank":15,"item":"R115","name":"Sample Slicer","qty":5479},{"rank":16,"item":"R122","name":"Sample Petite chef","qty":5151},{"rank":17,"item":"R112","name":"Sample Cheese knife","qty":5055},{"rank":18,"item":"R104","name":"Sample Santoku","qty":4890},{"rank":19,"item":"R118","name":"Sample Honing steel","qty":4310},{"rank":20,"item":"R103","name":"Sample Paring knife","qty":3906},{"rank":21,"item":"R102","name":"Sample Dinner knife","qty":3894},{"rank":22,"item":"R121","name":"Sample Tomato knife","qty":3302},{"rank":23,"item":"R113","name":"Sample Mini slicer","qty":3178},{"rank":24,"item":"R105","name":"Sample Soft spreader","qty":2828},{"rank":25,"item":"R111","name":"Sample Utility knife","qty":2566}],"reps_biz":[{"rank":1,"name":"Drew W.","orders":434,"cpo":968099.0},{"rank":2,"name":"Emery S.","orders":378,"cpo":886219.0},{"rank":3,"name":"Mika F.","orders":230,"cpo":716782.0},{"rank":4,"name":"Frankie F.","orders":208,"cpo":671952.0},{"rank":5,"name":"Gray S.","orders":194,"cpo":659645.0},{"rank":6,"name":"Uma E.","orders":213,"cpo":607589.0},{"rank":7,"name":"Finley W.","orders":209,"cpo":551804.0},{"rank":8,"name":"Cameron P.","orders":159,"cpo":480675.0},{"rank":9,"name":"Drew F.","orders":169,"cpo":459368.0},{"rank":10,"name":"Alex V.","orders":128,"cpo":421020.0},{"rank":11,"name":"Eli B.","orders":122,"cpo":384466.0},{"rank":12,"name":"Cameron G.","orders":138,"cpo":331707.0},{"rank":13,"name":"Parker A.","orders":96,"cpo":316150.0},{"rank":14,"name":"Emery M.","orders":85,"cpo":288203.0},{"rank":15,"name":"Drew Z.","orders":94,"cpo":276480.0},{"rank":16,"name":"Mika V.","orders":122,"cpo":262719.0},{"rank":17,"name":"Oak L.","orders":89,"cpo":239327.0},{"rank":18,"name":"Hayden A.","orders":86,"cpo":207616.0},{"rank":19,"name":"Finley S.","orders":58,"cpo":187632.0},{"rank":20,"name":"Sasha R.","orders":65,"cpo":167664.0},{"rank":21,"name":"Finley J.","orders":62,"cpo":148484.0},{"rank":22,"name":"Val H.","orders":45,"cpo":135900.0},{"rank":23,"name":"Tate A.","orders":57,"cpo":132708.0},{"rank":24,"name":"Eli Z.","orders":43,"cpo":119110.0},{"rank":25,"name":"Gray P.","orders":52,"cpo":110119.0}],"reps_rlt":[{"rank":1,"name":"Frankie J.","orders":159,"cpo":486474.0},{"rank":2,"name":"Xan E.","orders":149,"cpo":472449.0},{"rank":3,"name":"Zion A.","orders":204,"cpo":428625.0},{"rank":4,"name":"Yael T.","orders":145,"cpo":411825.0},{"rank":5,"name":"Sasha S.","orders":135,"cpo":384061.0},{"rank":6,"name":"Oak W.","orders":141,"cpo":329574.0},{"rank":7,"name":"Alex E.","orders":113,"cpo":317703.0},{"rank":8,"name":"Drew N.","orders":93,"cpo":304041.0},{"rank":9,"name":"Kai M.","orders":92,"cpo":272566.0},{"rank":10,"name":"Noor B.","orders":110,"cpo":260770.0},{"rank":11,"name":"Mika C.","orders":97,"cpo":252509.0},{"rank":12,"name":"Wren P.","orders":79,"cpo":225784.0},{"rank":13,"name":"Finley A.","orders":75,"cpo":220738.0},{"rank":14,"name":"Dana V.","orders":59,"cpo":195357.0},{"rank":15,"name":"Oak C.","orders":55,"cpo":185792.0},{"rank":16,"name":"Cody S.","orders":64,"cpo":161159.0},{"rank":17,"name":"Harper R.","orders":50,"cpo":160525.0},{"rank":18,"name":"Indy W.","orders":59,"cpo":154036.0},{"rank":19,"name":"Val W.","orders":45,"cpo":136644.0},{"rank":20,"name":"Kai B.","orders":46,"cpo":130916.0},{"rank":21,"name":"Kai V.","orders":36,"cpo":120573.0},{"rank":22,"name":"Finley P.","orders":38,"cpo":105473.0},{"rank":23,"name":"Bryn T.","orders":33,"cpo":102798.0},{"rank":24,"name":"Frankie P.","orders":30,"cpo":95853.0},{"rank":25,"name":"Blake C.","orders":26,"cpo":85552.0}],"events":[{"rank":1,"name":"Sample Event 1","orders":110,"cpo":231131.0},{"rank":2,"name":"Sample Event 2","orders":80,"cpo":214237.0},{"rank":3,"name":"Sample Event 3","orders":88,"cpo":211281.0},{"rank":4,"name":"Sample Event 4","orders":83,"cpo":192856.0},{"rank":5,"name":"Sample Event 5","orders":79,"cpo":181114.0},{"rank":6,"name":"Sample Event 6","orders":74,"cpo":179908.0},{"rank":7,"name":"Sample Event 7","orders":93,"cpo":178535.0},{"rank":8,"name":"Sample Event 8","orders":81,"cpo":168523.0},{"rank":9,"name":"Sample Event 9","orders":60,"cpo":158526.0},{"rank":10,"name":"Sample Event 10","orders":57,"cpo":138846.0},{"rank":11,"name":"Sample Event 11","orders":60,"cpo":137250.0},{"rank":12,"name":"Sample Event 12","orders":46,"cpo":125026.0},{"rank":13,"name":"Sample Event 13","orders":52,"cpo":116393.0},{"rank":14,"name":"Sample Event 14","orders":44,"cpo":109161.0},{"rank":15,"name":"Sample Event 15","orders":53,"cpo":108938.0},{"rank":16,"name":"Sample Event 16","orders":41,"cpo":104615.0},{"rank":17,"name":"Sample Event 17","orders":53,"cpo":101832.0},{"rank":18,"name":"Sample Event 18","orders":50,"cpo":95961.0},{"rank":19,"name":"Sample Event 19","orders":38,"cpo":90623.0},{"rank":20,"name":"Sample Event 20","orders":31,"cpo":78669.0},{"rank":21,"name":"Sample Event 21","orders":29,"cpo":75621.0},{"rank":22,"name":"Sample Event 22","orders":29,"cpo":74735.0},{"rank":23,"name":"Sample Event 23","orders":33,"cpo":71656.0},{"rank":24,"name":"Sample Event 24","orders":27,"cpo":68854.0},{"rank":25,"name":"Sample Event 25","orders":31,"cpo":65299.0}],"divisions":[{"rank":1,"name":"Division A","div":"1101","reps":32,"orders":475,"cpo":1137172.0},{"rank":2,"name":"Division B","div":"1138","reps":44,"orders":478,"cpo":1129085.0},{"rank":3,"name":"Division C","div":"1175","reps":28,"orders":389,"cpo":1024710.0},{"rank":4,"name":"Division D","div":"1212","reps":37,"orders":445,"cpo":869664.0},{"rank":5,"name":"Division E","div":"1249","reps":23,"orders":313,"cpo":820125.0},{"rank":6,"name":"Division F","div":"1286","reps":28,"orders":273,"cpo":742554.0},{"rank":7,"name":"Division G","div":"1323","reps":19,"orders":270,"cpo":695958.0},{"rank":8,"name":"Division H","div":"1360","reps":19,"orders":305,"cpo":646137.0},{"rank":9,"name":"Division I","div":"1397","reps":14,"orders":205,"cpo":533758.0},{"rank":10,"name":"Division J","div":"1434","reps":16,"orders":238,"cpo":492065.0},{"rank":11,"name":"Division K","div":"1471","reps":13,"orders":229,"cpo":481674.0},{"rank":12,"name":"Division L","div":"1508","reps":15,"orders":222,"cpo":424247.0},{"rank":13,"name":"Division M","div":"1545","reps":15,"orders":179,"cpo":404613.0},{"rank":14,"name":"Division N","div":"1582","reps":10,"orders":133,"cpo":330866.0},{"rank":15,"name":"Division O","div":"1619","reps":11,"orders":153,"cpo":321625.0},{"rank":16,"name":"Division P","div":"1656","reps":11,"orders":155,"cpo":304510.0},{"rank":17,"name":"Division Q","div":"1693","reps":8,"orders":109,"cpo":260558.0},{"rank":18,"name":"Division R","div":"1730","reps":7,"orders":105,"cpo":258926.0},{"rank":19,"name":"Division S","div":"1767","reps":6,"orders":88,"cpo":236070.0},{"rank":20,"name":"Division T","div":"1804","reps":5,"orders":69,"cpo":190294.0},{"rank":21,"name":"Your Division","div":"1999","reps":14,"orders":83,"cpo":177310.0},{"rank":22,"name":"Division U","div":"1841","reps":5,"orders":78,"cpo":173278.0},{"rank":23,"name":"Division V","div":"1878","reps":7,"orders":64,"cpo":170123.0},{"rank":24,"name":"Division W","div":"1915","reps":5,"orders":60,"cpo":163613.0},{"rank":25,"name":"Division X","div":"1952","reps":4,"orders":64,"cpo":138125.0}],"orders_biz":[{"rank":1,"name":"Parker A.","week":"202624","cpo":108168.0},{"rank":2,"name":"Cameron P.","week":"202613","cpo":98163.0},{"rank":3,"name":"Noor G.","week":"202627","cpo":92808.0},{"rank":4,"name":"Finley S.","week":"202621","cpo":90175.0},{"rank":5,"name":"Hayden A.","week":"202620","cpo":82241.0},{"rank":6,"name":"Parker A.","week":"202639","cpo":77451.0},{"rank":7,"name":"Drew W.","week":"202618","cpo":70482.0},{"rank":8,"name":"Val H.","week":"202604","cpo":63822.0},{"rank":9,"name":"Drew Z.","week":"202612","cpo":62117.0},{"rank":10,"name":"Gray S.","week":"202623","cpo":56392.0},{"rank":11,"name":"Uma E.","week":"202619","cpo":53779.0},{"rank":12,"name":"Finley J.","week":"202642","cpo":49068.0},{"rank":13,"name":"Finley S.","week":"202606","cpo":46611.0},{"rank":14,"name":"Frankie F.","week":"202640","cpo":40914.0},{"rank":15,"name":"Emery S.","week":"202630","cpo":36419.0},{"rank":16,"name":"Blake A.","week":"202621","cpo":33937.0},{"rank":17,"name":"Zion C.","week":"202616","cpo":33747.0},{"rank":18,"name":"Mika F.","week":"202626","cpo":29098.0},{"rank":19,"name":"Eli Z.","week":"202633","cpo":28914.0},{"rank":20,"name":"Gray S.","week":"202638","cpo":26689.0},{"rank":21,"name":"Val H.","week":"202604","cpo":23469.0},{"rank":22,"name":"Frankie F.","week":"202609","cpo":22837.0},{"rank":23,"name":"Dana T.","week":"202612","cpo":20407.0},{"rank":24,"name":"Tate A.","week":"202614","cpo":19562.0},{"rank":25,"name":"Emery S.","week":"202620","cpo":18859.0}],"orders_rlt":[{"rank":1,"name":"Kai V.","week":"202610","cpo":72386.0},{"rank":2,"name":"Frankie J.","week":"202620","cpo":60813.0},{"rank":3,"name":"Drew N.","week":"202617","cpo":57891.0},{"rank":4,"name":"Sasha S.","week":"202609","cpo":52719.0},{"rank":5,"name":"Finley P.","week":"202637","cpo":51988.0},{"rank":6,"name":"Zion A.","week":"202640","cpo":47314.0},{"rank":7,"name":"Dana V.","week":"202605","cpo":44691.0},{"rank":8,"name":"Frankie J.","week":"202608","cpo":36623.0},{"rank":9,"name":"Alex E.","week":"202617","cpo":35276.0},{"rank":10,"name":"Harper R.","week":"202641","cpo":30571.0},{"rank":11,"name":"Frankie J.","week":"202638","cpo":28844.0},{"rank":12,"name":"Alex E.","week":"202637","cpo":27571.0},{"rank":13,"name":"Dana V.","week":"202617","cpo":23603.0},{"rank":14,"name":"Oak C.","week":"202640","cpo":22216.0},{"rank":15,"name":"Kai M.","week":"202603","cpo":21728.0},{"rank":16,"name":"Blake C.","week":"202613","cpo":19649.0},{"rank":17,"name":"Bryn T.","week":"202630","cpo":17215.0},{"rank":18,"name":"Mika C.","week":"202620","cpo":16644.0},{"rank":19,"name":"Sasha S.","week":"202616","cpo":15737.0},{"rank":20,"name":"Yael N.","week":"202624","cpo":13242.0},{"rank":21,"name":"Yael T.","week":"202608","cpo":12883.0},{"rank":22,"name":"Finley A.","week":"202609","cpo":11974.0},{"rank":23,"name":"Wren P.","week":"202625","cpo":10451.0},{"rank":24,"name":"Kai B.","week":"202619","cpo":9576.0},{"rank":25,"name":"Mika J.","week":"202605","cpo":9336.0}]},"ly":{"divisions":[{"rank":1,"name":"Division A","div":"1101","reps":40,"orders":411,"cpo":1067717.0},{"rank":2,"name":"Division B","div":"1138","reps":29,"orders":471,"cpo":1042496.0},{"rank":3,"name":"Division D","div":"1212","reps":43,"orders":376,"cpo":1015513.0},{"rank":4,"name":"Division C","div":"1175","reps":26,"orders":406,"cpo":958395.0},{"rank":5,"name":"Division E","div":"1249","reps":30,"orders":344,"cpo":929131.0},{"rank":6,"name":"Division G","div":"1323","reps":27,"orders":367,"cpo":808213.0},{"rank":7,"name":"Division F","div":"1286","reps":22,"orders":247,"cpo":689345.0},{"rank":8,"name":"Division I","div":"1397","reps":22,"orders":224,"cpo":621120.0},{"rank":9,"name":"Division H","div":"1360","reps":27,"orders":306,"cpo":611068.0},{"rank":10,"name":"Division J","div":"1434","reps":16,"orders":184,"cpo":476561.0},{"rank":11,"name":"Division K","div":"1471","reps":15,"orders":170,"cpo":471667.0},{"rank":12,"name":"Division L","div":"1508","reps":12,"orders":207,"cpo":430202.0},{"rank":13,"name":"Division M","div":"1545","reps":16,"orders":193,"cpo":375177.0},{"rank":14,"name":"Division P","div":"1656","reps":10,"orders":128,"cpo":321277.0},{"rank":15,"name":"Division O","div":"1619","reps":12,"orders":107,"cpo":286931.0},{"rank":16,"name":"Division N","div":"1582","reps":8,"orders":142,"cpo":285033.0},{"rank":17,"name":"Division R","div":"1730","reps":8,"orders":124,"cpo":280782.0},{"rank":18,"name":"Division Q","div":"1693","reps":10,"orders":113,"cpo":249907.0},{"rank":19,"name":"Division S","div":"1767","reps":9,"orders":121,"cpo":246199.0},{"rank":20,"name":"Division T","div":"1804","reps":8,"orders":80,"cpo":198619.0},{"rank":21,"name":"Division U","div":"1841","reps":5,"orders":77,"cpo":152465.0},{"rank":22,"name":"Division V","div":"1878","reps":6,"orders":58,"cpo":149935.0},{"rank":23,"name":"Division W","div":"1915","reps":4,"orders":62,"cpo":143105.0},{"rank":24,"name":"Division X","div":"1952","reps":5,"orders":50,"cpo":129136.0},{"rank":25,"name":"Your Division","div":"1999","reps":12,"orders":49,"cpo":124841.0}],"items_biz":[{"rank":1,"item":"B114","name":"Sample Cleaver","qty":11028},{"rank":2,"item":"B106","name":"Sample Carving set","qty":9343},{"rank":3,"item":"B118","name":"Sample Honing steel","qty":8489},{"rank":4,"item":"B117","name":"Sample Sharpener","qty":8317},{"rank":5,"item":"B115","name":"Sample Slicer","qty":7500},{"rank":6,"item":"B107","name":"Sample Serrated set","qty":7248},{"rank":7,"item":"B121","name":"Sample Tomato knife","qty":6791},{"rank":8,"item":"B122","name":"Sample Petite chef","qty":6584},{"rank":9,"item":"B108","name":"Sample Kitchen shears","qty":4498},{"rank":10,"item":"B113","name":"Sample Mini slicer","qty":4425},{"rank":11,"item":"B104","name":"Sample Santoku","qty":4307},{"rank":12,"item":"B125","name":"Sample Produce knife","qty":4292},{"rank":13,"item":"B120","name":"Sample Butcher blade","qty":3809},{"rank":14,"item":"B112","name":"Sample Cheese knife","qty":3719},{"rank":15,"item":"B105","name":"Sample Soft spreader","qty":3591},{"rank":16,"item":"B123","name":"Sample Butcher knife","qty":3187},{"rank":17,"item":"B102","name":"Sample Dinner knife","qty":2773},{"rank":18,"item":"B101","name":"Sample Pocket knife","qty":2606},{"rank":19,"item":"B109","name":"Sample Peeler","qty":2017},{"rank":20,"item":"B116","name":"Sample Cutting board","qty":1939},{"rank":21,"item":"B103","name":"Sample Paring knife","qty":1821},{"rank":22,"item":"B119","name":"Sample Prep knife","qty":1578}],"items_rlt":[{"rank":1,"item":"R114","name":"Sample Cleaver","qty":13353},{"rank":2,"item":"R123","name":"Sample Butcher knife","qty":13311},{"rank":3,"item":"R120","name":"Sample Butcher blade","qty":12394},{"rank":4,"item":"R117","name":"Sample Sharpener","qty":11720},{"rank":5,"item":"R110","name":"Sample Bread knife","qty":9958},{"rank":6,"item":"R125","name":"Sample Produce knife","qty":9174},{"rank":7,"item":"R107","name":"Sample Serrated set","qty":7004},{"rank":8,"item":"R119","name":"Sample Prep knife","qty":6997},{"rank":9,"item":"R116","name":"Sample Cutting board","qty":6889},{"rank":10,"item":"R101","name":"Sample Pocket knife","qty":6834},{"rank":11,"item":"R115","name":"Sample Slicer","qty":6179},{"rank":12,"item":"R109","name":"Sample Peeler","qty":5887},{"rank":13,"item":"R112","name":"Sample Cheese knife","qty":5699},{"rank":14,"item":"R104","name":"Sample Santoku","qty":5068},{"rank":15,"item":"R122","name":"Sample Petite chef","qty":4793},{"rank":16,"item":"R118","name":"Sample Honing steel","qty":4402},{"rank":17,"item":"R102","name":"Sample Dinner knife","qty":3935},{"rank":18,"item":"R103","name":"Sample Paring knife","qty":3909},{"rank":19,"item":"R113","name":"Sample Mini slicer","qty":3159},{"rank":20,"item":"R121","name":"Sample Tomato knife","qty":3138},{"rank":21,"item":"R111","name":"Sample Utility knife","qty":3117},{"rank":22,"item":"R105","name":"Sample Soft spreader","qty":2307}],"reps_biz":[{"rank":1,"name":"Noor G.","orders":287,"cpo":910466.0},{"rank":2,"name":"Zion C.","orders":231,"cpo":770317.0},{"rank":3,"name":"Eli B.","orders":218,"cpo":703831.0},{"rank":4,"name":"Tate A.","orders":219,"cpo":679995.0},{"rank":5,"name":"Val H.","orders":256,"cpo":581032.0},{"rank":6,"name":"Emery S.","orders":189,"cpo":574443.0},{"rank":7,"name":"Cameron G.","orders":191,"cpo":529844.0},{"rank":8,"name":"Gray P.","orders":182,"cpo":437185.0},{"rank":9,"name":"Oak L.","orders":136,"cpo":436729.0},{"rank":10,"name":"Eli Z.","orders":122,"cpo":389465.0},{"rank":11,"name":"Sasha R.","orders":121,"cpo":362332.0},{"rank":12,"name":"Mika V.","orders":102,"cpo":345415.0},{"rank":13,"name":"Dana T.","orders":104,"cpo":316863.0},{"rank":14,"name":"Alex V.","orders":117,"cpo":267503.0},{"rank":15,"name":"Drew F.","orders":87,"cpo":259400.0},{"rank":16,"name":"Parker A.","orders":81,"cpo":235098.0},{"rank":17,"name":"Cameron P.","orders":69,"cpo":220092.0},{"rank":18,"name":"Hayden A.","orders":67,"cpo":182794.0},{"rank":19,"name":"Blake A.","orders":62,"cpo":176131.0},{"rank":20,"name":"Zion P.","orders":67,"cpo":151197.0},{"rank":21,"name":"Mika F.","orders":52,"cpo":136231.0},{"rank":22,"name":"Gray S.","orders":40,"cpo":133029.0},{"rank":23,"name":"Drew W.","orders":45,"cpo":125556.0},{"rank":24,"name":"Emery M.","orders":39,"cpo":116485.0},{"rank":25,"name":"Gray L.","orders":43,"cpo":98100.0}],"reps_rlt":[{"rank":1,"name":"Noor B.","orders":357,"cpo":898295.0},{"rank":2,"name":"Indy W.","orders":293,"cpo":815796.0},{"rank":3,"name":"Parker M.","orders":323,"cpo":761146.0},{"rank":4,"name":"Mika J.","orders":274,"cpo":617581.0},{"rank":5,"name":"Wren P.","orders":243,"cpo":548134.0},{"rank":6,"name":"Xan E.","orders":187,"cpo":546156.0},{"rank":7,"name":"Oak W.","orders":175,"cpo":461700.0},{"rank":8,"name":"Kai V.","orders":124,"cpo":418625.0},{"rank":9,"name":"Oak C.","orders":180,"cpo":401249.0},{"rank":10,"name":"Finley P.","orders":99,"cpo":331139.0},{"rank":11,"name":"Sasha S.","orders":98,"cpo":330332.0},{"rank":12,"name":"Xan N.","orders":129,"cpo":281330.0},{"rank":13,"name":"Yael N.","orders":107,"cpo":242377.0},{"rank":14,"name":"Frankie P.","orders":111,"cpo":238726.0},{"rank":15,"name":"Alex E.","orders":82,"cpo":208566.0},{"rank":16,"name":"Kai B.","orders":60,"cpo":175788.0},{"rank":17,"name":"Drew N.","orders":60,"cpo":175167.0},{"rank":18,"name":"Finley A.","orders":67,"cpo":157144.0},{"rank":19,"name":"Harper J.","orders":56,"cpo":141023.0},{"rank":20,"name":"Harper R.","orders":41,"cpo":125726.0},{"rank":21,"name":"Zion A.","orders":39,"cpo":118562.0},{"rank":22,"name":"Zion L.","orders":35,"cpo":93169.0}],"events":[{"rank":1,"name":"Sample Event 30","orders":98,"cpo":218700.0},{"rank":2,"name":"Sample Event 11","orders":96,"cpo":210469.0},{"rank":3,"name":"Sample Event 27","orders":100,"cpo":200728.0},{"rank":4,"name":"Sample Event 3","orders":69,"cpo":193827.0},{"rank":5,"name":"Sample Event 18","orders":64,"cpo":178628.0},{"rank":6,"name":"Sample Event 10","orders":88,"cpo":173317.0},{"rank":7,"name":"Sample Event 1","orders":70,"cpo":147544.0},{"rank":8,"name":"Sample Event 32","orders":55,"cpo":146010.0},{"rank":9,"name":"Sample Event 31","orders":53,"cpo":144731.0},{"rank":10,"name":"Sample Event 8","orders":62,"cpo":134284.0},{"rank":11,"name":"Sample Event 19","orders":51,"cpo":131543.0},{"rank":12,"name":"Sample Event 22","orders":52,"cpo":111548.0},{"rank":13,"name":"Sample Event 29","orders":51,"cpo":111186.0},{"rank":14,"name":"Sample Event 7","orders":37,"cpo":101985.0},{"rank":15,"name":"Sample Event 5","orders":49,"cpo":100732.0},{"rank":16,"name":"Sample Event 17","orders":36,"cpo":95781.0},{"rank":17,"name":"Sample Event 28","orders":36,"cpo":83645.0},{"rank":18,"name":"Sample Event 14","orders":29,"cpo":81624.0},{"rank":19,"name":"Sample Event 16","orders":38,"cpo":80645.0},{"rank":20,"name":"Sample Event 21","orders":30,"cpo":77994.0},{"rank":21,"name":"Sample Event 15","orders":28,"cpo":74839.0},{"rank":22,"name":"Sample Event 26","orders":26,"cpo":67382.0},{"rank":23,"name":"Sample Event 33","orders":26,"cpo":65065.0},{"rank":24,"name":"Sample Event 9","orders":25,"cpo":58954.0},{"rank":25,"name":"Sample Event 4","orders":24,"cpo":58157.0}]},"series":{"2024":[{"week":50,"date":"2024-12-11","top25":9400000,"cut":130000,"first":1250000,"home_rank":null,"home_cpo":null,"rep_cut":100000},{"week":51,"date":"2024-12-18","top25":9630000,"cut":134000,"first":1276000,"home_rank":null,"home_cpo":null,"rep_cut":102000},{"week":52,"date":"2024-12-25","top25":9860000,"cut":138000,"first":1302000,"home_rank":null,"home_cpo":null,"rep_cut":104000}],"2025":[{"week":1,"date":"2025-01-02","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":1075},{"week":2,"date":"2025-01-09","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":2470},{"week":3,"date":"2025-01-16","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":4018},{"week":4,"date":"2025-01-23","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":5675},{"week":5,"date":"2025-01-30","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":7418},{"week":6,"date":"2025-02-06","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":9232},{"week":7,"date":"2025-02-13","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":11108},{"week":8,"date":"2025-02-20","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":13038},{"week":9,"date":"2025-02-27","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":15018},{"week":10,"date":"2025-03-06","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":17041},{"week":11,"date":"2025-03-13","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":19106},{"week":12,"date":"2025-03-20","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":21209},{"week":13,"date":"2025-03-27","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":23347},{"week":14,"date":"2025-04-03","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":25519},{"week":15,"date":"2025-04-10","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":27721},{"week":16,"date":"2025-04-17","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":29954},{"week":17,"date":"2025-04-24","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":32214},{"week":18,"date":"2025-05-01","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":34501},{"week":19,"date":"2025-05-08","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":36814},{"week":20,"date":"2025-05-15","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":39151},{"week":21,"date":"2025-05-22","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":41512},{"week":22,"date":"2025-05-29","top25":0,"cut":null,"first":null,"home_rank":null,"home_cpo":null,"rep_cut":43895},{"week":23,"date":"2025-06-05","top25":5694199,"cut":58921,"first":503927,"home_rank":null,"home_cpo":78784,"rep_cut":46300},{"week":24,"date":"2025-06-12","top25":5992565,"cut":62008,"first":530332,"home_rank":null,"home_cpo":82889,"rep_cut":48726},{"week":25,"date":"2025-06-19","top25":6293428,"cut":65121,"first":556957,"home_rank":null,"home_cpo":87000,"rep_cut":51172},{"week":26,"date":"2025-06-26","top25":6596708,"cut":68260,"first":583797,"home_rank":null,"home_cpo":90007,"rep_cut":53638},{"week":27,"date":"2025-07-03","top25":6902331,"cut":71422,"first":610844,"home_rank":null,"home_cpo":92201,"rep_cut":56123},{"week":28,"date":"2025-07-10","top25":7210226,"cut":74608,"first":638093,"home_rank":null,"home_cpo":94394,"rep_cut":58627},{"week":29,"date":"2025-07-17","top25":7520329,"cut":77817,"first":665536,"home_rank":null,"home_cpo":96587,"rep_cut":61148},{"week":30,"date":"2025-07-24","top25":7832578,"cut":81048,"first":693170,"home_rank":null,"home_cpo":98663,"rep_cut":63687},{"week":31,"date":"2025-07-31","top25":8146917,"cut":84300,"first":720988,"home_rank":null,"home_cpo":100036,"rep_cut":66243},{"week":32,"date":"2025-08-07","top25":8463290,"cut":87574,"first":748986,"home_rank":null,"home_cpo":101408,"rep_cut":68816},{"week":33,"date":"2025-08-14","top25":8781647,"cut":90868,"first":777161,"home_rank":null,"home_cpo":102781,"rep_cut":71404},{"week":34,"date":"2025-08-21","top25":9101939,"cut":94182,"first":805506,"home_rank":null,"home_cpo":104154,"rep_cut":74008},{"week":35,"date":"2025-08-28","top25":9424122,"cut":97516,"first":834018,"home_rank":null,"home_cpo":105953,"rep_cut":76628},{"week":36,"date":"2025-09-04","top25":9748151,"cut":100869,"first":862694,"home_rank":null,"home_cpo":107923,"rep_cut":79263},{"week":37,"date":"2025-09-11","top25":10073985,"cut":104241,"first":891530,"home_rank":null,"home_cpo":109893,"rep_cut":81912},{"week":38,"date":"2025-09-18","top25":10401586,"cut":107631,"first":920522,"home_rank":null,"home_cpo":111863,"rep_cut":84576},{"week":39,"date":"2025-09-25","top25":10730915,"cut":111038,"first":949667,"home_rank":null,"home_cpo":114136,"rep_cut":87254},{"week":40,"date":"2025-10-02","top25":11061938,"cut":114464,"first":978962,"home_rank":null,"home_cpo":116812,"rep_cut":89945},{"week":41,"date":"2025-10-09","top25":11394621,"cut":117906,"first":1008404,"home_rank":null,"home_cpo":119488,"rep_cut":92650},{"week":42,"date":"2025-10-16","top25":11728930,"cut":121365,"first":1037990,"home_rank":null,"home_cpo":122165,"rep_cut":95369},{"week":43,"date":"2025-10-23","top25":12064835,"cut":124841,"first":1067717,"home_rank":null,"home_cpo":124841,"rep_cut":98100},{"week":44,"date":"2025-10-30","top25":12402306,"cut":128333,"first":1097583,"home_rank":null,"home_cpo":128768,"rep_cut":100844},{"week":45,"date":"2025-11-06","top25":12741315,"cut":131841,"first":1127584,"home_rank":null,"home_cpo":132695,"rep_cut":103601},{"week":46,"date":"2025-11-13","top25":13081834,"cut":135364,"first":1157720,"home_rank":null,"home_cpo":136622,"rep_cut":106369},{"week":47,"date":"2025-11-20","top25":13423837,"cut":138903,"first":1187986,"home_rank":null,"home_cpo":140549,"rep_cut":109150},{"week":48,"date":"2025-11-27","top25":13767298,"cut":142457,"first":1218382,"home_rank":null,"home_cpo":146401,"rep_cut":111943},{"week":49,"date":"2025-12-04","top25":14112194,"cut":146026,"first":1248905,"home_rank":null,"home_cpo":153023,"rep_cut":114747},{"week":50,"date":"2025-12-11","top25":14458500,"cut":149609,"first":1279552,"home_rank":null,"home_cpo":159646,"rep_cut":117563},{"week":51,"date":"2025-12-18","top25":14806195,"cut":153207,"first":1310323,"home_rank":null,"home_cpo":166268,"rep_cut":120390},{"week":52,"date":"2025-12-25","top25":15155255,"cut":156819,"first":1341214,"home_rank":null,"home_cpo":170998,"rep_cut":123228},{"week":53,"date":"2026-01-01","top25":15505661,"cut":160445,"first":1372224,"home_rank":null,"home_cpo":170998,"rep_cut":126078}],"2026":[{"week":1,"date":"2026-01-08","top25":132921,"cut":1514,"first":12464,"home_rank":24,"home_cpo":2194,"rep_cut":1207},{"week":2,"date":"2026-01-15","top25":305372,"cut":3478,"first":28635,"home_rank":25,"home_cpo":3730,"rep_cut":2773},{"week":3,"date":"2026-01-22","top25":496751,"cut":5658,"first":46581,"home_rank":null,"home_cpo":5265,"rep_cut":4511},{"week":4,"date":"2026-01-29","top25":701561,"cut":7991,"first":65786,"home_rank":null,"home_cpo":6801,"rep_cut":6370},{"week":5,"date":"2026-02-05","top25":916975,"cut":10444,"first":85986,"home_rank":25,"home_cpo":11512,"rep_cut":8327},{"week":6,"date":"2026-02-12","top25":1141234,"cut":12998,"first":107015,"home_rank":24,"home_cpo":16224,"rep_cut":10363},{"week":7,"date":"2026-02-19","top25":1373128,"cut":15640,"first":128760,"home_rank":24,"home_cpo":20936,"rep_cut":12469},{"week":8,"date":"2026-02-26","top25":1611764,"cut":18358,"first":151137,"home_rank":24,"home_cpo":25647,"rep_cut":14636},{"week":9,"date":"2026-03-05","top25":1856455,"cut":21145,"first":174082,"home_rank":24,"home_cpo":29019,"rep_cut":16857},{"week":10,"date":"2026-03-12","top25":2106655,"cut":23994,"first":197544,"home_rank":24,"home_cpo":32390,"rep_cut":19129},{"week":11,"date":"2026-03-19","top25":2361917,"cut":26902,"first":221480,"home_rank":24,"home_cpo":35762,"rep_cut":21447},{"week":12,"date":"2026-03-26","top25":2621868,"cut":29863,"first":245856,"home_rank":24,"home_cpo":39134,"rep_cut":23808},{"week":13,"date":"2026-04-02","top25":2886193,"cut":32873,"first":270643,"home_rank":24,"home_cpo":41621,"rep_cut":26208},{"week":14,"date":"2026-04-09","top25":3154620,"cut":35931,"first":295813,"home_rank":24,"home_cpo":43445,"rep_cut":28645},{"week":15,"date":"2026-04-16","top25":3426912,"cut":39032,"first":321346,"home_rank":24,"home_cpo":45269,"rep_cut":31118},{"week":16,"date":"2026-04-23","top25":3702861,"cut":42175,"first":347223,"home_rank":25,"home_cpo":47092,"rep_cut":33624},{"week":17,"date":"2026-04-30","top25":3982283,"cut":45357,"first":373424,"home_rank":25,"home_cpo":49631,"rep_cut":36161},{"week":18,"date":"2026-05-07","top25":4265013,"cut":48578,"first":399936,"home_rank":25,"home_cpo":53958,"rep_cut":38728},{"week":19,"date":"2026-05-14","top25":4550904,"cut":51834,"first":426745,"home_rank":25,"home_cpo":58285,"rep_cut":41324},{"week":20,"date":"2026-05-21","top25":4839822,"cut":55125,"first":453837,"home_rank":25,"home_cpo":62612,"rep_cut":43948},{"week":21,"date":"2026-05-28","top25":5131644,"cut":58448,"first":481202,"home_rank":25,"home_cpo":66939,"rep_cut":46598},{"week":22,"date":"2026-06-04","top25":5426260,"cut":61804,"first":508828,"home_rank":24,"home_cpo":73084,"rep_cut":49273},{"week":23,"date":"2026-06-11","top25":5723567,"cut":65190,"first":536707,"home_rank":24,"home_cpo":79533,"rep_cut":51972},{"week":24,"date":"2026-06-18","top25":6023472,"cut":68606,"first":564830,"home_rank":24,"home_cpo":85982,"rep_cut":54696},{"week":25,"date":"2026-06-25","top25":6325886,"cut":72051,"first":593188,"home_rank":24,"home_cpo":92430,"rep_cut":57442},{"week":26,"date":"2026-07-02","top25":6630731,"cut":75523,"first":621773,"home_rank":24,"home_cpo":97198,"rep_cut":60210},{"week":27,"date":"2026-07-09","top25":6937930,"cut":79022,"first":650580,"home_rank":24,"home_cpo":100705,"rep_cut":62999},{"week":28,"date":"2026-07-16","top25":7247413,"cut":82547,"first":679600,"home_rank":24,"home_cpo":104213,"rep_cut":65810},{"week":29,"date":"2026-07-23","top25":7559115,"cut":86097,"first":708829,"home_rank":24,"home_cpo":107720,"rep_cut":68640},{"week":30,"date":"2026-07-30","top25":7872975,"cut":89672,"first":738260,"home_rank":24,"home_cpo":111373,"rep_cut":71490},{"week":31,"date":"2026-08-06","top25":8188935,"cut":93270,"first":767888,"home_rank":24,"home_cpo":115904,"rep_cut":74359},{"week":32,"date":"2026-08-13","top25":8506940,"cut":96892,"first":797708,"home_rank":24,"home_cpo":120435,"rep_cut":77247},{"week":33,"date":"2026-08-20","top25":8826939,"cut":100537,"first":827715,"home_rank":24,"home_cpo":124966,"rep_cut":80152},{"week":34,"date":"2026-08-27","top25":9148883,"cut":104204,"first":857904,"home_rank":24,"home_cpo":129497,"rep_cut":83076},{"week":35,"date":"2026-09-03","top25":9472727,"cut":107893,"first":888271,"home_rank":24,"home_cpo":133635,"rep_cut":86016},{"week":36,"date":"2026-09-10","top25":9798427,"cut":111602,"first":918813,"home_rank":24,"home_cpo":137616,"rep_cut":88974},{"week":37,"date":"2026-09-17","top25":10125942,"cut":115333,"first":949524,"home_rank":24,"home_cpo":141596,"rep_cut":91948},{"week":38,"date":"2026-09-24","top25":10455233,"cut":119083,"first":980402,"home_rank":24,"home_cpo":145576,"rep_cut":94938},{"week":39,"date":"2026-10-01","top25":10786261,"cut":122854,"first":1011443,"home_rank":24,"home_cpo":150702,"rep_cut":97944},{"week":40,"date":"2026-10-08","top25":11118991,"cut":126643,"first":1042644,"home_rank":24,"home_cpo":157354,"rep_cut":100965},{"week":41,"date":"2026-10-15","top25":11453389,"cut":130452,"first":1074001,"home_rank":24,"home_cpo":164006,"rep_cut":104002},{"week":42,"date":"2026-10-22","top25":11789422,"cut":134279,"first":1105511,"home_rank":24,"home_cpo":170658,"rep_cut":107053},{"week":43,"date":"2026-10-29","top25":12127060,"cut":138125,"first":1137172,"home_rank":24,"home_cpo":177310,"rep_cut":110119}]},"home_cum":{"2026":[2194,3730,5265,6801,11512,16224,20936,25647,29019,32390,35762,39134,41621,43445,45269,47092,49631,53958,58285,62612,66939,73084,79533,85982,92430,97198,100705,104213,107720,111373,115904,120435,124966,129497,133635,137616,141596,145576,150702,157354,164006,170658,177310],"2025":[1639,2786,3933,5080,6710,8341,9972,11602,12358,13113,13869,14624,16605,19503,22402,25301,30197,40085,49972,59860,69747,74679,78784,82889,87000,90007,92201,94394,96587,98663,100036,101408,102781,104154,105953,107923,109893,111863,114136,116812,119488,122165,124841,128768,132695,136622,140549,146401,153023,159646,166268,170998,170998]},"reports":40,"first_week":"202450"};
+function buildGifts(rows, isSample){
+  const MO=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+  const num=v=>{const n=parseFloat(String(v==null?'':v).replace(/[$,\s]/g,''));return isFinite(n)?n:0;};
+  const opt=v=>{if(v==null||String(v).trim()==='')return null;const n=parseFloat(String(v).replace(/[$,\s]/g,''));return isFinite(n)?n:null;};
+  const recs=rows.map(r=>({type:/^r/i.test(r.type||'')?'RLT':'BIZ',name:(r.name||'').trim(),year:parseInt(r.year,10),m:MO.map(k=>num(r[k])),orders:num(r.orders),goal:opt(r.goal),proj:opt(r.projection)})).filter(x=>x.name&&x.year>1900);
+  if(!recs.length)throw new Error('No usable rows (each row needs a name and a year).');
+  const Y=Math.max(...recs.map(x=>x.year)), years=[Y-2,Y-1,Y];
+  const now=new Date(), pad=n=>String(n).padStart(2,'0');
+  const asof=isSample?'2026-11-03':(now.getFullYear()===Y?`${Y}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`:`${Y}-12-31`);
+  const ad=new Date(asof+'T12:00:00'), cm=ad.getMonth(), frac=ad.getDate()/new Date(Y,cm+1,0).getDate();
+  const sum=a=>a.reduce((x,z)=>x+z,0);
+  const zero=()=>Array(12).fill(0);
+  const toDate=a=>Math.round(sum(a.slice(0,cm))+a[cm]*frac);
+  const labels={BIZ:'Business gifts',RLT:'Realtor gifts'};
+  const types={}, gl=[];
+  ['BIZ','RLT'].forEach(T=>{
+    const byName={};
+    recs.filter(x=>x.type===T).forEach(x=>{
+      const o=byName[x.name]||(byName[x.name]={name:x.name,y:{},orders:0});
+      const cur=o.y[x.year]||(o.y[x.year]=zero());
+      x.m.forEach((v,i)=>{cur[i]+=v;});
+      if(x.year===Y)o.orders+=x.orders;
+      if(x.goal!=null||x.proj!=null)gl.push({name:x.name,T:T,goal:x.goal,proj:x.proj});
+    });
+    const monthly={};years.forEach(y=>{monthly[y]=zero();});
+    const reps=Object.values(byName).map(o=>{
+      const yrs={};
+      years.forEach(y=>{const a=o.y[y]||zero();yrs[y]=sum(a);a.forEach((v,i)=>{monthly[y][i]+=v;});});
+      const cur=o.y[Y]||zero(), ly=o.y[Y-1]||zero(), ytd=sum(cur);
+      return {name:o.name,years:yrs,ytd:ytd,ly_ytd:toDate(ly),orders:o.orders,avg:o.orders?Math.round(ytd/o.orders):null,months:cur,goal:null};
+    });
+    reps.sort((a,b)=>b.ytd-a.ytd);
+    const totals={};years.forEach(y=>{totals[y]=sum(monthly[y]);});
+    types[T]={label:labels[T],monthly:monthly,totals:totals,ytd:sum(reps.map(r=>r.ytd)),ly_ytd:sum(reps.map(r=>r.ly_ytd)),orders_ytd:sum(reps.map(r=>r.orders)),reps:reps};
+  });
+  if(!isSample){
+    if(!types.BIZ.reps.length)throw new Error('Add at least one BIZ (business gift) row.');
+    if(!types.BIZ.reps.some(r=>r.years[Y-1]>0))throw new Error('Needs earlier-year BIZ sales: the page measures each person against the year before the latest year in your file.');
+  }
+  // goals: CSV goal/projection columns, then the setup interview's list (interview wins)
+  const rowsG=[], idx={};
+  const add=(name,T,goal,proj)=>{const key=nk(name);if(!key)return;let r=idx[key];if(!r){r=idx[key]={name:String(name).trim(),BIZ:{},RLT:{}};rowsG.push(r);}
+    if(goal!=null){r[T].goal=goal;r[T].proj=goal;} if(proj!=null)r[T].proj=proj;};
+  gl.forEach(g=>add(g.name,g.T,g.goal,g.proj));
+  (Array.isArray(ANS.reps)?ANS.reps:[]).forEach(r=>{add(r.name,'BIZ',opt(r.biz),null);add(r.name,'RLT',opt(r.rlt),null);});
+  const gy=has(ANS.goalYear)?Math.round(Number(ANS.goalYear)):Y+1;
+  const goals=rowsG.length?{year:gy,rows:rowsG}:null;
+  let national=SAMPLE_NATIONAL;
+  if(!isSample){national=JSON.parse(JSON.stringify(SAMPLE_NATIONAL));if(types.BIZ.reps[0])national.home_rep=types.BIZ.reps[0].name;}
+  return {sample:!!isSample,asof:asof,pulled:now.toISOString(),year:Y,years:years,types:types,national:national,goals:goals};
+}
+const D = EGD.init({setup:SETUP_ID,key:"egd-business-gifts-v2",columns:["type","name","year","jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec","orders","goal","projection"],required:["name","year"],
+  help:"One row per type, person and year. <b>type</b> = BIZ (business gifts) or RLT (realtor gifts). <b>name</b> = person. <b>year</b> = 4-digit year (the latest year is treated as the current year, up to three years are shown; include the year before it so pace can be measured). <b>jan&ndash;dec</b> = gift sales for that month in dollars. On the latest year’s row, <b>orders</b> = number of orders, and <b>goal</b> / <b>projection</b> = next-year goal and projection (optional).",
+  filename:"business-gifts-template.csv",sample:`type,name,year,jan,feb,mar,apr,may,jun,jul,aug,sep,oct,nov,dec,orders,goal,projection
+BIZ,Jordan K.,2024,3391,0,5753,3204,15022,2240,3423,1877,12062,4869,7675,3734,,,
+BIZ,Jordan K.,2025,3397,764,2394,5130,42935,2928,8218,5627,7256,2195,3298,15037,,,
+BIZ,Jordan K.,2026,3177,17030,9490,5706,6960,9002,0,10674,11415,8850,3001,0,34,,
+BIZ,Taylor M.,2024,0,282,423,0,131,470,994,0,0,0,0,0,,,
+BIZ,Taylor M.,2025,0,2922,0,5384,0,4184,979,0,0,3632,0,0,,,
+BIZ,Taylor M.,2026,0,742,5442,182,4822,10056,0,0,581,14256,218,0,14,,
+BIZ,Casey R.,2024,2151,362,0,0,722,0,1304,0,0,0,5811,0,,,
+BIZ,Casey R.,2025,1159,1388,0,480,853,4307,0,452,0,0,5021,10280,,,
+BIZ,Casey R.,2026,3624,1074,0,1928,0,6478,7986,3350,0,0,972,0,16,,
+BIZ,Riley P.,2024,369,0,0,0,0,0,0,0,0,0,3081,0,,,
+BIZ,Riley P.,2025,0,0,0,1073,0,0,0,0,0,1868,7319,0,,,
+BIZ,Riley P.,2026,0,0,0,0,4562,0,6328,0,0,0,0,0,6,,
+BIZ,Morgan S.,2024,1021,588,0,0,334,458,1493,0,0,599,1256,0,,,
+BIZ,Morgan S.,2025,0,0,0,0,0,5130,0,0,0,0,0,0,,,
+BIZ,Morgan S.,2026,0,0,0,0,0,0,1218,6042,0,0,0,0,5,,
+BIZ,Avery L.,2024,0,0,0,0,0,0,248,0,0,135,1917,0,,,
+BIZ,Avery L.,2025,0,1448,0,0,0,581,0,0,0,1929,0,2881,,,
+BIZ,Avery L.,2026,0,0,0,0,2818,0,0,0,2627,0,0,0,4,,
+BIZ,Quinn B.,2024,0,0,929,0,0,0,2521,0,0,0,0,0,,,
+BIZ,Quinn B.,2025,524,0,952,0,0,241,516,0,1187,0,0,0,,,
+BIZ,Quinn B.,2026,0,0,0,0,0,2101,0,0,2436,0,0,0,2,,
+BIZ,Jamie D.,2024,0,554,0,479,0,0,0,0,117,0,0,0,,,
+BIZ,Jamie D.,2025,0,0,0,357,0,223,0,0,0,0,0,1129,,,
+BIZ,Jamie D.,2026,0,0,0,0,0,0,0,0,0,6353,0,0,1,,
+BIZ,Sam T.,2024,0,0,0,0,0,0,0,0,0,0,0,0,,,
+BIZ,Sam T.,2025,0,0,0,0,0,0,0,0,0,2228,1192,0,,,
+BIZ,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+RLT,Jordan K.,2024,6833,4499,10259,6044,8579,5032,4784,3820,4582,10175,6554,7720,,,
+RLT,Jordan K.,2025,5068,928,3744,3593,5766,4361,967,8021,9994,7976,5083,4450,,,
+RLT,Jordan K.,2026,4679,5577,4947,3523,3545,4711,1899,11688,4891,3222,230,0,27,,
+RLT,Taylor M.,2024,776,0,0,0,493,776,0,0,206,766,0,1064,,,
+RLT,Taylor M.,2025,0,0,0,0,0,0,1477,0,2883,0,0,0,,,
+RLT,Taylor M.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+RLT,Casey R.,2024,0,7998,4178,0,0,0,0,1424,0,0,0,0,,,
+RLT,Casey R.,2025,0,0,0,0,9830,0,0,1521,0,0,0,640,,,
+RLT,Casey R.,2026,0,0,0,0,0,3024,2106,0,0,1763,1867,0,6,,
+RLT,Riley P.,2024,0,917,0,0,2800,5217,1538,0,0,1769,0,0,,,
+RLT,Riley P.,2025,0,0,0,0,0,0,375,5006,713,0,0,446,,,
+RLT,Riley P.,2026,0,1976,0,617,0,0,0,182,2335,0,0,0,5,,
+RLT,Morgan S.,2024,0,0,0,0,2227,865,0,1273,0,0,0,2434,,,
+RLT,Morgan S.,2025,2106,0,0,1104,0,0,956,0,4554,0,0,0,,,
+RLT,Morgan S.,2026,0,0,451,0,0,4397,587,0,1015,0,119,0,4,,
+RLT,Avery L.,2024,962,0,2245,0,0,0,873,0,0,0,0,0,,,
+RLT,Avery L.,2025,0,0,0,0,1952,1318,0,0,0,0,0,0,,,
+RLT,Avery L.,2026,545,0,221,357,0,0,281,0,0,697,89,0,1,,
+RLT,Quinn B.,2024,0,2720,0,0,0,0,0,0,0,0,0,0,,,
+RLT,Quinn B.,2025,0,0,0,2180,0,0,0,0,0,0,0,0,,,
+RLT,Quinn B.,2026,0,0,0,0,0,0,0,0,0,0,1460,0,1,,
+RLT,Jamie D.,2024,0,1719,2150,0,0,0,0,1166,0,0,5845,0,,,
+RLT,Jamie D.,2025,4105,0,0,1173,0,775,284,1427,0,1355,0,691,,,
+RLT,Jamie D.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+RLT,Sam T.,2024,0,0,0,690,0,127,0,624,1279,0,0,0,,,
+RLT,Sam T.,2025,0,0,0,0,184,0,482,0,0,0,1414,100,,,
+RLT,Sam T.,2026,0,0,0,0,0,0,0,0,0,0,0,0,0,,
+`,build:(rows,isSample)=>buildGifts(rows,isSample)});
+const G = D.goals || null;
+
+const M = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const $ = s => document.querySelector(s);
+const money = v => v == null || !isFinite(v) ? '—' : '$' + Math.round(v).toLocaleString('en-US');
+const k = v => !isFinite(v) ? '—' : Math.abs(v) >= 1e6 ? '$' + (v/1e6).toFixed(1) + 'M' : Math.abs(v) >= 1000 ? '$' + (v/1000).toFixed(Math.abs(v) >= 100000 ? 0 : 1) + 'K' : '$' + Math.round(v);
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const Y = D.year, asof = new Date(D.asof + 'T12:00:00');
+const mi = asof.getMonth(), dayFrac = asof.getDate() / new Date(Y, mi + 1, 0).getDate();
+const monthsLeft = Math.max(.5, 12 - mi - dayFrac);
+const goalsOn = !!(G && G.year === Y);
+let TT = 'BIZ', VIEW = 'score';
+const charts = {};
+
+function model(t){
+  const T = D.types[t];
+  const past = D.years.filter(y => y < Y);
+  const shareBy0 = (m, f) => { const s = past.map(y => { const a = T.monthly[y], tot = a.reduce((x,z)=>x+z,0); if(!tot) return null;
+      let c = 0; for (let i=0;i<m;i++) c += a[i]; c += a[m]*f; return c/tot; }).filter(x => x != null);
+    return s.length ? s.reduce((a,b)=>a+b,0)/s.length : (m + f)/12; };
+  const shareBy = STRAIGHT ? (m, f) => (m + f)/12 : shareBy0;
+  const FR = shareBy(mi, dayFrac);
+  const byName = Object.fromEntries(T.reps.map(r => [nk(r.name), r]));
+  let people = [], others = [], missing = [];
+  if (goalsOn) {
+    for (const g of G.rows) {
+      const L = g[t] || {}, target = L.goal || L.proj, r = byName[nk(g.name)];
+      if (!r && !target) { missing.push(g.name); continue; }
+      const p = {name:r ? r.name : g.name, ytd:r ? r.ytd : 0, ly:r ? r.ly_ytd : 0, months:r ? r.months : Array(12).fill(0), target, proj:L.proj || L.goal};
+      if (target) people.push(p); else others.push(p);
+      if (!r) p.noOrders = true;
+    }
+    const onSheet = new Set(G.rows.map(g => nk(g.name)));
+    T.reps.filter(r => !onSheet.has(nk(r.name)) && r.ytd > 0).forEach(r => others.push({name:r.name, ytd:r.ytd}));
+  } else {
+    T.reps.forEach(r => { const last = r.years[String(Y-1)] || 0;
+      if (last > 0) people.push({name:r.name, ytd:r.ytd, ly:r.ly_ytd, months:r.months, target:last});
+      else if (r.ytd > 0) others.push({name:r.name, ytd:r.ytd}); });
+  }
+  const divTarget = people.reduce((a,p)=>a+p.target,0);
+  const divProj = goalsOn ? people.reduce((a,p)=>a+(p.proj||0),0) : null;
+  return {T, FR, shareBy, people, others, missing, divTarget, divProj, ytd:T.ytd, lyYtd:T.ly_ytd,
+    fore: FR > .03 ? T.ytd/FR : null, label: T.label};
+}
+const tgtWord = () => goalsOn ? 'goal' : `${Y-1} total`;
+function status(m, ytd, target){ const r = target ? ytd/(target*m.FR) : 0;
+  return r >= 1 ? {c:'up', t:'Ahead of pace'} : r >= BEHIND ? {c:'mid', t:'Close to pace'} : {c:'down', t:'Behind pace'}; }
+const gapTxt = (m, ytd, target) => { const g = ytd - target*m.FR; return g >= 0 ? `${k(g)} ahead` : `${k(-g)} behind`; };
+const vsLyHtml = m => { if (!m.lyYtd) return `<span class="muted">new this year</span>`; const p = (m.ytd-m.lyYtd)/m.lyYtd;
+  return `<span class="${p>=0?'up':'down'} b">${p>=0?'+':''}${(p*100).toFixed(0)}%</span> vs same date ${Y-1}`; };
+
+function header(m){
+  $('#title').textContent = `${m.label} ${Y}`;
+  $('#asof').textContent = `${D.sample ? 'Sample data' : 'Your data'} · as of ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · ${m.people.length} ${RLOW}`;
+  const n = $('#note');
+  if (!goalsOn) { n.hidden = false;
+    n.innerHTML = `<b>${G && G.year > Y ? `${G.year} goals start on January 1.` : 'No goals yet.'}</b> Until then, each person is measured against their own ${Y-1} total, so "ahead" means ahead of last year's pace.`;
+  } else n.hidden = true;
+  const s = status(m, m.ytd, m.divTarget);
+  $('#kpis').innerHTML = `
+    <div class="card kpi"><div class="l">Division so far</div><div class="v">${money(m.ytd)}</div><div class="n">${vsLyHtml(m)}</div></div>
+    <div class="card kpi"><div class="l">${goalsOn ? 'Division goal' : `Division ${Y-1} total`}</div><div class="v">${money(m.divTarget)}</div><div class="n">${goalsOn ? `Team projection ${money(m.divProj)}` : `Same people, all of ${Y-1}`}</div></div>
+    <div class="card kpi"><div class="l">Pace today</div><div class="v ${s.c}">${gapTxt(m, m.ytd, m.divTarget)}</div><div class="n">Should be at ${money(m.divTarget*m.FR)} by now</div></div>
+    <div class="card kpi"><div class="l">On track to finish</div><div class="v">${money(m.fore)}</div><div class="n">${m.fore ? `${Math.round(m.fore/m.divTarget*100)}% of ${tgtWord()} at this speed` : 'Too early in the year to tell'}</div></div>`;
+}
+
+function trendChart(id, m){
+  if (charts[id]) charts[id].destroy();
+  const cum = (a, upto) => { let c = 0; return a.map((v,i) => i > upto ? null : (c += v)); };
+  charts[id] = new Chart(document.getElementById(id), {type:'line', data:{labels:M, datasets:[
+    {label:`${Y}`, data:cum(m.T.monthly[Y], mi), borderColor:css('--copper'), backgroundColor:css('--copper'), borderWidth:3, pointRadius:0, tension:.25},
+    {label:`Pace to ${tgtWord()}`, data:M.map((_,i)=>Math.round(m.divTarget*m.shareBy(i,1))), borderColor:css('--pace'), borderDash:[6,5], borderWidth:2, pointRadius:0, tension:.25},
+    {label:`${Y-1}`, data:cum(m.T.monthly[Y-1], 11), borderColor:css('--ly'), borderWidth:2, pointRadius:0, tension:.25},
+  ]}, options:{maintainAspectRatio:false, interaction:{mode:'index',intersect:false},
+    plugins:{legend:{position:'bottom',labels:{color:css('--muted'),boxWidth:14,font:{family:'Manrope',weight:'600'}}},
+      tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${money(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false},ticks:{color:css('--muted')}}, y:{beginAtZero:true,grid:{color:css('--grid')},ticks:{color:css('--muted'),callback:v=>k(v)}}}}});
+}
+const othersHtml = m => [
+  m.others.length ? `Also selling, no ${goalsOn ? 'goal entered' : `${Y-1} sales to compare`}: ${m.others.map(o=>`${esc(o.name)} ${money(o.ytd)}`).join(' · ')}.` : '',
+  m.missing.length ? `No orders found yet for: ${m.missing.map(esc).join(', ')}.` : ''
+].filter(Boolean).map(t=>`<div class="others">${t}</div>`).join('');
+
+function vScore(m){
+  const list = [...m.people].sort((a,b)=> b.ytd/b.target - a.ytd/a.target);
+  const rows = list.map((p,i)=>{ const s = status(m, p.ytd, p.target), w = Math.min(100, p.ytd/p.target*100);
+    return `<div class="rrow"><div class="rank">${i+1}</div>
+      <div class="rname">${esc(p.name)}<small>${p.ytd >= p.target ? `<b class="up">${goalsOn ? 'Goal reached' : `Passed ${Y-1}`}</b> · ` : ''}${Math.round(p.ytd/p.target*100)}% of ${k(p.target)} ${tgtWord()}</small></div>
+      <div class="track"><div class="fill" style="width:${w}%;background:var(--${s.c})"></div><div class="tick" style="left:${Math.min(100,m.FR*100)}%" title="Where they should be today"></div></div>
+      <div class="rnum"><span class="b">${money(p.ytd)}</span><br><span class="${s.c} b">${gapTxt(m, p.ytd, p.target)}</span></div></div>`; }).join('');
+  $('#v-score').innerHTML = `
+    <div class="card"><h2>Race to ${goalsOn ? 'goal' : `beat ${Y-1}`}</h2><div class="h2n">Ranked by how much of their own ${tgtWord()} each person has done. The dark line on each bar is where they should be today.</div>
+      <div>${rows || '<div class="muted">Nobody to show yet.</div>'}</div>
+      <div class="legend"><span><i style="background:var(--up)"></i>Ahead of pace</span><span><i style="background:var(--mid)"></i>Close</span><span><i style="background:var(--down)"></i>Behind</span><span><i style="background:var(--pace);width:3px"></i>Pace today</span></div>
+      ${othersHtml(m)}</div>
+    <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${tgtWord()} and last year.</div><div class="chart"><canvas id="c1"></canvas></div></div>`;
+  trendChart('c1', m);
+}
+
+function spark(a){
+  const v = a.slice(0, mi+1), mx = Math.max(1, ...v), w = 96, h = 26, bw = w/12;
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${a.map((x,i)=> i>mi ? `<rect x="${i*bw+1}" y="${h-2}" width="${bw-2}" height="2" fill="var(--track)"/>` :
+    `<rect x="${i*bw+1}" y="${h - Math.max(2, x/mx*h)}" width="${bw-2}" height="${Math.max(2, x/mx*h)}" rx="1" fill="var(--copper)"/>`).join('')}</svg>`;
+}
+function vTrend(m){
+  const s = status(m, m.ytd, m.divTarget);
+  const rows = [...m.people].sort((a,b)=>b.ytd-a.ytd).map(p=>{ const st = status(m, p.ytd, p.target); return `<tr>
+    <td class="name">${esc(p.name)}</td><td>${money(p.ytd)}</td><td>${money(p.target)}</td>
+    <td><span class="pill ${st.c}">${gapTxt(m, p.ytd, p.target)}</span></td>
+    <td>${m.FR > .03 ? money(p.ytd/m.FR) : '—'}</td><td>${spark(p.months)}</td></tr>`; }).join('');
+  $('#v-trend').innerHTML = `
+    <div class="hero2">
+      <div class="card"><h2>Division trend line</h2><div class="h2n">Running total this year, against the pace to ${tgtWord()} and last year.</div><div class="chart big"><canvas id="c2"></canvas></div></div>
+      <div class="card side">
+        <div class="eyebrow">So far</div><div class="big">${money(m.ytd)}</div><p>${vsLyHtml(m)}</p><hr>
+        <div class="eyebrow">${goalsOn ? 'Goal' : `${Y-1} total`}</div><div class="big">${money(m.divTarget)}</div>
+        <p>${goalsOn ? `Team projection ${money(m.divProj)}. ` : ''}<span class="${s.c} b">${gapTxt(m, m.ytd, m.divTarget)}</span> of pace.</p><hr>
+        <div class="eyebrow">On track to finish</div><div class="big">${money(m.fore)}</div><p>If the rest of the year goes like other years.</p>
+      </div>
+    </div>
+    <div class="card"><h2>Each person</h2><div class="h2n">Pace = where they should be today. Bars = each month this year.</div>
+      <div class="tablewrap"><table><thead><tr><th>Name</th><th>So far</th><th>${goalsOn ? 'Goal' : `${Y-1} total`}</th><th>Pace</th><th>On track for</th><th>${Y} by month</th></tr></thead><tbody>${rows}</tbody></table></div>
+      ${othersHtml(m)}</div>`;
+  trendChart('c2', m);
+}
+
+function ring(m, p, size, col){
+  const r = size/2 - 7, C = 2*Math.PI*r, f = Math.min(1, p);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img" aria-label="${Math.round(p*100)}% of ${tgtWord()}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--track)" stroke-width="10"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--${col})" stroke-width="10" stroke-linecap="round" stroke-dasharray="${C*f} ${C}" transform="rotate(-90 ${size/2} ${size/2})"/>
+    <line x1="${size/2}" y1="${size/2 - r - 8}" x2="${size/2}" y2="${size/2 - r + 8}" stroke="var(--pace)" stroke-width="2.5" transform="rotate(${m.FR*360} ${size/2} ${size/2})"/>
+    <text x="50%" y="52%" text-anchor="middle" dominant-baseline="middle" class="ringtxt" style="font-size:${size>120?24:15}px">${Math.round(p*100)}%</text></svg>`;
+}
+function vPeople(m){
+  const s = status(m, m.ytd, m.divTarget);
+  const cards = [...m.people].sort((a,b)=>b.ytd-a.ytd).map(p=>{ const st = status(m, p.ytd, p.target); return `<div class="card pc">
+    <div class="top">${ring(m, p.ytd/p.target, 74, st.c)}<div><div class="nm">${esc(p.name)}</div><span class="pill ${st.c}">${st.t}</span></div></div>
+    <div class="line"><span class="muted">So far</span><span class="b">${money(p.ytd)}</span></div>
+    <div class="line"><span class="muted">${goalsOn ? 'Goal' : `${Y-1} total`}</span><span>${money(p.target)}</span></div>
+    <div class="line"><span class="muted">Same date ${Y-1}</span><span>${money(p.ly)}</span></div>
+    <div class="need">${p.ytd >= p.target ? `<b class="up">${goalsOn ? 'Goal reached.' : `Already past ${Y-1}.`}</b> Everything now is extra.` : `To reach ${tgtWord()}: <b>${money((p.target-p.ytd)/monthsLeft)}</b> a month from now on.`}</div>
+    ${p.noOrders ? '<span class="pill none">No orders found yet</span>' : ''}
+  </div>`; }).join('');
+  $('#v-people').innerHTML = `
+    <div class="card divcard">${ring(m, m.ytd/m.divTarget, 150, s.c)}
+      <div><div class="eyebrow">Whole division</div><h2 style="font-size:26px">${money(m.ytd)} of ${money(m.divTarget)}</h2>
+      <div class="sub"><span class="${s.c} b">${gapTxt(m, m.ytd, m.divTarget)}</span> of pace · on track to finish at <b>${money(m.fore)}</b> · ${vsLyHtml(m)}</div>
+      <div class="sub" style="margin-top:6px">The small dark mark on each circle is where the person should be today.</div></div></div>
+    <div class="cards">${cards}</div>${othersHtml(m)}`;
+}
+
+function plan(){
+  const el = $('#plan');
+  if (!G || !G.rows) { el.hidden = true; return; }
+  const L = [['BIZ','Business gifts','--l1'],['RLT','Realtor gifts','--l2'],['EVT','Events','--l3'],['SVC','Service calls / other','--l4']];
+  const sum = (key, f) => G.rows.reduce((a,r)=>a+((r[key]||{})[f]||0),0);
+  const proj = L.map(([key]) => sum(key,'proj')), goal = L.map(([key]) => G.rows.reduce((a,r)=>{ const x = r[key]||{}; return a + (x.goal || x.proj || 0); },0));
+  const totP = proj.reduce((a,b)=>a+b,0), totG = goal.reduce((a,b)=>a+b,0);
+  const filled = G.rows.filter(r => L.some(([key]) => (r[key]||{}).proj || (r[key]||{}).goal)).length;
+  el.hidden = false;
+  el.innerHTML = `<h2>${G.year} plan</h2>
+    <div class="h2n">From the goals you entered. ${filled} of ${G.rows.length} ${RLOW} have a number in.</div>
+    ${totP ? `<div class="kpi"><div class="l">Division projection</div><div class="v">${money(totP)}</div><div class="n">Goal ${money(totG)}</div></div>
+    <div class="bar" role="img" aria-label="Where the projection comes from">${L.map(([,,c],i)=> proj[i] ? `<span style="width:${proj[i]/totP*100}%;background:var(${c})"></span>` : '').join('')}</div>
+    <div class="keys">${L.map(([,n,c],i)=>`<div><i style="background:var(${c})"></i>${n}<b>${money(proj[i])}</b>${totP ? Math.round(proj[i]/totP*100) : 0}% of projection</div>`).join('')}</div>`
+    : '<div class="muted">No numbers in yet.</div>'}`;
+}
+
+/* ---------- National tabs (sample data here; the real page reads a weekly national report) ---------- */
+const N = D.national || null;
+const pct = (a, b) => b ? (a - b) / b : null;
+const pctHtml = p => p == null ? '<span class="muted">new</span>' : `<span class="${p >= 0 ? 'up' : 'down'} b">${p >= 0 ? '+' : ''}${Math.round(p*100)}%</span>`;
+const natDate = () => new Date(N.date + 'T12:00:00').toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+const lyBy = (key, f) => Object.fromEntries((N.ly[key] || []).map(x => [f(x), x]));
+const sumNum = a => a.reduce((x, z) => x + z, 0);
+function natSeries(y){ return (N.series[String(y)] || []).filter(x => x.top25); }
+function natNumbers(){
+  const L = N.latest, divs = L.divisions, now = natSeries(N.year).slice(-1)[0] || {};
+  const lyPt = natSeries(N.year - 1).find(x => x.week === N.week) || null;
+  const home = divs.find(d => d.name === N.home);
+  const homeNow = (N.home_cum[String(N.year)] || []).slice(-1)[0] || 0;
+  return {L, divs, now, lyPt, home, homeNow, cut: divs.length ? divs[divs.length-1].cpo : null};
+}
+function natHeader(){
+  const n = natNumbers();
+  $('#title').textContent = `National gifting ${N.year}`;
+  $('#asof').textContent = `Sample national report, week ${N.week} (${natDate()}) · made-up numbers`;
+  $('#note').hidden = false;
+  $('#note').innerHTML = `<b>Sample data.</b> National tabs show made-up numbers; they need your company's national report. Such a report lists the top 25 divisions, sellers, events and items, so "nationwide" here means the top 25 divisions combined. Divisions and events count business gifts only.`;
+  const g = n.lyPt ? pct(n.now.top25, n.lyPt.top25) : null;
+  $('#kpis').innerHTML = `
+    <div class="card kpi"><div class="l">Top 25 divisions, business gifts</div><div class="v">${k(n.now.top25)}</div><div class="n">${g == null ? 'No report for last year' : `${pctHtml(g)} vs same week ${N.year-1}`}</div></div>
+    <div class="card kpi"><div class="l">${esc(N.home)}'s place</div><div class="v ${n.home ? '' : 'down'}">${n.home ? '#' + n.home.rank : 'Outside 25'}</div><div class="n">${n.home ? `of the top 25 · ${money(n.home.cpo)}` : `${money(n.homeNow)} so far`}</div></div>
+    ${(() => { const up = n.home && n.home.rank > 1 ? n.divs[n.home.rank - 2] : null;
+      return up ? `<div class="card kpi"><div class="l">Gap to #${up.rank}</div><div class="v">${k(up.cpo - n.home.cpo)}</div><div class="n">${esc(up.name)} is at ${money(up.cpo)}</div></div>`
+        : `<div class="card kpi"><div class="l">Line to make the top 25</div><div class="v">${money(n.cut)}</div><div class="n">${esc(N.home)} is ${k(Math.abs(n.homeNow - n.cut))} ${n.homeNow >= n.cut ? 'above' : 'below'} it</div></div>`; })()}
+    <div class="card kpi"><div class="l">#1 division</div><div class="v">${n.divs[0] ? esc(n.divs[0].name) : '—'}</div><div class="n">${n.divs[0] ? `${money(n.divs[0].cpo)} · ${n.divs[0].reps} sellers` : ''}</div></div>`;
+}
+function vNRanks(){
+  const n = natNumbers(), T = TT === 'BIZ', word = T ? 'business gifts' : 'realtor gifts';
+  const lyDiv = lyBy('divisions', d => d.name), mx = n.divs.length ? n.divs[0].cpo : 1;
+  const homeLyNow = (N.home_cum[String(N.year-1)] || [])[N.week-1] || 0;
+  const drow = (d, cls) => { const was = lyDiv[d.name], isHome = d.name === N.home;
+    const ch = isHome && homeLyNow ? pctHtml(pct(isHome && !d.rank ? n.homeNow : d.cpo, homeLyNow)) : was ? pctHtml(pct(d.cpo, was.cpo)) : '<span class="muted">new</span>';
+    return `<div class="drow ${cls}"><div class="rank">${d.rank || ''}</div><div class="rname">${esc(d.name)}<small>${d.reps} sellers · ${d.orders} orders</small></div>
+      <div class="track"><div class="fill" style="width:${Math.max(1, d.cpo/mx*100)}%;background:var(${cls.includes('home') ? '--copper' : '--l3'})"></div></div>
+      <div class="rnum b">${money(d.cpo)}</div><div class="rnum">${ch}</div></div>`; };
+  let divHtml = n.divs.map(d => drow(d, d.name === N.home ? 'home' : '')).join('');
+  if (!n.home) divHtml += drow({name:N.home, cpo:n.homeNow, reps:'—', orders:'—'}, 'home gap');
+  const reps = n.L[T ? 'reps_biz' : 'reps_rlt'] || [], lyRep = lyBy(T ? 'reps_biz' : 'reps_rlt', r => r.name);
+  const mine = (D.types[TT].reps.find(r => r.name === N.home_rep) || {}).ytd || 0;
+  const inList = reps.find(r => r.name === N.home_rep), repCut = reps.length ? reps[reps.length-1].cpo : 0;
+  const repRows = reps.map(r => `<tr class="${r.name === N.home_rep ? 'home' : ''}"><td>${r.rank}</td><td class="name l">${esc(r.name)}</td><td>${r.orders}</td><td>${money(r.cpo)}</td><td>${r.orders ? money(r.cpo/r.orders) : '—'}</td><td>${lyRep[r.name] ? '#' + lyRep[r.name].rank : '<span class="muted">—</span>'}</td></tr>`).join('');
+  const ev = (n.L.events || []).map(e => `<tr><td>${e.rank}</td><td class="txt">${esc(e.name)}</td><td>${e.orders}</td><td>${money(e.cpo)}</td></tr>`).join('');
+  const big = (n.L[T ? 'orders_biz' : 'orders_rlt'] || []).slice(0, 15).map(o => `<tr><td>${o.rank}</td><td class="name l">${esc(o.name)}</td><td>Week ${+o.week.slice(4)}</td><td>${money(o.cpo)}</td></tr>`).join('');
+  $('#v-nranks').innerHTML = `
+    <div class="card"><h2>Divisions, business gifts so far this year</h2><div class="h2n">Top 25 in the country. Last column: change vs the same week last year.</div>${divHtml}
+      ${(() => { const w = lyDiv[N.home]; return w && w.div !== (n.home || {}).div ? `<div class="callout">${esc(N.home)}'s change is our own office against itself last year. The national report compares against last year's ${esc(N.home)} division (number ${esc(w.div)}, ${w.reps} sellers, ${money(w.cpo)} by this week), which was set up differently.</div>` : ''; })()}</div>
+    <div class="card"><h2>Top sellers nationally · ${word}</h2><div class="h2n">So far this year. "Place last year" is where they stood at this point in ${N.year-1}.</div>
+        <div class="tablewrap"><table><thead><tr><th>#</th><th class="l">Seller</th><th>Orders</th><th>Sales</th><th>Avg order</th><th>Place last year</th></tr></thead><tbody>${repRows || '<tr><td colspan="6" class="muted">Not in this week’s report.</td></tr>'}</tbody></table></div>
+        ${reps.length ? `<div class="callout"><b>${esc(N.home_rep)}</b>: ${inList ? `#${inList.rank} in the country.` : `${money(mine)} so far. The #25 spot is at ${money(repCut)}, so ${k(Math.max(0, repCut - mine))} more puts them on this list.`}</div>` : ''}</div>
+    <div class="grid2">
+        <div class="card"><h2>Top events for business gifts</h2><div class="h2n">Shows and fairs, all divisions.</div>
+          <div class="tablewrap"><table><thead><tr><th>#</th><th class="l">Event</th><th>Orders</th><th>Sales</th></tr></thead><tbody>${ev}</tbody></table></div></div>
+      <div class="card"><h2>Biggest single orders · ${word}</h2><div class="h2n">One order each, this year.</div>
+        <div class="tablewrap"><table><thead><tr><th>#</th><th class="l">Seller</th><th>When</th><th>Order</th></tr></thead><tbody>${big || '<tr><td colspan="4" class="muted">Not in this week\u2019s report.</td></tr>'}</tbody></table></div></div>
+    </div>`;
+}
+function vNTrends(){
+  const n = natNumbers(), T = TT === 'BIZ', word = T ? 'business gift' : 'realtor';
+  const s1 = natSeries(N.year), s0 = natSeries(N.year - 1), W = Array.from({length:53}, (_, i) => i + 1);
+  const at = (s, f) => W.map(w => { const p = s.find(x => x.week === w); return p ? f(p) : null; });
+  const homeNow = N.home_cum[String(N.year)] || [], homeLy = N.home_cum[String(N.year-1)] || [];
+  const lyItem = lyBy(T ? 'items_biz' : 'items_rlt', x => x.item);
+  const items = (n.L[T ? 'items_biz' : 'items_rlt'] || []).map(x => { const w = lyItem[x.item];
+    return `<tr><td>${x.rank}</td><td class="txt">${esc(x.name)} <span class="muted">${esc(x.item)}</span></td><td>${x.qty.toLocaleString('en-US')}</td><td>${w ? w.qty.toLocaleString('en-US') : '—'}</td><td>${w ? pctHtml(pct(x.qty, w.qty)) : '<span class="pill up">New on list</span>'}</td></tr>`; }).join('');
+  const lyDiv = lyBy('divisions', d => d.name);
+  const movers = n.divs.filter(d => lyDiv[d.name]).map(d => ({d, p: pct(d.cpo, lyDiv[d.name].cpo)})).sort((a, b) => b.p - a.p);
+  const mv = list => list.map(({d, p}) => `<tr class="${d.name === N.home ? 'home' : ''}"><td class="name">${esc(d.name)}</td><td>${money(d.cpo)}</td><td>${pctHtml(p)}</td></tr>`).join('');
+  $('#v-ntrends').innerHTML = `
+    <div class="grid2">
+      <div class="card"><h2>Business gifting nationwide</h2><div class="h2n">Top 25 divisions combined, running total by week. ${N.year-1}'s line starts in June because earlier reports can't be read.</div><div class="chart"><canvas id="n1"></canvas></div></div>
+      <div class="card"><h2>${esc(N.home)} vs the top-25 line</h2><div class="h2n">Our business gifts by week against what the #25 division had that week.</div><div class="chart"><canvas id="n2"></canvas></div></div>
+    </div>
+    <div class="card"><h2>What's selling · ${word} orders</h2><div class="h2n">Top 25 items in the country by quantity, so far this year, against the same week of ${N.year-1}.</div>
+      <div class="tablewrap"><table><thead><tr><th>#</th><th class="l">Item</th><th>${N.year}</th><th>${N.year-1}</th><th>Change</th></tr></thead><tbody>${items}</tbody></table></div></div>
+    <div class="grid2">
+      <div class="card"><h2>Growing fastest</h2><div class="h2n">Divisions in both years' top 25, change vs same week ${N.year-1}.</div><div class="tablewrap"><table><thead><tr><th>Division</th><th>So far</th><th>Change</th></tr></thead><tbody>${mv(movers.slice(0, 8))}</tbody></table></div></div>
+      <div class="card"><h2>Shrinking most</h2><div class="h2n">Same divisions, the other end.</div><div class="tablewrap"><table><thead><tr><th>Division</th><th>So far</th><th>Change</th></tr></thead><tbody>${mv(movers.slice(-8).reverse())}</tbody></table></div></div>
+    </div>`;
+  const opts = {maintainAspectRatio:false, spanGaps:true, interaction:{mode:'index', intersect:false},
+    plugins:{legend:{position:'bottom', labels:{color:css('--muted'), boxWidth:14, font:{family:'Manrope', weight:'600'}}},
+      tooltip:{callbacks:{title:c => 'Week ' + c[0].label, label:c => `${c.dataset.label}: ${money(c.parsed.y)}`}}},
+    scales:{x:{grid:{display:false}, ticks:{color:css('--muted'), maxTicksLimit:9}}, y:{beginAtZero:true, grid:{color:css('--grid')}, ticks:{color:css('--muted'), callback:v => k(v)}}}};
+  const line = (label, data, color, dash, wdt) => ({label, data, borderColor:css(color), backgroundColor:css(color), borderDash:dash || [], borderWidth:wdt || 2, pointRadius:0, tension:.25});
+  ['n1','n2'].forEach(id => { if (charts[id]) charts[id].destroy(); });
+  charts.n1 = new Chart($('#n1'), {type:'line', data:{labels:W, datasets:[
+    line(`${N.year}`, at(s1, p => p.top25), '--copper', null, 3), line(`${N.year-1}`, at(s0, p => p.top25), '--ly')]}, options:opts});
+  charts.n2 = new Chart($('#n2'), {type:'line', data:{labels:W, datasets:[
+    line(`${N.home} ${N.year}`, W.map((w, i) => i < homeNow.length ? homeNow[i] : null), '--copper', null, 3),
+    line('#25 division', at(s1, p => p.cut), '--pace', [6,5]),
+    line(`${N.home} ${N.year-1}`, W.map((w, i) => homeLy[i] ?? null), '--ly')]}, options:opts});
+}
+
+function render(){
+  const nat = VIEW === 'nranks' || VIEW === 'ntrends';
+  const m = model(TT);
+  if (nat) natHeader(); else header(m);
+  ({score:vScore, trend:vTrend, people:vPeople, nranks:vNRanks, ntrends:vNTrends})[VIEW](m);
+  ['score','trend','people','nranks','ntrends'].forEach(v => $('#v-'+v).hidden = v !== VIEW);
+  $('#plan').hidden = nat || !(G && G.rows);
+  const past = D.years.filter(y => y < Y);
+  $('#foot').innerHTML = nat
+    ? `Sample data. Every name, division, event, item and number on the national tabs is made up for illustration, and loading your own CSV does not change them: they need your company's national report.`
+    : `${D.sample ? 'Sample data: invented people and numbers, so you can see how the page works. Load your own with the button at the top.' : 'Source: the CSV you loaded, kept only in this browser.'} "Pace" ${STRAIGHT ? 'is a straight line across the year' : `follows how ${m.label.toLowerCase()} usually spread across the year (${past.join(', ')})`}: by ${M[mi]} ${asof.getDate()} the division ${STRAIGHT ? 'should have' : 'normally has'} ${Math.round(m.FR*100)}% of its year done.`;
+}
+if (!N) document.querySelectorAll('#tabs .nat').forEach(b => b.hidden = true);
+document.querySelectorAll('#types button').forEach(b => b.onclick = () => { TT = b.dataset.t;
+  document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { VIEW = b.dataset.v;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+if (ANS.team) $('#eyebrow').textContent = ANS.team;
+document.querySelector('#tabs [data-v=people]').textContent = REPS;
+if (/^no/i.test(ANS.realtor || '') || !D.types.RLT.reps.length) $('#types').style.display = 'none';
+plan();
+render();
+if (window.EvergreenSetup) EvergreenSetup.init({
+  id: SETUP_ID,
+  title: 'Set up your business-gifts page',
+  intro: 'A few quick questions so the labels, goals and people on this page match your team. About 3 minutes. Everything is optional.',
+  questions: [
+    {key:'team', q:'What should this page call your team?', why:'Shown at the top of the page so people know whose numbers these are. You can add your office number from your order system.', type:'text', optional:true, example:'Evergreen Division · Office #1234', placeholder:'e.g. Evergreen Division · Office #1234'},
+    {key:'repWord', q:'What do you call the people listed on this page?', why:'A CSP (Cutco Sales Professional) is a senior rep. Pick the word your team uses; it replaces the labels and column heading.', type:'choice', options:['CSP','Rep','Manager'], example:'CSP'},
+    {key:'realtor', q:'Do you want to see realtor gifts too?', why:'Orders are tagged BIZ (business gift) or RLT (realtor gift) by whoever enters them, and only tagged orders show up here. If you do not sell to realtors, hide that view.', type:'choice', options:['Yes, show both','No, business gifts only'], example:'Yes, show both'},
+    {key:'goalYear', q:'Which year are your goals for?', why:'Sets which year the goals below belong to. If it is next year, the page keeps measuring people against their own total from last year until January 1, and shows a plan card. If it is this year, people are measured against their goals now. Leave it blank to use next year.', type:'number', optional:true, example:'2027', placeholder:'e.g. 2027'},
+    {key:'reps', q:'Who are your CSPs, and what is each person\u2019s goal for the year?', why:'Goals are whole-year dollars. Use the name as it appears in your data (first name and last initial is enough). Leave a goal blank if someone has none. Matching names get the goal, and anyone missing from your data shows at $0 so far.', type:'list', optional:true, fields:[{key:'name',label:'Name'},{key:'biz',label:'Business-gift goal ($)',type:'number'},{key:'rlt',label:'Realtor-gift goal ($)',type:'number'}], example:'Jordan K. \u00b7 $60,000 business \u00b7 $25,000 realtor'},
+    {key:'growth', q:'If someone has no goal, how much growth over last year should we assume?', why:'In percent. Used by the scoreboard designs page; this page does not use it.', type:'number', optional:true, example:'10', placeholder:'e.g. 10'},
+    {key:'pace', q:'How should the page decide where each person should be today?', why:'Gift sales are lumpy, for example heavy near year end. Seasonal pace uses how much of the year was usually done by this date in earlier years, so it needs at least one earlier year of data. Straight line works for a brand new team.', type:'choice', options:['Seasonal: follow earlier years','Straight line: same each month'], example:'Seasonal: follow earlier years'},
+    {key:'behind', q:'Below what percent of pace is someone \u201cbehind\u201d?', why:'At or above 100% of where they should be today is \u201cahead\u201d. Between this number and 100% is \u201cclose\u201d. Under this number shows red as \u201cbehind\u201d.', type:'number', optional:true, example:'90', placeholder:'e.g. 90'}
+  ],
+  onDone(a){ if (JSON.stringify(a || {}) !== ANS_USED) location.reload(); }
+});
+</script>
+<a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
+</html>

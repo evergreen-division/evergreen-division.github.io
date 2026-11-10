@@ -74,6 +74,9 @@ h2{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 4px;co
 .cgp-row .track i{display:block;height:100%;border-radius:4px;background:var(--forest)}
 .cgp-head{font-size:12px;color:var(--muted);font-weight:700}
 .cgp-row .lbl{display:none}
+.nvr-row{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr)}
+.nvr-row .v2{font-variant-numeric:tabular-nums}
+@media (max-width:640px){.nvr-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.nvr-row .who{grid-column:1 / 3}}
 @media (max-width:640px){.cgp-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cgp-row .who,.cgp-row .st{grid-column:1 / 3}.cgp-head{display:none}.cgp-head + .cgp-row{border-top:0}.cgp-row .lbl{display:block}}
 body.solo #types,body.solo #tabs,body.solo #plan{display:none!important}
 /* Scoreboard */
@@ -217,6 +220,7 @@ dialog#drill::backdrop{background:rgba(15,20,17,.55)}
     <button data-v="nranks" class="nat">National ranks</button>
     <button data-v="ntrends" class="nat">National trends</button>
     <button data-v="cgp">CGP</button>
+    <button data-v="nvr">New vs reorder</button>
   </nav>
 
   <section id="v-score" class="stack"></section>
@@ -225,6 +229,7 @@ dialog#drill::backdrop{background:rgba(15,20,17,.55)}
   <section id="v-nranks" class="stack" hidden></section>
   <section id="v-ntrends" class="stack" hidden></section>
   <section id="v-cgp" class="stack" hidden></section>
+  <section id="v-nvr" class="stack" hidden></section>
 
   <section class="card plan" id="plan" style="margin-top:14px" hidden></section>
 
@@ -883,15 +888,51 @@ function vCGP(){
     </div>`).join('')}</div>`;
 }
 
+/* ---------- New vs reorder tab (numbers each seller sends from their own sales report) ---------- */
+const NVR = D.nvr || {reps: {}};
+const NVR_KINDS = [['biz_new','New business gift'],['biz_re','Business gift reorder'],['rlt_new','New realtor'],['rlt_re','Realtor reorder']];
+function nvrRows(){
+  const names = [...new Set([...D.types.ALL.reps.map(r => r.name), ...Object.keys(NVR.reps || {})])];
+  return names.map(name => {
+    const d = (NVR.reps || {})[name] || null;
+    const g = k => (d && d[k]) || null;
+    const tot = k => { const x = g(k); return x ? +x.sales || 0 : 0; };
+    const all = NVR_KINDS.reduce((a, [k]) => a + tot(k), 0), re = tot('biz_re') + tot('rlt_re');
+    return {name, d, g, all, share: all ? re / all : null};
+  }).sort((a, b) => (!!b.d - !!a.d) || b.all - a.all);
+}
+function nvrHeader(){
+  $('#title').textContent = 'New vs reorder';
+  const sent = nvrRows().filter(r => r.d).length;
+  $('#asof').textContent = NVR.period ? `${NVR.period} · ${sent} people sent numbers` + (NVR.updated ? ` · updated ${new Date(NVR.updated + 'T12:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})}` : '') : 'Waiting for the first numbers';
+  $('#note').hidden = false;
+  $('#note').innerHTML = `<b>New clients vs. reorders.</b> Track four average orders: new business gift, business gift reorder, new realtor, realtor reorder. Nurturing clients over time pays more than the first order.`;
+  const tot = {}; NVR_KINDS.forEach(([k]) => tot[k] = {sales: 0, orders: 0});
+  Object.values(NVR.reps || {}).forEach(d => NVR_KINDS.forEach(([k]) => { if (d[k]) { tot[k].sales += +d[k].sales || 0; tot[k].orders += +d[k].orders || 0; } }));
+  $('#kpis').innerHTML = NVR_KINDS.map(([k, l]) => { const t = tot[k];
+    return `<div class="card kpi"><div class="l">${l}</div><div class="v">${t.orders ? money(t.sales / t.orders) : '—'}</div><div class="n">${t.orders ? `average order · ${t.orders} orders` : 'no numbers yet'}</div></div>`; }).join('');
+}
+function vNVR(){
+  const cell = (r, k, l) => { const x = r.g(k);
+    return `<div class="v2"><div class="sm lbl">${l}</div>${x ? `${money(+x.sales || 0)}<div class="sm">${+x.orders || 0} orders${x.orders ? ' · avg ' + money((+x.sales || 0) / x.orders) : ''}</div>` : '<span class="sm">—</span>'}</div>`; };
+  $('#v-nvr').innerHTML = `<div class="card">
+    <div class="cgp-row nvr-row cgp-head"><div>Person</div><div>New business</div><div>Business reorder</div><div>New realtor</div><div>Realtor reorder</div><div>Reorders</div></div>
+    ${nvrRows().map(r => `<div class="cgp-row nvr-row">
+      <div class="who"><div class="nm">${esc(r.name)}</div>${r.d ? '' : '<span class="pill none">Not sent yet</span>'}</div>
+      ${r.d ? NVR_KINDS.map(([k, l]) => cell(r, k, l)).join('') + `<div class="v2"><div class="sm lbl">Reorders</div>${r.share == null ? '—' : Math.round(r.share * 100) + '%'}<div class="sm">of gift sales</div></div>` : ''}
+    </div>`).join('')}</div>`;
+}
+
 function render(){
-  const nat = VIEW === 'nranks' || VIEW === 'ntrends', cgp = VIEW === 'cgp';
+  const nat = VIEW === 'nranks' || VIEW === 'ntrends', cgp = VIEW === 'cgp', nvr = VIEW === 'nvr';
   const m = model(TT);
-  if (nat) natHeader(); else if (cgp) cgpHeader(); else header(m);
-  ({score:vScore, trend:vTrend, people:vPeople, nranks:vNRanks, ntrends:vNTrends, cgp:vCGP})[VIEW](m);
-  ['score','trend','people','nranks','ntrends','cgp'].forEach(v => $('#v-'+v).hidden = v !== VIEW);
-  $('#types').style.visibility = cgp ? 'hidden' : '';
-  $('#plan').hidden = nat || cgp || !(G && G.rows);
+  if (nat) natHeader(); else if (cgp) cgpHeader(); else if (nvr) nvrHeader(); else header(m);
+  ({score:vScore, trend:vTrend, people:vPeople, nranks:vNRanks, ntrends:vNTrends, cgp:vCGP, nvr:vNVR})[VIEW](m);
+  ['score','trend','people','nranks','ntrends','cgp','nvr'].forEach(v => $('#v-'+v).hidden = v !== VIEW);
+  $('#types').style.visibility = cgp || nvr ? 'hidden' : '';
+  $('#plan').hidden = nat || cgp || nvr || !(G && G.rows);
   const past = D.years.filter(y => y < Y);
+  if (nvr) { $('#foot').innerHTML = `Sample page: no new-vs-reorder numbers are loaded here. On a real team, each seller sends their new-client and reorder totals from their own sales report once a month. \"Average order\" is total sales ÷ orders for everyone who sent numbers. Open this list on its own by adding #nvr to the page address.`; return; }
   if (cgp) { $('#foot').innerHTML = `Sample data: invented people and numbers. The CGP rule shown: within 2 years of a person's CGP start date, sell $20,000 and 20 orders of gifts (business + realtor). Until a start date is entered, the person is shown on the last 24 months. Open this list on its own by adding #cgp to the page address.`; return; }
   $('#foot').innerHTML = nat
     ? `Sample data. Every name, division, event, item and number on the national tabs is made up for illustration, and loading your own CSV does not change them: they need your company's national report.`
@@ -903,10 +944,10 @@ document.querySelectorAll('#types button').forEach(b => b.onclick = () => { TT =
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { VIEW = b.dataset.v;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
 function openView(v){
-  if (v !== 'cgp') return;
+  if (v !== 'cgp' && v !== 'nvr') return;
   document.body.classList.add('solo');
-  VIEW = 'cgp';
-  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.v === 'cgp'));
+  VIEW = v;
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.v === v));
   render();
 }
 if (ANS.team) $('#eyebrow').textContent = ANS.team + ' · Version 2';
@@ -930,7 +971,7 @@ if (window.EvergreenSetup) EvergreenSetup.init({
   ],
   onDone(a){ if (JSON.stringify(a || {}) !== ANS_USED) location.reload(); }
 });
-if (location.hash === '#cgp') openView('cgp');
+if (location.hash === '#cgp' || location.hash === '#nvr') openView(location.hash.slice(1));
 </script>
 <a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
 </html>

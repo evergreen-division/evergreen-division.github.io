@@ -65,6 +65,17 @@ h2{font-family:"Playfair Display",Georgia,serif;font-size:20px;margin:0 0 4px;co
 .pill.mid{background:color-mix(in srgb,var(--mid) 16%,transparent)}
 .pill.down{background:color-mix(in srgb,var(--down) 14%,transparent)}
 .pill.none{background:var(--cream);color:var(--muted)}
+.cgp-rule{margin:0 0 4px}
+.cgp-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.6fr);gap:6px 16px;align-items:start;padding:12px 0;border-top:1px solid var(--line)}
+.cgp-row:first-of-type{border-top:0}
+.cgp-row .nm{font-weight:700}
+.cgp-row .sm{font-size:12px;color:var(--muted)}
+.cgp-row .track{height:8px;margin-top:6px}
+.cgp-row .track i{display:block;height:100%;border-radius:4px;background:var(--forest)}
+.cgp-head{font-size:12px;color:var(--muted);font-weight:700}
+.cgp-row .lbl{display:none}
+@media (max-width:640px){.cgp-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.cgp-row .who,.cgp-row .st{grid-column:1 / 3}.cgp-head{display:none}.cgp-head + .cgp-row{border-top:0}.cgp-row .lbl{display:block}}
+body.solo #types,body.solo #tabs,body.solo #plan{display:none!important}
 /* Scoreboard */
 .rrow{display:grid;grid-template-columns:28px minmax(120px,190px) minmax(0,1fr) minmax(150px,210px);gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
 .rrow:last-child{border-bottom:0}
@@ -205,6 +216,7 @@ dialog#drill::backdrop{background:rgba(15,20,17,.55)}
     <button data-v="people">People</button>
     <button data-v="nranks" class="nat">National ranks</button>
     <button data-v="ntrends" class="nat">National trends</button>
+    <button data-v="cgp">CGP</button>
   </nav>
 
   <section id="v-score" class="stack"></section>
@@ -212,6 +224,7 @@ dialog#drill::backdrop{background:rgba(15,20,17,.55)}
   <section id="v-people" class="stack" hidden></section>
   <section id="v-nranks" class="stack" hidden></section>
   <section id="v-ntrends" class="stack" hidden></section>
+  <section id="v-cgp" class="stack" hidden></section>
 
   <section class="card plan" id="plan" style="margin-top:14px" hidden></section>
 
@@ -815,14 +828,71 @@ $('#drill').addEventListener('click', e => {
   if (v) { DT = v.dataset.dt; drawDrill(); } else if (y) { DY = +y.dataset.dy; drawDrill(); }
 });
 
+/* ---------- CGP tab (Nov 10 CSP call): keep CGP = $20,000 AND 20 gift orders within 2 years of getting it ---------- */
+const CGP = {cpo: 20000, orders: 20, months: 24, dates: (D.cgp && D.cgp.dates) || {}};
+function cgpRows(){
+  const end = new Date(D.asof + 'T12:00:00');
+  const add = (y, m, n) => { const t = y * 12 + (m - 1) + n; return [Math.floor(t / 12), t % 12 + 1]; };
+  return D.types.ALL.reps.map(r => {
+    const start = CGP.dates[r.name] || '';
+    let y, m, deadline = null;
+    if (start) { [y, m] = start.split('-').map(Number); const [ey, em] = add(y, m, CGP.months); deadline = new Date(ey, em - 1, 0); }
+    else { [y, m] = add(end.getFullYear(), end.getMonth() + 1, 1 - CGP.months); }
+    let cpo = 0, orders = 0, met = null, gap = false;
+    for (let i = 0; i < CGP.months; i++) {
+      const [yy, mm] = add(y, m, i);
+      if (new Date(yy, mm - 1, 1) > end) break;
+      const h = r.hist[yy];
+      if (!h) { gap = true; continue; }
+      cpo += h.s[mm - 1]; orders += h.o[mm - 1];
+      if (!met && cpo >= CGP.cpo && orders >= CGP.orders) met = new Date(yy, mm - 1, 1);
+    }
+    const mon = d => d.toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+    let st, c;
+    if (met && !start) { st = 'Has both in the last 24 months (start date needed)'; c = 'up'; }
+    else if (met) { st = `Met both in ${mon(met)}`; c = 'up'; }
+    else if (deadline && deadline < end) { st = 'Window ended without both'; c = 'down'; }
+    else if (deadline) { st = `Needs ${money(Math.max(0, CGP.cpo - cpo))} and ${Math.max(0, CGP.orders - orders)} orders by ${deadline.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'})}`; c = 'mid'; }
+    else { st = 'Start date needed'; c = 'none'; }
+    const range = start ? `${mon(new Date(y, m - 1, 1))} to ${mon(deadline)}` : 'Last 24 months';
+    return {name: r.name, range, cpo, orders, st, c, gap};
+  }).sort((a, b) => ({down: 0, mid: 1, none: 2, up: 3}[a.c] - {down: 0, mid: 1, none: 2, up: 3}[b.c]) || b.cpo - a.cpo);
+}
+function cgpHeader(){
+  $('#title').textContent = 'CGP Tracker';
+  $('#asof').textContent = `${D.sample ? 'Sample data' : 'Your data'} · as of ${asof.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} · business + realtor gift orders`;
+  $('#note').hidden = false;
+  $('#note').innerHTML = `<b>Keeping CGP status.</b> Within 2 years of getting CGP, sell <b>$20,000</b> <i>and</i> <b>20 orders</b> of gifts. Kept separate from the scoreboard.`;
+  const rows = cgpRows();
+  const n = c => rows.filter(r => r.c === c).length;
+  $('#kpis').innerHTML = `
+    <div class="card kpi"><div class="l">Have both</div><div class="v">${n('up')}</div><div class="n">of ${rows.length} people</div></div>
+    <div class="card kpi"><div class="l">Still working on it</div><div class="v">${n('mid')}</div><div class="n">with a start date</div></div>
+    <div class="card kpi"><div class="l">Window ended</div><div class="v ${n('down') ? 'down' : ''}">${n('down')}</div><div class="n">without both</div></div>
+    <div class="card kpi"><div class="l">Start date needed</div><div class="v">${rows.filter(r => !CGP.dates[r.name]).length}</div><div class="n">no CGP start date yet</div></div>`;
+}
+function vCGP(){
+  const bar = (v, need) => `<div class="track"><i style="width:${Math.min(100, Math.round(100 * v / need))}%"></i></div>`;
+  $('#v-cgp').innerHTML = `<div class="card">
+    <div class="cgp-row cgp-head"><div>Person</div><div>Gift sales</div><div>Gift orders</div><div>Status</div></div>
+    ${cgpRows().map(r => `<div class="cgp-row">
+      <div class="who"><div class="nm">${esc(r.name)}</div><div class="sm">${r.range}</div></div>
+      <div><div class="sm lbl">Gift sales</div>${money(r.cpo)}${bar(r.cpo, CGP.cpo)}</div>
+      <div><div class="sm lbl">Gift orders</div>${r.orders} of ${CGP.orders}${bar(r.orders, CGP.orders)}</div>
+      <div class="st"><span class="pill ${r.c}">${esc(r.st)}</span>${r.gap ? '<div class="sm">No order data before 2024</div>' : ''}</div>
+    </div>`).join('')}</div>`;
+}
+
 function render(){
-  const nat = VIEW === 'nranks' || VIEW === 'ntrends';
+  const nat = VIEW === 'nranks' || VIEW === 'ntrends', cgp = VIEW === 'cgp';
   const m = model(TT);
-  if (nat) natHeader(); else header(m);
-  ({score:vScore, trend:vTrend, people:vPeople, nranks:vNRanks, ntrends:vNTrends})[VIEW](m);
-  ['score','trend','people','nranks','ntrends'].forEach(v => $('#v-'+v).hidden = v !== VIEW);
-  $('#plan').hidden = nat || !(G && G.rows);
+  if (nat) natHeader(); else if (cgp) cgpHeader(); else header(m);
+  ({score:vScore, trend:vTrend, people:vPeople, nranks:vNRanks, ntrends:vNTrends, cgp:vCGP})[VIEW](m);
+  ['score','trend','people','nranks','ntrends','cgp'].forEach(v => $('#v-'+v).hidden = v !== VIEW);
+  $('#types').style.visibility = cgp ? 'hidden' : '';
+  $('#plan').hidden = nat || cgp || !(G && G.rows);
   const past = D.years.filter(y => y < Y);
+  if (cgp) { $('#foot').innerHTML = `Sample data: invented people and numbers. The CGP rule shown: within 2 years of a person's CGP start date, sell $20,000 and 20 orders of gifts (business + realtor). Until a start date is entered, the person is shown on the last 24 months. Open this list on its own by adding #cgp to the page address.`; return; }
   $('#foot').innerHTML = nat
     ? `Sample data. Every name, division, event, item and number on the national tabs is made up for illustration, and loading your own CSV does not change them: they need your company's national report.`
     : `${D.sample ? 'Sample data: invented people and numbers, so you can see how the page works. Load your own with the button at the top.' : 'Source: the CSV you loaded, kept only in this browser.'} Order counts are spread over the months in proportion to sales (the CSV holds yearly order totals), and last year’s same-month figure is pro-rated to the same day. "Pace" ${STRAIGHT ? 'is a straight line across the year' : `follows how ${m.label.toLowerCase()} usually spread across the year (${past.join(', ')})`}: by ${M[mi]} ${asof.getDate()} the division ${STRAIGHT ? 'should have' : 'normally has'} ${Math.round(m.FR*100)}% of its year done.`;
@@ -832,6 +902,13 @@ document.querySelectorAll('#types button').forEach(b => b.onclick = () => { TT =
   document.querySelectorAll('#types button').forEach(x => x.classList.toggle('on', x === b)); render(); });
 document.querySelectorAll('#tabs button').forEach(b => b.onclick = () => { VIEW = b.dataset.v;
   document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); render(); });
+function openView(v){
+  if (v !== 'cgp') return;
+  document.body.classList.add('solo');
+  VIEW = 'cgp';
+  document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.v === 'cgp'));
+  render();
+}
 if (ANS.team) $('#eyebrow').textContent = ANS.team + ' · Version 2';
 document.querySelector('#tabs [data-v=people]').textContent = REPS;
 if (NO_RLT) { $('#types').style.display = 'none'; TT = 'BIZ'; }
@@ -853,6 +930,7 @@ if (window.EvergreenSetup) EvergreenSetup.init({
   ],
   onDone(a){ if (JSON.stringify(a || {}) !== ANS_USED) location.reload(); }
 });
+if (location.hash === '#cgp') openView('cgp');
 </script>
 <a id="evergreen-badge" href="/" title="Evergreen Division" style="position:fixed;right:12px;bottom:12px;z-index:2147483647;display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;border-radius:999px;background:#1e3a2f;color:#efe9dc;font:500 11px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:.04em;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,.18);opacity:.92"><svg viewBox="0 0 200 200" width="16" height="16" aria-hidden="true"><g fill="none" stroke-linecap="round"><circle cx="100" cy="100" r="14" stroke="#c98f61" stroke-width="10"/><circle cx="100" cy="100" r="46" stroke="#efe9dc" stroke-width="9"/><path d="M100 22a78 78 0 1 1-70 44" stroke="#c98f61" stroke-width="9"/><circle cx="100" cy="100" r="92" stroke="#efe9dc" stroke-width="8"/></g></svg>Evergreen Division</a></body>
 </html>
